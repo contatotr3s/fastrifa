@@ -129,14 +129,23 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 setEmail('admin@fastrifa.com');
                 setPassword('123456');
+                setError(null);
+                setLoading(true);
+                const res = await login('admin@fastrifa.com', '123456');
+                if (res?.error) {
+                  setError(res.error);
+                  setLoading(false);
+                } else {
+                  router.push('/admin');
+                }
               }}
-              className="w-full py-3 px-4 text-xs font-bold text-[#0755DE] bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] rounded-[16px] transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-4 text-xs font-bold text-[#0755DE] bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] rounded-[16px] transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#0869F5]" />
-              <span>Preencher dados de teste (admin@fastrifa.com)</span>
+              <span>⚡ Preencher e Entrar como Teste (admin@fastrifa.com)</span>
             </button>
           </form>
 

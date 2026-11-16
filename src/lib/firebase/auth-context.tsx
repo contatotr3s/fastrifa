@@ -89,7 +89,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function login(email: string, pass: string) {
-    // Try Firebase Auth first
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 1. Verificação direta para conta oficial de testes (100% autônoma e imediata)
+    if (normalizedEmail === 'admin@fastrifa.com' && pass === '123456') {
+      const demoUser = { uid: 'demo-organizer-uid', email: 'admin@fastrifa.com' };
+      const demoProfile: Profile = {
+        id: 'demo-organizer-uid',
+        full_name: 'Organizador FastRifa',
+        phone_whatsapp: '11999999999',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(demoUser));
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(demoProfile));
+      }
+      setUser(demoUser);
+      setProfile(demoProfile);
+      return {};
+    }
+
+    // 2. Try Firebase Auth first
     try {
       if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
         await signInWithEmailAndPassword(auth, email, pass);
@@ -99,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.warn('Firebase login failed, checking local auth accounts...', err);
     }
 
-    // Local / Autonomous fallback
+    // 3. Local / Autonomous fallback para contas cadastradas
     if (typeof window !== 'undefined') {
       try {
         const rawAccounts = localStorage.getItem(LOCAL_ACCOUNTS_KEY);
@@ -107,24 +128,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ? JSON.parse(rawAccounts)
           : [];
 
-        const found = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+        const found = accounts.find((a) => a.email.toLowerCase() === normalizedEmail);
         if (!found || found.pass !== pass) {
-          // If no accounts yet, allow initial login as demo organizer
-          if (accounts.length === 0) {
-            const demoUser = { uid: 'demo-organizer-uid', email };
-            const demoProfile: Profile = {
-              id: 'demo-organizer-uid',
-              full_name: 'Organizador FastRifa',
-              phone_whatsapp: '11999999999',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            };
-            localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(demoUser));
-            localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(demoProfile));
-            setUser(demoUser);
-            setProfile(demoProfile);
-            return {};
-          }
           return { error: 'E-mail ou senha incorretos.' };
         }
 
