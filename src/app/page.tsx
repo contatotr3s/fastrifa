@@ -56,11 +56,11 @@ export default function HomePage() {
             href="/"
             className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
           >
-            <div className="relative w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
+            <div className="relative w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
               <img
                 src="/icone-isolado.png"
                 alt="Ícone Fast Rifa"
-                className="w-4 h-4 object-contain brightness-0 invert"
+                className="w-6 h-6 object-contain brightness-0 invert"
               />
             </div>
             <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
@@ -126,10 +126,10 @@ export default function HomePage() {
               {/* Ambient Radial Halo */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.28)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)] blur-xl"
+                className="pointer-events-none absolute w-[380px] h-[380px] sm:w-[520px] sm:h-[520px] lg:w-[640px] lg:h-[640px] rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.50)_45%,transparent_72%)] blur-2xl"
               />
 
-              <div className="relative z-10 w-full max-w-[1120px] flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-5">
+              <div className="relative z-10 w-full max-w-[1240px] flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-6">
                 {/* Left Floating Stream (Before / Common doubts) */}
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-3">
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm">
@@ -143,57 +143,17 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Central Bioluminescent Cobalt Orb (The "Ora" of FastRifa) */}
-                <div className="relative mx-4 my-2 w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center animate-float-slow flex-shrink-0">
-                  <svg
-                    viewBox="0 0 240 240"
-                    className="w-full h-full drop-shadow-[0_24px_48px_rgba(8,105,245,0.28)]"
+                {/* Central Bioluminescent 3D Brand Badge (The "Ora" of FastRifa scaled 2.5x) */}
+                <div className="relative mx-4 my-2 w-64 h-64 sm:w-80 sm:h-80 md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px] flex items-center justify-center animate-float-slow flex-shrink-0">
+                  <div
                     aria-hidden="true"
-                  >
-                    <defs>
-                      <radialGradient id="oraCore" cx="38%" cy="32%" r="65%">
-                        <stop offset="0%" stopColor="#FFFFFF" />
-                        <stop offset="24%" stopColor="#79B6FF" />
-                        <stop offset="62%" stopColor="#0869F5" />
-                        <stop offset="100%" stopColor="#052498" />
-                      </radialGradient>
-                      <linearGradient id="oraShellA" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.85" />
-                        <stop offset="45%" stopColor="#62A5FF" stopOpacity="0.45" />
-                        <stop offset="100%" stopColor="#0869F5" stopOpacity="0.15" />
-                      </linearGradient>
-                      <linearGradient id="oraShellB" x1="100%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#BDD7FF" stopOpacity="0.75" />
-                        <stop offset="55%" stopColor="#0874FA" stopOpacity="0.35" />
-                        <stop offset="100%" stopColor="#0735BF" stopOpacity="0.6" />
-                      </linearGradient>
-                    </defs>
-                    {/* Outer organic translucent petals */}
-                    <path
-                      d="M120 22C168 18 212 56 216 108C220 160 182 212 128 218C74 224 26 182 22 128C18 74 72 26 120 22Z"
-                      fill="url(#oraShellA)"
-                      stroke="#FFFFFF"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M132 28C182 36 218 82 208 134C198 186 146 218 96 208C46 198 18 148 30 96C42 44 82 20 132 28Z"
-                      fill="url(#oraShellB)"
-                      stroke="#E1EDFF"
-                      strokeWidth="1.2"
-                    />
-                    {/* Core luminous sphere */}
-                    <circle cx="120" cy="120" r="68" fill="url(#oraCore)" />
-                    {/* Specular glass reflection */}
-                    <ellipse
-                      cx="98"
-                      cy="92"
-                      rx="26"
-                      ry="15"
-                      transform="rotate(-24 98 92)"
-                      fill="#FFFFFF"
-                      fillOpacity="0.65"
-                    />
-                  </svg>
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.38)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)] blur-3xl"
+                  />
+                  <img
+                    src="/badge-3d-centro.png"
+                    alt="FastRifa Oficial"
+                    className="relative z-10 w-full h-full object-contain drop-shadow-[0_32px_64px_rgba(8,105,245,0.42)] transition-transform hover:scale-105 duration-300"
+                  />
                 </div>
 
                 {/* Right Floating Stream (Clarity & Action in Cobalt Blue) */}
@@ -516,11 +476,11 @@ export default function HomePage() {
       <footer className="border-t border-[#E0E9F7] bg-white py-10 px-4 sm:px-8">
         <div className="max-w-[1340px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#526480]">
           <div className="flex items-center gap-2.5">
-            <div className="relative w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
+            <div className="relative w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
               <img
                 src="/icone-isolado.png"
                 alt="Ícone Fast Rifa"
-                className="w-3.5 h-3.5 object-contain brightness-0 invert"
+                className="w-5 h-5 object-contain brightness-0 invert"
               />
             </div>
             <span className="font-display font-bold text-[#0D1729] tracking-[-0.03em]">
