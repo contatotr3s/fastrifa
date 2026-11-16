@@ -105,8 +105,12 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   }
 
   const all = getLocalRaffles();
-  // In local mode, return raffles matching userId or all demo raffles
-  return all.filter((r) => r.user_id === userId || r.user_id === 'demo-organizer-uid');
+  // Se for a conta demo oficial, exibe a rifa modelo de demonstração
+  if (userId === 'demo-organizer-uid') {
+    return all.filter((r) => r.user_id === userId || r.user_id === 'demo-organizer-uid');
+  }
+  // Para usuários cadastrados, isola e retorna estritamente as suas próprias campanhas
+  return all.filter((r) => r.user_id === userId);
 }
 
 export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
