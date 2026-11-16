@@ -34,10 +34,7 @@ export default function AdminRaffleDetailsPage({
         .then(([raffleData, ordersData]) => {
           if (!raffleData) {
             setError('Campanha não encontrada.');
-          } else if (
-            raffleData.user_id !== user.uid &&
-            !(user.uid === 'demo-organizer-uid' && raffleData.user_id === 'demo-organizer-uid')
-          ) {
+          } else if (raffleData.user_id !== user.uid) {
             setError('Você não tem permissão para gerenciar esta campanha.');
           } else {
             setRaffle(raffleData);

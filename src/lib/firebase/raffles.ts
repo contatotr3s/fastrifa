@@ -26,48 +26,34 @@ export function generateSlug(title: string): string {
   return `${base}-${randomSuffix}`;
 }
 
-// Initial demo raffle for immediate preview
 function getInitialLocalRaffles(): Raffle[] {
-  const demoRaffle: Raffle = {
-    id: 'demo-raffle-01',
-    user_id: 'demo-organizer-uid',
-    title: 'iPhone 16 Pro Max 256GB Titânio',
-    slug: 'iphone-16-pro-max',
-    description: 'Rifa oficial do FASTRIFA! Aparelho novo, lacrado com nota fiscal e garantia Apple de 1 ano. Sorteio pela Loteria Federal.',
-    prize_image_url: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1000&q=80',
-    ticket_price: 1.0,
-    total_tickets: 100,
-    pix_key: 'contato@fastrifa.com',
-    pix_key_type: 'email',
-    phone_whatsapp: '11999999999',
-    status: 'active',
-    winner_ticket: null,
-    winner_name: null,
-    draw_date: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  return [demoRaffle];
+  return [];
 }
 
 function getLocalRaffles(): Raffle[] {
-  if (typeof window === 'undefined') return getInitialLocalRaffles();
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(LOCAL_RAFFLES_KEY);
-    if (!raw) {
-      const initial = getInitialLocalRaffles();
-      localStorage.setItem(LOCAL_RAFFLES_KEY, JSON.stringify(initial));
-      return initial;
+    if (!raw) return [];
+    const list: Raffle[] = JSON.parse(raw);
+    const filtered = list.filter(
+      (r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max'
+    );
+    if (filtered.length !== list.length) {
+      localStorage.setItem(LOCAL_RAFFLES_KEY, JSON.stringify(filtered));
     }
-    return JSON.parse(raw);
+    return filtered;
   } catch {
-    return getInitialLocalRaffles();
+    return [];
   }
 }
 
 function saveLocalRaffles(raffles: Raffle[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(LOCAL_RAFFLES_KEY, JSON.stringify(raffles));
+    const filtered = raffles.filter(
+      (r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max'
+    );
+    localStorage.setItem(LOCAL_RAFFLES_KEY, JSON.stringify(filtered));
   }
 }
 
@@ -75,7 +61,13 @@ function getLocalOrders(): Order[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(LOCAL_ORDERS_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const list: Order[] = JSON.parse(raw);
+    const filtered = list.filter((o) => o.raffle_id !== 'demo-raffle-01');
+    if (filtered.length !== list.length) {
+      localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(filtered));
+    }
+    return filtered;
   } catch {
     return [];
   }
@@ -83,7 +75,8 @@ function getLocalOrders(): Order[] {
 
 function saveLocalOrders(orders: Order[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(orders));
+    const filtered = orders.filter((o) => o.raffle_id !== 'demo-raffle-01');
+    localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(filtered));
   }
 }
 
@@ -97,7 +90,9 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }));
+        return snap.docs
+          .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
+          .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
       }
     }
   } catch {
@@ -105,20 +100,18 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   }
 
   const all = getLocalRaffles();
-  // Se for a conta demo oficial, exibe a rifa modelo de demonstração
-  if (userId === 'demo-organizer-uid') {
-    return all.filter((r) => r.user_id === userId || r.user_id === 'demo-organizer-uid');
-  }
-  // Para usuários cadastrados, isola e retorna estritamente as suas próprias campanhas
   return all.filter((r) => r.user_id === userId);
 }
 
 export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
+  if (raffleId === 'demo-raffle-01') return null;
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
       const d = await getDoc(doc(db, 'raffles', raffleId));
       if (d.exists()) {
-        return { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
+        const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
+        if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max') return null;
+        return data;
       }
     }
   } catch {
@@ -126,17 +119,20 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
   }
 
   const all = getLocalRaffles();
-  return all.find((r) => r.id === raffleId) || null;
+  return all.find((r) => r.id === raffleId && r.id !== 'demo-raffle-01') || null;
 }
 
 export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
+  if (slug === 'iphone-16-pro-max') return null;
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
       const q = query(collection(db, 'raffles'), where('slug', '==', slug));
       const snap = await getDocs(q);
       if (!snap.empty) {
         const d = snap.docs[0];
-        return { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
+        const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
+        if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max') return null;
+        return data;
       }
     }
   } catch {
@@ -144,7 +140,7 @@ export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
   }
 
   const all = getLocalRaffles();
-  return all.find((r) => r.slug === slug) || null;
+  return all.find((r) => r.slug === slug && r.slug !== 'iphone-16-pro-max') || null;
 }
 
 export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'updated_at'>): Promise<string> {

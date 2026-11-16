@@ -38,8 +38,8 @@ export default function AdminHeader() {
             <Link href="/admin" className="text-[#0D1729] hover:text-[#0869F5] font-semibold transition">
               Minhas Campanhas
             </Link>
-            <Link href="/r/iphone-16-pro-max" target="_blank" className="hover:text-[#0869F5] transition">
-              Ver Rifa Modelo
+            <Link href="/admin/rifas/nova" className="text-[#0869F5] hover:text-[#052498] font-semibold transition">
+              + Nova Rifa
             </Link>
           </nav>
         </div>

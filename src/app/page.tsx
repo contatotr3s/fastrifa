@@ -181,10 +181,10 @@ export default function HomePage() {
                 <ArrowUpRight className="w-5 h-5" />
               </Link>
               <Link
-                href="/r/iphone-16-pro-max"
+                href="/cadastro"
                 className="ora-btn-secondary rounded-[20px] px-7 py-4 text-[17px] font-semibold inline-flex items-center justify-center gap-2.5 w-full sm:w-auto"
               >
-                <span>Ver rifa ao vivo</span>
+                <span>Criar uma rifa</span>
                 <ArrowRight className="w-4 h-4 text-[#0869F5]" />
               </Link>
             </div>
@@ -228,10 +228,10 @@ export default function HomePage() {
 
                   <div className="pt-4">
                     <Link
-                      href="/r/iphone-16-pro-max"
+                      href="/cadastro"
                       className="ora-btn-primary rounded-[18px] px-7 py-3.5 text-[15px] font-bold inline-flex items-center gap-2"
                     >
-                      <span>Testar campanha de demonstração</span>
+                      <span>Criar campanha personalizada</span>
                       <ArrowUpRight className="w-4 h-4" />
                     </Link>
                   </div>
@@ -243,10 +243,10 @@ export default function HomePage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E3EDFB]">
                       <div>
                         <span className="inline-block px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold tracking-wide uppercase mb-2">
-                          Campanha Exemplo Ativa
+                          Exemplo de Demonstração
                         </span>
                         <h3 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
-                          iPhone 16 Pro Max 256GB Titânio
+                          Grade Interativa com Baixa PIX
                         </h3>
                       </div>
                       <div className="text-left sm:text-right tabular-nums">
@@ -258,7 +258,7 @@ export default function HomePage() {
                     {/* Sample Cota Grid Preview */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs font-semibold text-[#475872]">
-                        <span>Prévia da grade interativa de cotas</span>
+                        <span>Prévia da grade de números</span>
                         <span className="text-[#0869F5] tabular-nums">3 cotas selecionadas (R$ 3,00)</span>
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 tabular-nums">
@@ -276,13 +276,12 @@ export default function HomePage() {
                               'bg-[#FFF8EB] border-[#F5D08A] text-[#9A6700]';
                           }
                           return (
-                            <Link
-                              href="/r/iphone-16-pro-max"
+                            <div
                               key={cota.num}
-                              className={`h-11 rounded-[13px] border font-display font-bold text-xs flex items-center justify-center transition hover:scale-[1.03] ${style}`}
+                              className={`h-11 rounded-[13px] border font-display font-bold text-xs flex items-center justify-center select-none ${style}`}
                             >
                               #{cota.num}
-                            </Link>
+                            </div>
                           );
                         })}
                       </div>
@@ -290,13 +289,13 @@ export default function HomePage() {
 
                     <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F5F9FF] rounded-[18px] p-4 border border-[#E0E9F7]">
                       <div className="text-xs sm:text-sm text-[#475872]">
-                        Clique em qualquer número acima para abrir a rifa completa e simular uma reserva real.
+                        Os compradores selecionam números na grade visual e pagam diretamente via PIX com baixa automática.
                       </div>
                       <Link
-                        href="/r/iphone-16-pro-max"
+                        href="/cadastro"
                         className="text-xs font-bold text-[#0869F5] hover:text-[#052498] whitespace-nowrap inline-flex items-center gap-1"
                       >
-                        <span>Abrir página pública</span>
+                        <span>Criar minha rifa</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
@@ -489,8 +488,8 @@ export default function HomePage() {
             <span>© 2026 — Plataforma de campanhas e cotas online.</span>
           </div>
           <div className="flex items-center gap-6 font-medium">
-            <Link href="/r/iphone-16-pro-max" className="hover:text-[#0869F5] transition">
-              Rifa Demo
+            <Link href="/admin" className="hover:text-[#0869F5] transition">
+              Painel
             </Link>
             <Link href="/login" className="hover:text-[#0869F5] transition">
               Entrar
