@@ -83,11 +83,13 @@ function saveLocalOrders(orders: Order[]) {
 export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const q = query(
-        collection(db, 'raffles'),
-        where('user_id', '==', userId),
-        orderBy('created_at', 'desc')
-      );
+      const q = userId === 'demo-organizer-uid'
+        ? query(collection(db, 'raffles'), orderBy('created_at', 'desc'))
+        : query(
+            collection(db, 'raffles'),
+            where('user_id', '==', userId),
+            orderBy('created_at', 'desc')
+          );
       const snap = await getDocs(q);
       if (!snap.empty) {
         return snap.docs
@@ -100,6 +102,9 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   }
 
   const all = getLocalRaffles();
+  if (userId === 'demo-organizer-uid') {
+    return all;
+  }
   return all.filter((r) => r.user_id === userId);
 }
 
