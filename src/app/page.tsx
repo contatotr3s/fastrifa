@@ -54,16 +54,16 @@ export default function HomePage() {
           {/* Brand Pill */}
           <Link
             href="/"
-            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full pl-2.5 pr-6 py-2 flex items-center gap-3 hover:border-[#B9D3F8] transition"
           >
-            <div className="relative w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
+            <div className="relative w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_16px_rgba(8,105,245,0.38)] flex-shrink-0">
               <img
                 src="/icone-isolado.png"
                 alt="Ícone Fast Rifa"
-                className="w-6 h-6 object-contain brightness-0 invert"
+                className="w-8 h-8 object-contain brightness-0 invert"
               />
             </div>
-            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
+            <span className="font-display font-bold text-2xl tracking-[-0.04em] text-[#0D1729]">
               Fast<span className="text-[#0869F5]">Rifa</span>
             </span>
           </Link>
@@ -126,10 +126,10 @@ export default function HomePage() {
               {/* Ambient Radial Halo */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute w-[380px] h-[380px] sm:w-[520px] sm:h-[520px] lg:w-[640px] lg:h-[640px] rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.50)_45%,transparent_72%)] blur-2xl"
+                className="pointer-events-none absolute w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.28)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)] blur-xl"
               />
 
-              <div className="relative z-10 w-full max-w-[1240px] flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-6">
+              <div className="relative z-10 w-full max-w-[1120px] flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-5">
                 {/* Left Floating Stream (Before / Common doubts) */}
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-3">
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm">
@@ -143,16 +143,16 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Central Bioluminescent 3D Brand Badge (The "Ora" of FastRifa scaled 2.5x) */}
-                <div className="relative mx-4 my-2 w-64 h-64 sm:w-80 sm:h-80 md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px] flex items-center justify-center animate-float-slow flex-shrink-0">
+                {/* Central Bioluminescent 3D Brand Badge (The "Ora" of FastRifa) */}
+                <div className="relative mx-4 my-2 w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center animate-float-slow flex-shrink-0">
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.38)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)] blur-3xl"
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.35)_0%,rgba(8,105,245,0.18)_55%,transparent_75%)] blur-2xl"
                   />
                   <img
                     src="/badge-3d-centro.png"
                     alt="FastRifa Oficial"
-                    className="relative z-10 w-full h-full object-contain drop-shadow-[0_32px_64px_rgba(8,105,245,0.42)] transition-transform hover:scale-105 duration-300"
+                    className="relative z-10 w-full h-full object-contain drop-shadow-[0_24px_48px_rgba(8,105,245,0.35)] transition-transform hover:scale-105 duration-300"
                   />
                 </div>
 
