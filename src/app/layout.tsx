@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/firebase/auth-context";
+import TestEnvBanner from "@/components/test-env-banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,6 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#FFFFFF] text-[#0D1729]">
+        <TestEnvBanner />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
