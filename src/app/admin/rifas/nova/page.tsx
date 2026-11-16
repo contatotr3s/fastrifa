@@ -2,27 +2,64 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createRaffle } from '@/app/admin/actions';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/firebase/auth-context';
+import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
 import { ArrowLeft, Ticket, Loader2 } from 'lucide-react';
+import type { PixKeyType } from '@/types/database.types';
 
 export default function NewRafflePage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [prizeImageUrl, setPrizeImageUrl] = useState('');
   const [totalTickets, setTotalTickets] = useState<number>(100);
   const [ticketPrice, setTicketPrice] = useState<number>(1.00);
+  const [pixKeyType, setPixKeyType] = useState<PixKeyType>('cpf');
+  const [pixKey, setPixKey] = useState('');
+  const [phoneWhatsapp, setPhoneWhatsapp] = useState('');
 
   const presets = [50, 100, 200, 500, 1000];
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) {
+      setError('Você precisa estar autenticado.');
+      return;
+    }
+
+    if (!title || !pixKey || isNaN(ticketPrice) || isNaN(totalTickets)) {
+      setError('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const result = await createRaffle(formData);
+    try {
+      const slug = generateSlug(title);
+      const newId = await createRaffle({
+        user_id: user.uid,
+        title,
+        slug,
+        description,
+        prize_image_url: prizeImageUrl || null,
+        ticket_price: ticketPrice,
+        total_tickets: totalTickets,
+        pix_key: pixKey,
+        pix_key_type: pixKeyType,
+        phone_whatsapp: phoneWhatsapp || '',
+        status: 'active',
+      });
 
-    if (result?.error) {
-      setError(result.error);
+      router.push(`/admin/rifas/${newId}`);
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string };
+      setError(errorObj.message || 'Erro ao criar rifa.');
       setLoading(false);
     }
   }
@@ -70,9 +107,10 @@ export default function NewRafflePage() {
             </label>
             <input
               id="title"
-              name="title"
               type="text"
               required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: iPhone 16 Pro Max 256GB Lacrado"
               className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm"
             />
@@ -84,8 +122,9 @@ export default function NewRafflePage() {
             </label>
             <textarea
               id="description"
-              name="description"
               rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Descreva o prêmio, data de sorteio ou critérios (ex: Sorteio pela Loteria Federal)."
               className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm"
             />
@@ -97,8 +136,9 @@ export default function NewRafflePage() {
             </label>
             <input
               id="prizeImageUrl"
-              name="prizeImageUrl"
               type="url"
+              value={prizeImageUrl}
+              onChange={(e) => setPrizeImageUrl(e.target.value)}
               placeholder="https://exemplo.com/foto-do-premio.jpg"
               className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm"
             />
@@ -133,7 +173,6 @@ export default function NewRafflePage() {
             </div>
             <input
               id="totalTickets"
-              name="totalTickets"
               type="number"
               min={10}
               max={100000}
@@ -150,7 +189,6 @@ export default function NewRafflePage() {
             </label>
             <input
               id="ticketPrice"
-              name="ticketPrice"
               type="number"
               step="0.01"
               min="0.01"
@@ -181,7 +219,8 @@ export default function NewRafflePage() {
               </label>
               <select
                 id="pixKeyType"
-                name="pixKeyType"
+                value={pixKeyType}
+                onChange={(e) => setPixKeyType(e.target.value as PixKeyType)}
                 className="w-full px-3 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-emerald-500 text-sm"
               >
                 <option value="cpf">CPF</option>
@@ -198,9 +237,10 @@ export default function NewRafflePage() {
               </label>
               <input
                 id="pixKey"
-                name="pixKey"
                 type="text"
                 required
+                value={pixKey}
+                onChange={(e) => setPixKey(e.target.value)}
                 placeholder="Insira a chave para onde o comprador pagará"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm"
               />
@@ -213,9 +253,10 @@ export default function NewRafflePage() {
             </label>
             <input
               id="phoneWhatsapp"
-              name="phoneWhatsapp"
               type="tel"
               required
+              value={phoneWhatsapp}
+              onChange={(e) => setPhoneWhatsapp(e.target.value)}
               placeholder="Ex: 11999999999"
               className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm"
             />

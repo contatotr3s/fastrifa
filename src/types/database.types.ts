@@ -1,11 +1,3 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
-
 export type PixKeyType = 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
 
 export type RaffleStatus = 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
@@ -13,7 +5,7 @@ export type RaffleStatus = 'draft' | 'active' | 'paused' | 'completed' | 'cancel
 export type OrderStatus = 'pending' | 'paid' | 'cancelled';
 
 export interface Profile {
-  id: string;
+  id: string; // Firebase Auth UID
   full_name: string;
   phone_whatsapp: string;
   pix_key?: string | null;
@@ -23,8 +15,8 @@ export interface Profile {
 }
 
 export interface Raffle {
-  id: string;
-  user_id: string;
+  id: string; // Firestore document ID
+  user_id: string; // Organizer UID
   title: string;
   slug: string;
   description: string;
@@ -43,7 +35,7 @@ export interface Raffle {
 }
 
 export interface Order {
-  id: string;
+  id: string; // Firestore document ID
   raffle_id: string;
   buyer_name: string;
   buyer_phone: string;

@@ -2,24 +2,39 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { signup } from '@/app/auth/actions';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/firebase/auth-context';
 import { Ticket, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const { signup } = useAuth();
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const result = await signup(formData);
+    if (password.length < 6) {
+      setError('A senha deve conter pelo menos 6 caracteres.');
+      setLoading(false);
+      return;
+    }
 
-    if (result?.error) {
+    const result = await signup(fullName, phone, email, password);
+
+    if (result.error) {
       setError(result.error);
       setLoading(false);
+    } else {
+      router.push('/admin');
     }
   }
 
@@ -54,9 +69,10 @@ export default function SignupPage() {
               </label>
               <input
                 id="fullName"
-                name="fullName"
                 type="text"
                 required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 placeholder="Ex: João da Silva"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
               />
@@ -68,9 +84,10 @@ export default function SignupPage() {
               </label>
               <input
                 id="phone"
-                name="phone"
                 type="tel"
                 required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder="(11) 99999-9999"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
               />
@@ -82,9 +99,10 @@ export default function SignupPage() {
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="seu@email.com"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
@@ -97,10 +115,11 @@ export default function SignupPage() {
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
                 required
                 minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 placeholder="••••••••"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"

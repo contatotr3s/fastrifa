@@ -6,9 +6,9 @@ Plataforma aberta, rápida e sem atrito para criação e administração de rifa
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Fullstack:** [Next.js](https://nextjs.org/) 16+ (App Router, Server Actions, TypeScript)
+- **Fullstack:** [Next.js](https://nextjs.org/) 16+ (App Router, TypeScript)
 - **Estilização & UI:** [Tailwind CSS](https://tailwindcss.com/) & [Lucide React](https://lucide.dev/) (Diretrizes de design `impeccable`)
-- **Banco de Dados & Autenticação:** [Supabase](https://supabase.com/) (PostgreSQL com Row Level Security)
+- **Backend & Banco de Dados:** [Firebase](https://firebase.google.com/) (Firebase Auth + Cloud Firestore)
 - **Deploy:** [Vercel](https://vercel.com/)
 - **Versionamento:** [GitHub](https://github.com/)
 
@@ -17,7 +17,7 @@ Plataforma aberta, rápida e sem atrito para criação e administração de rifa
 ## ⚡ Funcionalidades
 
 ### 1. Para o Organizador (`/admin`)
-- **Autenticação:** Cadastro e login seguro com e-mail e senha.
+- **Autenticação:** Cadastro e login seguro com e-mail e senha via Firebase Auth.
 - **Criação de Rifas:** Título, descrição, foto do prêmio, quantidade total de cotas (50, 100, 200, 500, 1.000 ou customizado), preço por cota, chave PIX e WhatsApp.
 - **Painel de Controle:** Métricas de arrecadação em tempo real (cotas pagas vs reservadas vs disponíveis).
 - **Gestão de Participantes:** Listagem de compradores com link direto para WhatsApp e ações de **Confirmar Pagamento** ou **Liberar Cotas**.
@@ -34,51 +34,29 @@ Plataforma aberta, rápida e sem atrito para criação e administração de rifa
 
 ---
 
-## 📦 Como Rodar o Projeto Localmente
+## 📦 Como Rodar o Projeto Localmente com Firebase
 
-### 1. Clonar e Instalar Dependências
+### 1. Criar o Projeto no Firebase Console
+1. Acesse [console.firebase.google.com](https://console.firebase.google.com/) e clique em **Adicionar projeto** (ex: `FASTRIFA`).
+2. No menu lateral, acesse **Build > Authentication** > **Começar** e ative o provedor **E-mail/senha**.
+3. No menu lateral, acesse **Build > Firestore Database** > **Criar banco de dados** (escolha modo de teste ou configure as regras).
+4. Vá em **Configurações do Projeto (ícone de engrenagem) > Geral > Seus aplicativos** e adicione um aplicativo Web (ícone `</>`).
+5. Copie as credenciais do `firebaseConfig`.
+
+### 2. Configurar as Variáveis de Ambiente
+Crie um arquivo `.env.local` na raiz do projeto com as chaves copiadas:
 ```bash
-npm install
-```
-
-### 2. Configurar o Banco de Dados no Supabase
-1. Crie um projeto gratuito em [supabase.com](https://supabase.com/).
-2. No painel do Supabase, acesse **SQL Editor**.
-3. Copie o conteúdo do arquivo [`supabase/schema.sql`](supabase/schema.sql) e clique em **Run**.
-   *(Isso criará as tabelas `profiles`, `raffles`, `orders`, triggers, índices e todas as políticas de segurança RLS).*
-
-### 3. Configurar as Variáveis de Ambiente
-Crie um arquivo `.env.local` na raiz do projeto (baseado em `.env.example`):
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key-do-supabase
+NEXT_PUBLIC_FIREBASE_API_KEY=sua-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=seu-projeto.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=seu-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=seu-projeto.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=seu-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=seu-app-id
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 4. Iniciar o Servidor de Desenvolvimento
+### 3. Iniciar o Servidor de Desenvolvimento
 ```bash
 npm run dev
 ```
 Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
-
----
-
-## 🚀 Como Subir para o GitHub e Vercel
-
-### Passo 1: Subir para o seu GitHub
-1. Crie um novo repositório vazio no seu GitHub (ex: `fastrifa`).
-2. No terminal desta pasta, execute:
-```bash
-git remote add origin https://github.com/SEU_USUARIO/fastrifa.git
-git branch -M main
-git push -u origin main
-```
-
-### Passo 2: Fazer o Deploy na Vercel
-1. Acesse [vercel.com](https://vercel.com/) e conecte com seu GitHub.
-2. Clique em **Add New... -> Project** e selecione o repositório `fastrifa`.
-3. Em **Environment Variables**, adicione as mesmas variáveis do seu `.env.local`:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_APP_URL` (com a URL final gerada pela Vercel, ex: `https://fastrifa.vercel.app`)
-4. Clique em **Deploy**. O deploy será realizado em segundos!

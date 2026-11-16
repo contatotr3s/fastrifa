@@ -1,79 +1,61 @@
-import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+'use client';
+
+import { use, useEffect, useState } from 'react';
+import { getRaffleBySlug, getOccupiedTickets } from '@/lib/firebase/raffles';
 import RafflePublicView from './raffle-view';
+import { Loader2 } from 'lucide-react';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
-import type { Metadata } from 'next';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('raffles')
-    .select('title, description, prize_image_url')
-    .eq('slug', slug)
-    .single();
-
-  if (!data) {
-    return {
-      title: 'Rifa não encontrada | FASTRIFA',
-    };
-  }
-
-  return {
-    title: `${data.title} | FASTRIFA`,
-    description: data.description || 'Participe agora desta rifa e concorra ao prêmio!',
-    openGraph: {
-      title: data.title,
-      description: data.description || 'Participe agora desta rifa e concorra ao prêmio!',
-      images: data.prize_image_url ? [data.prize_image_url] : [],
-    },
-  };
-}
-
-export default async function RafflePublicPage({
+export default function RafflePublicPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
-  const supabase = await createClient();
+  const { slug } = use(params);
 
-  // Fetch raffle
-  const { data: raffleData, error } = await supabase
-    .from('raffles')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  const [raffle, setRaffle] = useState<Raffle | null>(null);
+  const [occupiedTickets, setOccupiedTickets] = useState<OccupiedTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (error || !raffleData) {
-    notFound();
+  useEffect(() => {
+    if (slug) {
+      getRaffleBySlug(slug)
+        .then(async (raffleData) => {
+          if (!raffleData) {
+            setError('Rifa não encontrada.');
+            setLoading(false);
+            return;
+          }
+          setRaffle(raffleData);
+          const occupied = await getOccupiedTickets(raffleData.id);
+          setOccupiedTickets(occupied);
+        })
+        .catch((err) => {
+          console.error(err);
+          setError('Erro ao carregar a rifa.');
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+      </div>
+    );
   }
 
-  const raffle = raffleData as Raffle;
-
-  // Fetch occupied tickets
-  const { data: ordersData } = await supabase
-    .from('orders')
-    .select('ticket_numbers, status')
-    .eq('raffle_id', raffle.id)
-    .in('status', ['pending', 'paid']);
-
-  const occupiedTickets: OccupiedTicket[] = [];
-
-  if (ordersData) {
-    for (const ord of ordersData) {
-      for (const num of ord.ticket_numbers) {
-        occupiedTickets.push({
-          ticket_number: num,
-          status: ord.status as 'pending' | 'paid',
-        });
-      }
-    }
+  if (error || !raffle) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 text-center">
+        <h1 className="text-xl font-bold text-rose-400 mb-2">Ops! Rifa não encontrada</h1>
+        <p className="text-sm text-slate-400 max-w-sm">
+          Verifique se o link compartilhado está correto.
+        </p>
+      </div>
+    );
   }
 
   return <RafflePublicView raffle={raffle} initialOccupiedTickets={occupiedTickets} />;

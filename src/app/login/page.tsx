@@ -2,24 +2,31 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { login } from '@/app/auth/actions';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/firebase/auth-context';
 import { Ticket, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const { login } = useAuth();
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const result = await login(formData);
+    const result = await login(email, password);
 
-    if (result?.error) {
+    if (result.error) {
       setError(result.error);
       setLoading(false);
+    } else {
+      router.push('/admin');
     }
   }
 
@@ -54,9 +61,10 @@ export default function LoginPage() {
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="seu@email.com"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
@@ -71,9 +79,10 @@ export default function LoginPage() {
               </div>
               <input
                 id="password"
-                name="password"
                 type="password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 placeholder="••••••••"
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"

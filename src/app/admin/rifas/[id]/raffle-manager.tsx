@@ -12,9 +12,8 @@ import {
   Trophy,
   MessageCircle,
   Loader2,
-  Clock,
 } from 'lucide-react';
-import { updateOrderStatus, finishRaffle } from '@/app/admin/actions';
+import { updateOrderStatus, finishRaffle } from '@/lib/firebase/raffles';
 import type { Raffle, Order } from '@/types/database.types';
 
 interface RaffleManagerProps {
@@ -55,13 +54,16 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
 
   async function handleStatusChange(orderId: string, newStatus: 'paid' | 'cancelled' | 'pending') {
     setActionLoading(orderId);
-    const result = await updateOrderStatus(orderId, raffle.id, newStatus);
-    if (result.success) {
+    try {
+      await updateOrderStatus(orderId, newStatus);
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
+    } catch (err) {
+      console.error('Erro ao atualizar status do pedido:', err);
+    } finally {
+      setActionLoading(null);
     }
-    setActionLoading(null);
   }
 
   async function handleFinishRaffle(e: React.FormEvent) {
@@ -69,14 +71,16 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
     if (!winnerTicket) return;
 
     setDrawLoading(true);
-    const ticketNum = parseInt(winnerTicket, 10);
-    const result = await finishRaffle(raffle.id, ticketNum, winnerName);
-
-    if (result.success) {
+    try {
+      const ticketNum = parseInt(winnerTicket, 10);
+      await finishRaffle(raffle.id, ticketNum, winnerName);
       setShowDrawModal(false);
       window.location.reload();
+    } catch (err) {
+      console.error('Erro ao finalizar rifa:', err);
+    } finally {
+      setDrawLoading(false);
     }
-    setDrawLoading(false);
   }
 
   const filteredOrders = orders.filter((o) => {

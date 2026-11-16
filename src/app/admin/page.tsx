@@ -1,30 +1,42 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { PlusCircle, ExternalLink, Settings, Trophy, DollarSign, Tag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/firebase/auth-context';
+import { getUserRaffles } from '@/lib/firebase/raffles';
+import { PlusCircle, ExternalLink, Settings, Trophy, DollarSign, Tag, Loader2 } from 'lucide-react';
 import type { Raffle } from '@/types/database.types';
 
-export default async function AdminDashboardPage() {
-  const supabase = await createClient();
+export default function AdminDashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [raffles, setRaffles] = useState<Raffle[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  let raffles: Raffle[] = [];
-
-  if (user) {
-    const { data } = await supabase
-      .from('raffles')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      raffles = data as Raffle[];
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+      return;
     }
+
+    if (user) {
+      getUserRaffles(user.uid)
+        .then((data) => setRaffles(data))
+        .catch((err) => console.error('Erro ao buscar rifas:', err))
+        .finally(() => setLoading(false));
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+      </div>
+    );
   }
 
-  // Calculate high-level stats
   const totalRaffles = raffles.length;
   const activeRaffles = raffles.filter((r) => r.status === 'active').length;
   const completedRaffles = raffles.filter((r) => r.status === 'completed').length;

@@ -15,7 +15,7 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
-import { createOrder } from './actions';
+import { createOrder } from '@/lib/firebase/raffles';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
 
 interface RafflePublicViewProps {
@@ -109,16 +109,16 @@ export default function RafflePublicView({
     const amount = selectedTickets.length * raffle.ticket_price;
 
     const result = await createOrder({
-      raffleId: raffle.id,
-      slug: raffle.slug,
-      buyerName,
-      buyerPhone,
-      ticketNumbers: selectedTickets,
-      totalAmount: amount,
+      raffle_id: raffle.id,
+      buyer_name: buyerName,
+      buyer_phone: buyerPhone,
+      ticket_numbers: selectedTickets,
+      total_amount: amount,
+      status: 'pending',
     });
 
-    if (result.error) {
-      setOrderError(result.error);
+    if (result.error || !result.orderId) {
+      setOrderError(result.error || 'Erro ao registrar pedido.');
       setIsSubmitting(false);
       return;
     }
