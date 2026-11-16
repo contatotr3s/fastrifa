@@ -125,10 +125,10 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
                   ? 'Concluída'
                   : 'Pausada'}
               </span>
-              {raffle.status === 'completed' && raffle.winner_ticket !== null && (
+              {raffle.status === 'completed' && raffle.winner_ticket != null && (
                 <span className="text-xs text-[#9A6700] bg-[#FFF8EB] border border-[#F5D08A] px-3 py-0.5 rounded-full font-bold inline-flex items-center gap-1 tabular-nums">
                   <Trophy className="w-3.5 h-3.5" />
-                  Cota Premiada: #{raffle.winner_ticket.toString().padStart(3, '0')}
+                  Cota Premiada: #{String(raffle.winner_ticket).padStart(3, '0')}
                 </span>
               )}
             </div>
