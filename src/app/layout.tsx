@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/firebase/auth-context";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "FASTRIFA | Plataforma Rápida de Rifas Online",
-  description: "Crie e gerencie rifas online com pagamentos diretos via PIX.",
+  title: "FASTRIFA — Campanhas e Rifas Online com PIX Direto",
+  description:
+    "Crie, publique e gerencie campanhas de cotas online com recebimento instantâneo via PIX direto na sua conta.",
 };
 
 export default function RootLayout({
@@ -24,11 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
+    <html lang="pt-BR" className={`${inter.variable} h-full antialiased`}>
+      <head>
+        <link
+          rel="preconnect"
+          href="https://api.fontshare.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[#FFFFFF] text-[#0D1729]">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

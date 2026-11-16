@@ -6,13 +6,13 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#F8FBFF] text-[#0D1729] flex flex-col">
       <AdminHeader />
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+      <main className="flex-1 max-w-[1240px] w-full mx-auto px-4 sm:px-8 py-8 sm:py-10">
         {children}
       </main>
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-        FASTRIFA &copy; 2026 — Plataforma rápida de sorteios e cotas.
+      <footer className="border-t border-[#E0E9F7] bg-white py-6 text-center text-xs text-[#526480]">
+        FastRifa &copy; 2026 — Gestão transparente de campanhas e cotas via PIX.
       </footer>
     </div>
   );

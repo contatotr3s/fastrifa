@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Ticket,
   Trophy,
   Check,
   Copy,
@@ -13,7 +12,7 @@ import {
   ShoppingCart,
   Loader2,
   X,
-  Sparkles,
+  ArrowUpRight,
 } from 'lucide-react';
 import { createOrder } from '@/lib/firebase/raffles';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
@@ -28,7 +27,9 @@ export default function RafflePublicView({
   initialOccupiedTickets,
 }: RafflePublicViewProps) {
   const [selectedTickets, setSelectedTickets] = useState<number[]>([]);
-  const [occupiedTickets, setOccupiedTickets] = useState<OccupiedTicket[]>(initialOccupiedTickets);
+  const [occupiedTickets, setOccupiedTickets] = useState<OccupiedTicket[]>(
+    initialOccupiedTickets
+  );
   const [searchQuery, setSearchQuery] = useState('');
 
   // Checkout modal states
@@ -68,7 +69,10 @@ export default function RafflePublicView({
 
   // Calculate statistics
   const paidCount = occupiedTickets.filter((t) => t.status === 'paid').length;
-  const progressPercent = Math.min(100, Math.round((paidCount / raffle.total_tickets) * 100));
+  const progressPercent = Math.min(
+    100,
+    Math.round((paidCount / raffle.total_tickets) * 100)
+  );
   const totalPrice = (selectedTickets.length * raffle.ticket_price).toFixed(2);
 
   // Handle clicking a number in the grid
@@ -77,7 +81,9 @@ export default function RafflePublicView({
     if (occupiedMap.has(num)) return;
 
     setSelectedTickets((prev) =>
-      prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num].sort((a, b) => a - b)
+      prev.includes(num)
+        ? prev.filter((n) => n !== num)
+        : [...prev, num].sort((a, b) => a - b)
     );
   }
 
@@ -151,49 +157,59 @@ export default function RafflePublicView({
   }, [raffle.total_tickets, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 pb-28">
-      {/* Top Navbar */}
-      <header className="border-b border-slate-900 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-xl font-black tracking-tight text-white">
-            <span className="p-1.5 bg-emerald-500 text-slate-950 rounded-lg">
-              <Ticket className="w-5 h-5" />
+    <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-32">
+      {/* Top Floating Pill Navbar */}
+      <header className="sticky top-0 z-40 h-[84px] flex items-center bg-gradient-to-b from-white/95 via-white/80 to-transparent backdrop-blur-[6px]">
+        <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between">
+          <Link
+            href="/"
+            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
+          >
+            <span className="w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_12px_rgba(8,105,245,0.3)]">
+              <span className="w-2.5 h-2.5 rounded-full bg-white/90" />
             </span>
-            FAST<span className="text-emerald-400">RIFA</span>
+            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
+              Fast<span className="text-[#0869F5]">Rifa</span>
+            </span>
           </Link>
+
           <Link
             href="/cadastro"
-            className="text-xs font-bold text-slate-300 hover:text-emerald-400 border border-slate-800 hover:border-emerald-500/30 px-3.5 py-1.5 rounded-xl transition"
+            className="ora-btn-secondary rounded-full px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold inline-flex items-center gap-1.5"
           >
-            Criar Minha Rifa
+            <span>Criar Minha Rifa</span>
+            <ArrowUpRight className="w-4 h-4 text-[#0869F5]" />
           </Link>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-6">
+      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-8">
         {/* Prize Showcase Card */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 overflow-hidden relative shadow-2xl">
+        <section className="ora-card rounded-[32px] p-6 sm:p-10 relative overflow-hidden">
           {raffle.status === 'completed' && (
-            <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3">
-              <span className="p-2 bg-amber-500 text-slate-950 rounded-xl">
+            <div className="mb-7 p-5 bg-[#FFF8EB] border border-[#F5D08A] rounded-[22px] flex items-center gap-4">
+              <span className="p-3 bg-[#9A6700] text-white rounded-2xl">
                 <Trophy className="w-6 h-6" />
               </span>
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
-                  Rifa Concluída / Sorteio Realizado
+                <span className="text-xs font-bold uppercase tracking-wider text-[#9A6700] block">
+                  Sorteio Concluído
                 </span>
-                <span className="text-sm font-bold text-white">
-                  Cota Premiada: <strong className="text-amber-300 text-base">#{raffle.winner_ticket}</strong>
+                <span className="text-base font-bold text-[#0D1729] tabular-nums">
+                  Cota Premiada:{' '}
+                  <strong className="text-[#0869F5] text-lg">
+                    #{raffle.winner_ticket?.toString().padStart(3, '0')}
+                  </strong>
                   {raffle.winner_name && ` — Parabéns, ${raffle.winner_name}!`}
                 </span>
               </div>
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
             {raffle.prize_image_url && (
-              <div className="w-full md:w-64 h-56 rounded-2xl overflow-hidden bg-slate-950 flex-shrink-0 border border-slate-800">
+              <div className="w-full md:w-72 h-64 rounded-[24px] overflow-hidden bg-[#F5F9FF] flex-shrink-0 border border-[#E0E9F7] shadow-[0_12px_30px_rgba(32,75,134,0.08)]">
                 <img
                   src={raffle.prize_image_url}
                   alt={raffle.title}
@@ -202,137 +218,149 @@ export default function RafflePublicView({
               </div>
             )}
 
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full uppercase tracking-wider">
-                  Rifa Oficial
+            <div className="flex-1 space-y-4 w-full">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="px-3.5 py-1 bg-[#0869F5] text-white text-xs font-bold rounded-full uppercase tracking-wider">
+                  Campanha Oficial
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="px-3.5 py-1 bg-[#F5F9FF] border border-[#D9E5F7] text-[#475872] text-xs font-semibold rounded-full tabular-nums">
                   {raffle.total_tickets} cotas no total
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-snug">
+              <h1 className="font-display font-bold text-2xl sm:text-4xl text-[#0D1729] tracking-[-0.04em] leading-[1.1]">
                 {raffle.title}
               </h1>
 
               {raffle.description && (
-                <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+                <p className="text-[15px] sm:text-base text-[#475872] leading-[1.6] whitespace-pre-line">
                   {raffle.description}
                 </p>
               )}
 
-              {/* Price & Progress */}
-              <div className="pt-2 flex flex-wrap items-baseline gap-2">
-                <span className="text-xs uppercase font-bold text-slate-400">Por apenas</span>
-                <span className="text-3xl font-black text-emerald-400">
-                  R$ {Number(raffle.ticket_price).toFixed(2)}
-                </span>
-                <span className="text-xs text-slate-400">/ cota</span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="space-y-1.5 pt-2">
-                <div className="flex justify-between text-xs font-semibold text-slate-400">
-                  <span>Progresso das vendas</span>
-                  <span className="text-emerald-400">{progressPercent}% pago</span>
+              {/* Price Box & Progress */}
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-4 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[22px] p-4 sm:p-5 tabular-nums">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#526480] block">
+                    Valor unitário
+                  </span>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <span className="font-display font-bold text-3xl sm:text-4xl text-[#0869F5]">
+                      R$ {Number(raffle.ticket_price).toFixed(2)}
+                    </span>
+                    <span className="text-xs font-semibold text-[#475872]">/ por cota</span>
+                  </div>
                 </div>
-                <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                  <div
-                    className="h-full bg-emerald-500 transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
-                  />
+
+                <div className="w-full sm:w-56 space-y-2">
+                  <div className="flex justify-between text-xs font-bold text-[#14213A]">
+                    <span>Cotas confirmadas</span>
+                    <span className="text-[#0869F5]">{progressPercent}%</span>
+                  </div>
+                  <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-[#D9E5F7]">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#3888FF] to-[#0869F5] transition-all duration-500 rounded-full"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Ticket Selector Section */}
         {raffle.status === 'active' && (
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-emerald-400" />
-                Escolha suas cotas da sorte
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Clique nos números que preferir ou use os botões rápidos para adicionar cotas aleatórias.
-              </p>
+          <section className="ora-card rounded-[32px] p-6 sm:p-10 space-y-7">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
+                  Escolha suas cotas
+                </h2>
+                <p className="text-sm sm:text-[15px] text-[#475872] mt-1">
+                  Toque nos números desejados na grade abaixo ou adicione pacotes aleatórios com 1 clique.
+                </p>
+              </div>
             </div>
 
             {/* Quick Pick Buttons */}
-            <div className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
-                Seleção Rápida de Cotas:
+            <div className="p-5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[24px] space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#475872] block">
+                Seleção Rápida Automática
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5 tabular-nums">
                 {[5, 10, 25, 50, 100].map((qty) => (
                   <button
                     key={qty}
+                    type="button"
                     onClick={() => addRandomTickets(qty)}
                     disabled={allAvailableNumbers.length < qty}
-                    className="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 active:bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold rounded-xl transition disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    className="px-4 py-2.5 bg-white hover:bg-[#EDF5FF] active:bg-[#D9ECFF] border border-[#CDE0FC] hover:border-[#0869F5] text-[#0755DE] text-xs sm:text-sm font-display font-bold rounded-[14px] shadow-[0_4px_12px_rgba(36,97,184,0.06)] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                   >
-                    <Dices className="w-3.5 h-3.5 text-emerald-400" />
-                    +{qty} cotas
+                    <Dices className="w-4 h-4 text-[#0869F5]" />
+                    <span>+{qty} cotas</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Search and Status Legend */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t border-slate-800/60">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t border-[#E0E9F7]">
               {/* Legend */}
-              <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-slate-800 border border-slate-700" />
-                  <span>Disponível</span>
+              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#475872] tabular-nums">
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#F5F9FF] border border-[#D9E5F7]" />
+                  <span>Disponível ({allAvailableNumbers.length})</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-emerald-500" />
-                  <span>Sua Seleção</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#0869F5]" />
+                  <span>Selecionada ({selectedTickets.length})</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-amber-500/30 border border-amber-500/50" />
-                  <span>Reservado</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF8EB] border border-[#F5D08A]" />
+                  <span>Reservada</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-slate-950 opacity-50 border border-slate-900" />
-                  <span>Pago</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#EBF3FF] border border-[#C5DCFA]" />
+                  <span>Paga ({paidCount})</span>
                 </div>
               </div>
 
               {/* Number Search */}
-              <div className="relative w-full sm:w-48">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500" />
+              <div className="relative w-full sm:w-56">
+                <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#526480]" />
                 <input
                   type="text"
-                  placeholder="Buscar cota..."
+                  aria-label="Buscar número da cota"
+                  placeholder="Buscar número..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value.replace(/\D/g, ''))}
-                  className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                  className="w-full pl-10 pr-4 py-2 bg-[#F5F9FF] border border-[#D9E5F7] rounded-full text-xs font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] tabular-nums"
                 />
               </div>
             </div>
 
             {/* Numbers Grid */}
-            <div className="max-h-96 overflow-y-auto pr-1">
-              <div className="grid grid-cols-5 sm:grid-cols-10 md:grid-cols-12 gap-1.5 sm:gap-2">
+            <div className="max-h-[420px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-5 sm:grid-cols-10 md:grid-cols-10 gap-2 tabular-nums">
                 {visibleNumbers.map((num) => {
                   const isSelected = selectedSet.has(num);
                   const status = occupiedMap.get(num);
                   const isPaid = status === 'paid';
                   const isPending = status === 'pending';
 
-                  let btnStyle = 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border-slate-700/60';
+                  let btnStyle =
+                    'bg-[#F5F9FF] hover:bg-[#EDF5FF] text-[#14213A] border-[#D9E5F7] hover:border-[#0869F5] cursor-pointer';
 
                   if (isSelected) {
-                    btnStyle = 'bg-emerald-500 text-slate-950 font-black border-emerald-400 shadow-md shadow-emerald-500/20';
+                    btnStyle =
+                      'bg-[#0869F5] text-white font-bold border-[#0869F5] shadow-[0_8px_18px_rgba(8,105,245,0.28)] scale-[1.02] cursor-pointer';
                   } else if (isPaid) {
-                    btnStyle = 'bg-slate-950 text-slate-600 border-slate-900 line-through opacity-40 cursor-not-allowed';
+                    btnStyle =
+                      'bg-[#EBF3FF] text-[#526480] border-[#C5DCFA] line-through opacity-55 cursor-not-allowed';
                   } else if (isPending) {
-                    btnStyle = 'bg-amber-500/15 text-amber-500 border-amber-500/30 opacity-60 cursor-not-allowed';
+                    btnStyle =
+                      'bg-[#FFF8EB] text-[#9A6700] border-[#F5D08A] cursor-not-allowed';
                   }
 
                   return (
@@ -341,7 +369,7 @@ export default function RafflePublicView({
                       type="button"
                       disabled={isPaid || isPending}
                       onClick={() => toggleTicket(num)}
-                      className={`h-10 sm:h-11 rounded-xl text-xs font-mono font-bold transition flex items-center justify-center border ${btnStyle}`}
+                      className={`h-11 sm:h-12 rounded-[13px] text-xs font-display font-bold transition flex items-center justify-center border ${btnStyle}`}
                     >
                       {num.toString().padStart(3, '0')}
                     </button>
@@ -349,37 +377,39 @@ export default function RafflePublicView({
                 })}
               </div>
             </div>
-          </div>
+          </section>
         )}
       </main>
 
-      {/* Floating Bottom Bar (Active when tickets are selected) */}
+      {/* Floating Bottom Capsule (Active when tickets are selected) */}
       {selectedTickets.length > 0 && (
-        <div className="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 border-t border-slate-800 backdrop-blur-xl p-4 shadow-2xl">
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <div className="fixed bottom-4 inset-x-4 z-40 pointer-events-none flex justify-center">
+          <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[#0869F5] rounded-[24px] px-5 py-4 shadow-[0_20px_50px_rgba(8,105,245,0.22)] flex items-center justify-between gap-4 tabular-nums">
             <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-white">
-                  {selectedTickets.length} cota(s)
+              <div className="flex items-center gap-2.5">
+                <span className="text-sm font-display font-bold text-[#0D1729]">
+                  {selectedTickets.length} cota(s) selecionada(s)
                 </span>
                 <button
+                  type="button"
                   onClick={clearSelection}
-                  className="text-xs text-rose-400 hover:text-rose-300 underline"
+                  className="text-xs font-bold text-[#BE123C] hover:underline cursor-pointer"
                 >
                   Limpar
                 </button>
               </div>
-              <div className="text-lg font-black text-emerald-400">
-                R$ {totalPrice}
+              <div className="font-display font-bold text-xl text-[#0869F5]">
+                Total: R$ {totalPrice}
               </div>
             </div>
 
             <button
+              type="button"
               onClick={() => setIsCheckoutOpen(true)}
-              className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-bold rounded-2xl transition shadow-lg shadow-emerald-500/25 flex items-center gap-2 text-sm"
+              className="ora-btn-primary px-6 py-3.5 font-bold rounded-[18px] flex items-center gap-2 text-sm sm:text-base cursor-pointer"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span>Participar Agora</span>
+              <span>Reservar Agora</span>
             </button>
           </div>
         </div>
@@ -387,69 +417,86 @@ export default function RafflePublicView({
 
       {/* Checkout Modal */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 bg-[#0D1729]/45 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="ora-card rounded-[28px] max-w-md w-full p-7 sm:p-8 space-y-6 relative">
             <button
+              type="button"
+              aria-label="Fechar modal"
               onClick={() => setIsCheckoutOpen(false)}
-              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-white"
+              className="absolute right-5 top-5 p-2 text-[#475872] hover:text-[#0D1729] rounded-full cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight">Finalizar Reserva</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Preencha seus dados para reservar suas cotas e receber as instruções de pagamento.
+              <h3 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
+                Finalizar Reserva
+              </h3>
+              <p className="text-sm text-[#475872] mt-1">
+                Informe seu nome e WhatsApp para vincular os números escolhidos a você.
               </p>
             </div>
 
             {orderError && (
-              <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-xl">
+              <div
+                role="alert"
+                className="p-3.5 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-xs font-medium rounded-[14px]"
+              >
                 {orderError}
               </div>
             )}
 
             {/* Summary Box */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <div className="flex justify-between text-xs text-slate-400">
+            <div className="p-4 bg-[#F5F9FF] rounded-[20px] border border-[#E0E9F7] space-y-2.5 tabular-nums">
+              <div className="flex justify-between text-xs font-semibold text-[#475872]">
                 <span>Cotas selecionadas:</span>
-                <span className="font-bold text-white">{selectedTickets.length} cota(s)</span>
+                <span className="font-bold text-[#0D1729]">
+                  {selectedTickets.length} cota(s)
+                </span>
               </div>
-              <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
                 {selectedTickets.map((n) => (
                   <span
                     key={n}
-                    className="px-2 py-0.5 bg-slate-800 text-slate-200 text-xs font-mono font-bold rounded"
+                    className="px-2.5 py-0.5 bg-white border border-[#D9E5F7] text-[#0869F5] text-xs font-display font-bold rounded-[8px]"
                   >
                     #{n.toString().padStart(3, '0')}
                   </span>
                 ))}
               </div>
-              <div className="pt-2 border-t border-slate-800/80 flex justify-between items-baseline">
-                <span className="text-xs font-semibold text-slate-300">Total a pagar:</span>
-                <span className="text-lg font-black text-emerald-400">R$ {totalPrice}</span>
+              <div className="pt-2.5 border-t border-[#E0E9F7] flex justify-between items-baseline">
+                <span className="text-xs font-bold text-[#14213A]">Total a pagar:</span>
+                <span className="font-display font-bold text-xl text-[#0869F5]">
+                  R$ {totalPrice}
+                </span>
               </div>
             </div>
 
             {/* Form */}
             <form onSubmit={handleOrderSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1" htmlFor="buyerName">
+                <label
+                  className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                  htmlFor="buyerName"
+                >
                   Nome Completo *
                 </label>
                 <input
                   id="buyerName"
                   type="text"
                   required
-                  placeholder="Seu nome"
+                  placeholder="Digite seu nome completo"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1" htmlFor="buyerPhone">
+                <label
+                  className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                  htmlFor="buyerPhone"
+                >
                   WhatsApp com DDD *
                 </label>
                 <input
@@ -459,22 +506,22 @@ export default function RafflePublicView({
                   placeholder="(11) 99999-9999"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-bold rounded-2xl transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                className="ora-btn-primary w-full py-4 font-bold rounded-[18px] flex items-center justify-center gap-2 text-[15px] disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Reservando cotas...
+                    <span>Reservando cotas...</span>
                   </>
                 ) : (
-                  'Confirmar e Ir para o Pagamento'
+                  <span>Confirmar e Gerar PIX</span>
                 )}
               </button>
             </form>
@@ -484,56 +531,67 @@ export default function RafflePublicView({
 
       {/* Payment Screen Modal */}
       {confirmedOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-center">
-            <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto text-emerald-400">
+        <div className="fixed inset-0 z-50 bg-[#0D1729]/50 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="ora-card rounded-[32px] max-w-lg w-full p-7 sm:p-9 space-y-6 relative text-center">
+            <div className="w-16 h-16 bg-[#EDF5FF] border border-[#CDE0FC] rounded-full flex items-center justify-center mx-auto text-[#0869F5]">
               <Check className="w-8 h-8" />
             </div>
 
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <h3 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
                 Cotas Reservadas com Sucesso!
               </h3>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Realize a transferência via PIX e envie o comprovante ao organizador para confirmar seu bilhete.
+              <p className="text-sm text-[#475872] mt-1.5">
+                Faça o pagamento via PIX usando a chave abaixo e envie o comprovante ao organizador para confirmar seus números.
               </p>
             </div>
 
             {/* PIX Key Box */}
-            <div className="p-4 sm:p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 text-left">
-              <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
-                <span>Chave PIX do Organizador ({raffle.pix_key_type.toUpperCase()}):</span>
-                <span className="text-emerald-400 font-bold">R$ {confirmedOrder.total.toFixed(2)}</span>
+            <div className="p-5 bg-[#F5F9FF] rounded-[22px] border border-[#E0E9F7] space-y-3 text-left tabular-nums">
+              <div className="flex justify-between items-center text-xs font-bold text-[#475872]">
+                <span>Chave PIX ({raffle.pix_key_type.toUpperCase()}):</span>
+                <span className="text-[#0869F5] text-base">
+                  R$ {confirmedOrder.total.toFixed(2)}
+                </span>
               </div>
 
-              <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl font-mono text-sm text-white break-all flex items-center justify-between gap-2">
+              <div className="p-3.5 bg-white border border-[#D9E5F7] rounded-[16px] font-mono text-sm font-bold text-[#0D1729] break-all flex items-center justify-between gap-2">
                 <span>{raffle.pix_key}</span>
                 <button
                   type="button"
                   onClick={copyPixKey}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg flex-shrink-0 transition"
-                  title="Copiar Chave"
+                  className="px-3 py-1.5 bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] text-[#0755DE] text-xs font-sans font-bold rounded-[10px] flex-shrink-0 inline-flex items-center gap-1.5 transition cursor-pointer"
+                  title="Copiar Chave PIX"
                 >
-                  {copiedPix ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedPix ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-[#0869F5]" />
+                      <span>Copiado</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copiar</span>
+                    </>
+                  )}
                 </button>
               </div>
-
-              {copiedPix && (
-                <div className="text-center text-xs font-bold text-emerald-400">
-                  Chave PIX copiada para a área de transferência!
-                </div>
-              )}
             </div>
 
             {/* WhatsApp Receipt Button */}
             {(() => {
-              const organizerCleanPhone = (raffle.phone_whatsapp || '').replace(/\D/g, '');
+              const organizerCleanPhone = (raffle.phone_whatsapp || '').replace(
+                /\D/g,
+                ''
+              );
               const formattedTickets = confirmedOrder.tickets
                 .map((n) => `#${n.toString().padStart(3, '0')}`)
                 .join(', ');
 
               const message = `Olá! Meu nome é ${buyerName} e acabei de reservar as cotas (${formattedTickets}) na rifa "${raffle.title}". Segue em anexo o comprovante do PIX no valor de R$ ${confirmedOrder.total.toFixed(2)}.`;
-              const whatsappUrl = `https://wa.me/55${organizerCleanPhone}?text=${encodeURIComponent(message)}`;
+              const whatsappUrl = `https://wa.me/55${organizerCleanPhone}?text=${encodeURIComponent(
+                message
+              )}`;
 
               return (
                 <div className="space-y-3">
@@ -541,20 +599,21 @@ export default function RafflePublicView({
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-black rounded-2xl transition shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 text-sm"
+                    className="ora-btn-primary w-full py-4 font-bold rounded-[18px] flex items-center justify-center gap-2 text-[15px]"
                   >
                     <MessageCircle className="w-5 h-5" />
                     <span>Enviar Comprovante no WhatsApp</span>
                   </a>
 
                   <button
+                    type="button"
                     onClick={() => {
                       setConfirmedOrder(null);
                       setIsCheckoutOpen(false);
                     }}
-                    className="text-xs text-slate-400 hover:text-white"
+                    className="text-xs font-bold text-[#475872] hover:text-[#0D1729] cursor-pointer"
                   >
-                    Fechar e Voltar para a Rifa
+                    Fechar e voltar para a campanha
                   </button>
                 </div>
               );

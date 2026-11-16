@@ -1,26 +1,160 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ora-bg: #FFFFFF;
+  --ora-surface: #F5F9FF;
+  --ora-surface-alt: #EDF5FF;
+  --ora-ink: #0D1729;
+  --ora-ink-strong: #111827;
+  --ora-ink-secondary: #475872;
+  --ora-ink-muted: #526480;
+  --ora-blue: #0869F5;
+  --ora-blue-deep: #0755DE;
+  --ora-blue-dark: #052498;
+  --ora-blue-soft: #E1EDFF;
+  --ora-border: #E0E9F7;
+  --ora-border-strong: #CDE0FC;
+  --font-display: 'Satoshi', var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--ora-bg);
+  --color-foreground: var(--ora-ink);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background-color: #FFFFFF;
+  color: #0D1729;
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FFFFFF;
+  color: #0D1729;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.04em;
+}
+
+/* Browser surfaces themed to Oratry palette */
+::selection {
+  background-color: #D9ECFF;
+  color: #052498;
+}
+
+:focus-visible {
+  outline: 2px solid #0869F5;
+  outline-offset: 2px;
+}
+
+/* Custom subtle blue-tinted scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F9FF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C5DCFA;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0869F5;
+}
+
+/* Tabular numerals for prices, cotas and metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Oratry Atmosphere & Surface Helpers */
+.ora-hero-stage {
+  background: radial-gradient(60% 55% at 50% 54%, #E1EDFF 0%, #F3F8FF 46%, #FFFFFF 76%);
+}
+
+.ora-section-glow {
+  background:
+    radial-gradient(circle at 18% 28%, rgba(107, 174, 255, 0.14), transparent 32%),
+    radial-gradient(circle at 82% 68%, rgba(8, 105, 245, 0.09), transparent 34%),
+    #FFFFFF;
+}
+
+.ora-glass-pill {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid #E3EDFB;
+  box-shadow: 0 8px 24px rgba(32, 75, 134, 0.06);
+}
+
+.ora-card {
+  background: #FFFFFF;
+  border: 1px solid #E0E9F7;
+  box-shadow: 0 14px 40px rgba(32, 75, 134, 0.06);
+}
+
+.ora-card-soft {
+  background: #F5F9FF;
+  border: 1px solid rgba(151, 186, 231, 0.32);
+  box-shadow: 0 18px 50px rgba(32, 77, 139, 0.06);
+}
+
+.ora-btn-primary {
+  background: linear-gradient(145deg, #529BFF 0%, #0874FA 55%, #0855DF 100%);
+  border: 1px solid #3888FF;
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  box-shadow: 0 12px 30px rgba(8, 105, 245, 0.18);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+}
+
+.ora-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(8, 105, 245, 0.26);
+}
+
+.ora-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ora-btn-secondary {
+  background: #FFFFFF;
+  border: 1px solid #D9E5F7;
+  color: #14213A;
+  font-family: var(--font-display);
+  box-shadow: 0 8px 22px rgba(36, 97, 184, 0.06);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ora-btn-secondary:hover:not(:disabled) {
+  background: #F5F9FF;
+  border-color: #B9D3F8;
+  transform: translateY(-1px);
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
 }

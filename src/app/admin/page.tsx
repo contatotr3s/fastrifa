@@ -5,7 +5,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { getUserRaffles } from '@/lib/firebase/raffles';
-import { PlusCircle, ExternalLink, Settings, Trophy, DollarSign, Tag, Loader2 } from 'lucide-react';
+import {
+  PlusCircle,
+  ExternalLink,
+  Settings,
+  Trophy,
+  Sparkles,
+  Tag,
+  Loader2,
+} from 'lucide-react';
 import type { Raffle } from '@/types/database.types';
 
 export default function AdminDashboardPage() {
@@ -32,7 +40,7 @@ export default function AdminDashboardPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#0869F5] animate-spin" />
       </div>
     );
   }
@@ -42,91 +50,101 @@ export default function AdminDashboardPage() {
   const completedRaffles = raffles.filter((r) => r.status === 'completed').length;
 
   return (
-    <div className="space-y-8">
-      {/* Page Title & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-10">
+      {/* Page Title & Primary Action */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
             Painel de Controle
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Gerencie suas campanhas, confira pagamentos e realize sorteios.
+          <p className="text-[#475872] text-[15px] mt-1.5">
+            Acompanhe suas campanhas ativas, aprove comprovantes PIX e realize sorteios.
           </p>
         </div>
         <Link
           href="/admin/rifas/nova"
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-emerald-500/10 text-sm"
+          className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-[15px] font-bold inline-flex items-center justify-center gap-2"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Criar Nova Rifa</span>
         </Link>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
+      {/* Overview Summary Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 tabular-nums">
+        <div className="ora-card rounded-[25px] p-6">
+          <div className="flex items-center justify-between text-[#475872] text-xs font-bold uppercase tracking-wider mb-2">
             <span>Total de Rifas</span>
-            <Tag className="w-4 h-4 text-emerald-400" />
+            <span className="w-8 h-8 rounded-full bg-[#F2F7FF] text-[#0869F5] flex items-center justify-center">
+              <Tag className="w-4 h-4" />
+            </span>
           </div>
-          <div className="text-2xl font-black text-white">{totalRaffles}</div>
+          <div className="font-display font-bold text-3xl text-[#0D1729]">{totalRaffles}</div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Rifas Ativas</span>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+        <div className="ora-card rounded-[25px] p-6">
+          <div className="flex items-center justify-between text-[#475872] text-xs font-bold uppercase tracking-wider mb-2">
+            <span>Campanhas Ativas</span>
+            <span className="w-8 h-8 rounded-full bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </span>
           </div>
-          <div className="text-2xl font-black text-emerald-400">{activeRaffles}</div>
+          <div className="font-display font-bold text-3xl text-[#0869F5]">{activeRaffles}</div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="ora-card rounded-[25px] p-6">
+          <div className="flex items-center justify-between text-[#475872] text-xs font-bold uppercase tracking-wider mb-2">
             <span>Finalizadas</span>
-            <Trophy className="w-4 h-4 text-amber-400" />
+            <span className="w-8 h-8 rounded-full bg-[#FFF8EB] text-[#9A6700] flex items-center justify-center">
+              <Trophy className="w-4 h-4" />
+            </span>
           </div>
-          <div className="text-2xl font-black text-amber-400">{completedRaffles}</div>
+          <div className="font-display font-bold text-3xl text-[#0D1729]">{completedRaffles}</div>
         </div>
       </div>
 
       {/* Raffles List */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold text-white tracking-tight">Suas Rifas</h2>
+      <div className="space-y-5">
+        <h2 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
+          Suas Campanhas
+        </h2>
 
         {raffles.length === 0 ? (
-          <div className="bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl p-12 text-center">
-            <div className="w-12 h-12 bg-slate-800/80 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-400">
+          <div className="ora-card rounded-[28px] p-12 text-center">
+            <div className="w-14 h-14 bg-[#F2F7FF] border border-[#CDE0FC] rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#0869F5]">
               <Tag className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white mb-1">Nenhuma rifa criada ainda</h3>
-            <p className="text-sm text-slate-400 max-w-sm mx-auto mb-6">
-              Comece agora criando sua primeira rifa com chave PIX e compartilhando o link público com seus clientes.
+            <h3 className="font-display font-bold text-xl text-[#0D1729] mb-1.5">
+              Nenhuma campanha criada ainda
+            </h3>
+            <p className="text-[15px] text-[#475872] max-w-md mx-auto mb-6">
+              Comece agora configurando seu primeiro prêmio com chave PIX e compartilhando o link público com seus participantes.
             </p>
             <Link
               href="/admin/rifas/nova"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition text-sm shadow-md"
+              className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-sm font-bold inline-flex items-center gap-2"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Criar Primeira Rifa</span>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {raffles.map((raffle) => (
               <div
                 key={raffle.id}
-                className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-700 transition"
+                className="ora-card rounded-[25px] p-6 sm:p-7 flex flex-col justify-between hover:border-[#97BAE7] transition"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 ${
+                        className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-3 ${
                           raffle.status === 'active'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-[#0869F5] text-white'
                             : raffle.status === 'completed'
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-slate-800 text-slate-400 border border-slate-700'
+                            ? 'bg-[#FFF8EB] text-[#9A6700] border border-[#F5D08A]'
+                            : 'bg-[#F5F9FF] text-[#475872] border border-[#D9E5F7]'
                         }`}
                       >
                         {raffle.status === 'active'
@@ -135,41 +153,49 @@ export default function AdminDashboardPage() {
                           ? 'Concluída'
                           : 'Pausada'}
                       </span>
-                      <h3 className="font-bold text-lg text-white line-clamp-1">{raffle.title}</h3>
+                      <h3 className="font-display font-bold text-xl text-[#0D1729] tracking-[-0.03em] line-clamp-1">
+                        {raffle.title}
+                      </h3>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-400 mt-2 mb-4">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#475872] mt-3 mb-6 tabular-nums bg-[#F5F9FF] p-3.5 rounded-[16px] border border-[#E0E9F7]">
                     <span>
-                      <strong className="text-slate-200">{raffle.total_tickets}</strong> cotas
+                      <strong className="text-[#0D1729] font-bold">{raffle.total_tickets}</strong> cotas
                     </span>
-                    <span>•</span>
+                    <span className="text-[#B9D3F8]">•</span>
                     <span>
-                      <strong className="text-slate-200">R$ {Number(raffle.ticket_price).toFixed(2)}</strong> por cota
+                      <strong className="text-[#0D1729] font-bold">
+                        R$ {Number(raffle.ticket_price).toFixed(2)}
+                      </strong>{' '}
+                      por cota
                     </span>
-                    <span>•</span>
+                    <span className="text-[#B9D3F8]">•</span>
                     <span>
-                      Total: <strong className="text-emerald-400">R$ {(raffle.total_tickets * raffle.ticket_price).toFixed(2)}</strong>
+                      Potencial:{' '}
+                      <strong className="text-[#0869F5] font-bold">
+                        R$ {(raffle.total_tickets * raffle.ticket_price).toFixed(2)}
+                      </strong>
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                <div className="pt-4 border-t border-[#E0E9F7] flex items-center justify-between gap-3">
                   <Link
                     href={`/r/${raffle.slug}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-emerald-400 transition"
+                    className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#475872] hover:text-[#0869F5] transition"
                   >
                     <span>Página Pública</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-4 h-4" />
                   </Link>
 
                   <Link
                     href={`/admin/rifas/${raffle.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold rounded-lg transition"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] text-[#0755DE] text-[13px] font-bold rounded-[13px] transition"
                   >
-                    <Settings className="w-3.5 h-3.5" />
-                    <span>Gerenciar</span>
+                    <Settings className="w-4 h-4" />
+                    <span>Gerenciar Cotas</span>
                   </Link>
                 </div>
               </div>

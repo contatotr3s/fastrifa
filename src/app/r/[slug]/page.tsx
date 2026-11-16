@@ -1,9 +1,10 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { getRaffleBySlug, getOccupiedTickets } from '@/lib/firebase/raffles';
 import RafflePublicView from './raffle-view';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
 
 export default function RafflePublicPage({
@@ -23,7 +24,7 @@ export default function RafflePublicPage({
       getRaffleBySlug(slug)
         .then(async (raffleData) => {
           if (!raffleData) {
-            setError('Rifa não encontrada.');
+            setError('Campanha não encontrada.');
             setLoading(false);
             return;
           }
@@ -33,7 +34,7 @@ export default function RafflePublicPage({
         })
         .catch((err) => {
           console.error(err);
-          setError('Erro ao carregar a rifa.');
+          setError('Erro ao carregar a campanha.');
         })
         .finally(() => setLoading(false));
     }
@@ -41,19 +42,30 @@ export default function RafflePublicPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+      <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#0869F5] animate-spin" />
       </div>
     );
   }
 
   if (error || !raffle) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-xl font-bold text-rose-400 mb-2">Ops! Rifa não encontrada</h1>
-        <p className="text-sm text-slate-400 max-w-sm">
-          Verifique se o link compartilhado está correto.
-        </p>
+      <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col items-center justify-center p-4 text-center">
+        <div className="ora-card rounded-[28px] p-10 max-w-md space-y-4">
+          <h1 className="font-display font-bold text-2xl text-[#0D1729]">
+            Campanha não encontrada
+          </h1>
+          <p className="text-sm text-[#475872]">
+            Verifique se o endereço compartilhado está correto ou volte para a página inicial.
+          </p>
+          <Link
+            href="/"
+            className="ora-btn-primary rounded-full px-6 py-3 text-xs font-bold inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Ir para o Início</span>
+          </Link>
+        </div>
       </div>
     );
   }

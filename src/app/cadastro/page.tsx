@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { Ticket, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -39,33 +39,48 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col justify-center items-center px-4 py-12">
+      <div className="w-full max-w-[460px]">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 text-2xl font-black tracking-tight text-white mb-2">
-            <span className="p-2 bg-emerald-500 text-slate-950 rounded-xl">
-              <Ticket className="w-6 h-6" />
+          <Link
+            href="/"
+            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 inline-flex items-center gap-2.5 mb-5 hover:border-[#B9D3F8] transition"
+          >
+            <span className="w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_12px_rgba(8,105,245,0.3)]">
+              <span className="w-2.5 h-2.5 rounded-full bg-white/90" />
             </span>
-            FAST<span className="text-emerald-400">RIFA</span>
+            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
+              Fast<span className="text-[#0869F5]">Rifa</span>
+            </span>
           </Link>
-          <p className="text-sm text-slate-400 mt-2">
-            Crie sua conta para começar a criar e vender suas rifas.
+
+          <h1 className="font-display font-bold text-3xl tracking-[-0.04em] text-[#0D1729]">
+            Crie sua conta gratuita.
+          </h1>
+          <p className="text-[15px] text-[#475872] mt-2">
+            Comece a criar e gerenciar suas campanhas com PIX direto.
           </p>
         </div>
 
         {/* Card Form */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-2xl backdrop-blur-xl">
+        <div className="ora-card rounded-[28px] p-7 sm:p-9">
           {error && (
-            <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm rounded-xl">
+            <div
+              role="alert"
+              className="mb-6 p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[16px]"
+            >
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5" htmlFor="fullName">
-                Seu Nome ou Nome do Negócio
+              <label
+                className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                htmlFor="fullName"
+              >
+                Seu Nome ou Nome da Organização
               </label>
               <input
                 id="fullName"
@@ -74,12 +89,15 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Ex: João da Silva"
-                className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
+                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5" htmlFor="phone">
+              <label
+                className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                htmlFor="phone"
+              >
                 WhatsApp com DDD
               </label>
               <input
@@ -89,12 +107,15 @@ export default function SignupPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(11) 99999-9999"
-                className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
+                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5" htmlFor="email">
+              <label
+                className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                htmlFor="email"
+              >
                 E-mail
               </label>
               <input
@@ -105,12 +126,15 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="seu@email.com"
-                className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
+                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5" htmlFor="password">
+              <label
+                className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                htmlFor="password"
+              >
                 Senha (mínimo 6 caracteres)
               </label>
               <input
@@ -122,33 +146,36 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-sm"
+                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-bold rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ora-btn-primary w-full mt-3 py-4 px-5 font-bold rounded-[18px] text-[16px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Cadastrando...
+                  <span>Criando conta...</span>
                 </>
               ) : (
                 <>
-                  Cadastrar Gratuitamente
+                  <span>Começar Gratuitamente</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-800/80 text-center">
-            <p className="text-sm text-slate-400">
+          <div className="mt-7 pt-6 border-t border-[#E0E9F7] text-center">
+            <p className="text-sm text-[#475872]">
               Já possui uma conta?{' '}
-              <Link href="/login" className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4">
+              <Link
+                href="/login"
+                className="text-[#0869F5] hover:text-[#052498] font-bold underline underline-offset-4"
+              >
                 Fazer login
               </Link>
             </p>

@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { Ticket, PlusCircle, LogOut } from 'lucide-react';
+import { PlusCircle, LogOut } from 'lucide-react';
 
 export default function AdminHeader() {
-  const { user, profile, logout } = useAuth();
+  const { profile, logout } = useAuth();
   const router = useRouter();
 
   async function handleLogout() {
@@ -15,42 +15,52 @@ export default function AdminHeader() {
   }
 
   return (
-    <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 h-[84px] flex items-center bg-white/85 backdrop-blur-md border-b border-[#E3EDFB]">
+      <div className="max-w-[1240px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <Link href="/admin" className="flex items-center gap-2 text-xl font-black tracking-tight text-white">
-            <span className="p-1.5 bg-emerald-500 text-slate-950 rounded-lg">
-              <Ticket className="w-5 h-5" />
+          <Link
+            href="/admin"
+            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
+          >
+            <span className="w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_12px_rgba(8,105,245,0.3)]">
+              <span className="w-2.5 h-2.5 rounded-full bg-white/90" />
             </span>
-            FAST<span className="text-emerald-400">RIFA</span>
+            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
+              Fast<span className="text-[#0869F5]">Rifa</span>
+            </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-            <Link href="/admin" className="text-slate-300 hover:text-white transition">
-              Minhas Rifas
+
+          <nav className="hidden md:flex items-center gap-6 text-[15px] font-medium text-[#475872]">
+            <Link href="/admin" className="text-[#0D1729] hover:text-[#0869F5] font-semibold transition">
+              Minhas Campanhas
+            </Link>
+            <Link href="/r/iphone-16-pro-max" target="_blank" className="hover:text-[#0869F5] transition">
+              Ver Rifa Modelo
             </Link>
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
           {profile?.full_name && (
-            <span className="text-xs text-slate-400 hidden sm:inline">
-              Olá, <strong className="text-slate-200">{profile.full_name}</strong>
+            <span className="text-xs text-[#475872] hidden sm:inline px-3 py-1.5 rounded-full bg-[#F2F7FF] border border-[#DBE7F6]">
+              Olá, <strong className="text-[#0D1729]">{profile.full_name}</strong>
             </span>
           )}
           <Link
             href="/admin/rifas/nova"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold rounded-xl transition shadow-sm"
+            className="ora-btn-primary rounded-full px-5 py-2.5 text-sm font-bold inline-flex items-center gap-2"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Criar Rifa</span>
+            <span>Nova Rifa</span>
           </Link>
           <button
             type="button"
             onClick={handleLogout}
-            title="Sair"
-            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-xl transition"
+            title="Sair da conta"
+            aria-label="Sair da conta"
+            className="p-2.5 text-[#475872] hover:text-[#BE123C] hover:bg-[#FFF1F2] border border-transparent hover:border-[#FECDD3] rounded-full transition cursor-pointer"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>

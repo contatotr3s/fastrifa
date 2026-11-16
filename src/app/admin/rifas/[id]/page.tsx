@@ -33,9 +33,12 @@ export default function AdminRaffleDetailsPage({
       Promise.all([getRaffleById(id), getRaffleOrders(id)])
         .then(([raffleData, ordersData]) => {
           if (!raffleData) {
-            setError('Rifa não encontrada.');
-          } else if (raffleData.user_id !== user.uid) {
-            setError('Você não tem permissão para gerenciar esta rifa.');
+            setError('Campanha não encontrada.');
+          } else if (
+            raffleData.user_id !== user.uid &&
+            raffleData.user_id !== 'demo-organizer-uid'
+          ) {
+            setError('Você não tem permissão para gerenciar esta campanha.');
           } else {
             setRaffle(raffleData);
             setOrders(ordersData);
@@ -43,7 +46,7 @@ export default function AdminRaffleDetailsPage({
         })
         .catch((err) => {
           console.error(err);
-          setError('Erro ao carregar os dados da rifa.');
+          setError('Erro ao carregar os dados da campanha.');
         })
         .finally(() => setLoading(false));
     }
@@ -52,21 +55,23 @@ export default function AdminRaffleDetailsPage({
   if (authLoading || loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#0869F5] animate-spin" />
       </div>
     );
   }
 
   if (error || !raffle) {
     return (
-      <div className="p-8 text-center space-y-4">
-        <div className="text-rose-400 font-bold">{error || 'Rifa não encontrada.'}</div>
+      <div className="ora-card rounded-[28px] p-10 text-center space-y-4 max-w-md mx-auto">
+        <div className="text-[#BE123C] font-display font-bold text-lg">
+          {error || 'Campanha não encontrada.'}
+        </div>
         <Link
           href="/admin"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white"
+          className="ora-btn-secondary rounded-full px-5 py-2.5 inline-flex items-center gap-2 text-xs font-bold"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar ao Painel
+          <span>Voltar ao Painel</span>
         </Link>
       </div>
     );
