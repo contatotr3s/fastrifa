@@ -40,11 +40,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Try Firebase Auth listener
-    let isFirebaseReady = false;
+    // 1. Carrega sessão local imediatamente (0ms de latência, persiste mesmo com refresh)
+    let hasLocalUser = false;
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUser = localStorage.getItem(LOCAL_USER_KEY);
+        const savedProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
+        if (savedUser && savedProfile) {
+          setUser(JSON.parse(savedUser));
+          setProfile(JSON.parse(savedProfile));
+          hasLocalUser = true;
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error('Error loading initial local auth:', e);
+      }
+    }
+
+    // 2. Monitora Firebase Auth se disponível
     try {
       const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        isFirebaseReady = true;
         if (currentUser) {
           setUser(currentUser);
           try {
@@ -55,20 +70,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch {
             // Profile fallback
           }
+          setLoading(false);
+        } else if (!hasLocalUser) {
+          // Só limpa o usuário se não houver sessão local salva
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+        } else {
+          setLoading(false);
         }
-        setLoading(false);
       });
-
-      // Timeout fallback for offline or unconfigured Firebase
-      setTimeout(() => {
-        if (!isFirebaseReady) {
-          loadLocalAuth();
-        }
-      }, 1000);
 
       return () => unsubscribe();
     } catch {
-      loadLocalAuth();
+      setLoading(false);
     }
   }, []);
 

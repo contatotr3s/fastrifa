@@ -81,6 +81,9 @@ function saveLocalOrders(orders: Order[]) {
 }
 
 export async function getUserRaffles(userId: string): Promise<Raffle[]> {
+  const localList = getLocalRaffles();
+  let remoteList: Raffle[] = [];
+
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
       const q = userId === 'demo-organizer-uid'
@@ -92,24 +95,59 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
           );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        return snap.docs
+        remoteList = snap.docs
           .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
           .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
       }
     }
-  } catch {
-    // Fall through to local
+  } catch (err) {
+    console.warn('Firebase query failed or index missing, using local raffles:', err);
   }
 
-  const all = getLocalRaffles();
-  if (userId === 'demo-organizer-uid') {
-    return all;
+  // Merge remote and local without duplicate IDs or slugs
+  const map = new Map<string, Raffle>();
+
+  // 1. First add remote raffles
+  for (const r of remoteList) {
+    if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
+      map.set(r.id, r);
+    }
   }
-  return all.filter((r) => r.user_id === userId);
+
+  // 2. Add local raffles (local takes precedence for immediate UI reflection)
+  for (const r of localList) {
+    if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
+      map.set(r.id, r);
+    }
+  }
+
+  const allMerged = Array.from(map.values());
+
+  // Sort newest first
+  allMerged.sort((a, b) => {
+    const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return timeB - timeA;
+  });
+
+  // If logged in as admin/demo organizer, show all raffles in the system
+  if (userId === 'demo-organizer-uid') {
+    return allMerged;
+  }
+
+  // For regular user accounts, show their raffles or allMerged fallback
+  const filtered = allMerged.filter((r) => r.user_id === userId);
+  return filtered.length > 0 ? filtered : allMerged;
 }
 
 export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
   if (raffleId === 'demo-raffle-01') return null;
+
+  // 1. Local first
+  const local = getLocalRaffles().find((r) => r.id === raffleId && r.id !== 'demo-raffle-01');
+  if (local) return local;
+
+  // 2. Remote Firestore
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
       const d = await getDoc(doc(db, 'raffles', raffleId));
@@ -120,15 +158,20 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
       }
     }
   } catch {
-    // Fall through to local
+    // Fall through
   }
 
-  const all = getLocalRaffles();
-  return all.find((r) => r.id === raffleId && r.id !== 'demo-raffle-01') || null;
+  return null;
 }
 
 export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
   if (slug === 'iphone-16-pro-max') return null;
+
+  // 1. Local first
+  const local = getLocalRaffles().find((r) => r.slug === slug && r.slug !== 'iphone-16-pro-max');
+  if (local) return local;
+
+  // 2. Remote Firestore
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
       const q = query(collection(db, 'raffles'), where('slug', '==', slug));
@@ -141,11 +184,10 @@ export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
       }
     }
   } catch {
-    // Fall through to local
+    // Fall through
   }
 
-  const all = getLocalRaffles();
-  return all.find((r) => r.slug === slug && r.slug !== 'iphone-16-pro-max') || null;
+  return null;
 }
 
 export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
@@ -158,6 +200,11 @@ export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'upd
     updated_at: now,
   };
 
+  // Always save locally immediately FIRST so it can never be lost
+  const current = getLocalRaffles();
+  saveLocalRaffles([newRaffle, ...current]);
+
+  // Then attempt Firestore sync in parallel
   try {
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
       const docRef = await addDoc(collection(db, 'raffles'), {
@@ -165,15 +212,18 @@ export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'upd
         created_at: now,
         updated_at: now,
       });
-      newRaffle.id = docRef.id;
+      // Update local copy with Firestore ID if it succeeded
+      const updated = getLocalRaffles().map((r) =>
+        r.id === newId ? { ...r, id: docRef.id } : r
+      );
+      saveLocalRaffles(updated);
+      return docRef.id;
     }
-  } catch {
-    // Save to local
+  } catch (err) {
+    console.warn('Firestore addDoc failed, kept local raffle:', err);
   }
 
-  const current = getLocalRaffles();
-  saveLocalRaffles([newRaffle, ...current]);
-  return newRaffle.id;
+  return newId;
 }
 
 export async function getRaffleOrders(raffleId: string): Promise<Order[]> {
