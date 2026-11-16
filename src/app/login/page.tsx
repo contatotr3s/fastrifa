@@ -106,6 +106,17 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('admin@fastrifa.com');
+                setPassword('123456');
+              }}
+              className="w-full py-2.5 px-3 text-xs font-semibold text-slate-400 hover:text-emerald-400 border border-dashed border-slate-800 hover:border-emerald-500/40 rounded-xl transition duration-150 flex items-center justify-center gap-1.5"
+            >
+              <span>⚡ Preencher dados de teste (admin@fastrifa.com)</span>
+            </button>
           </form>
 
           <div className="mt-6 pt-6 border-t border-slate-800/80 text-center">
