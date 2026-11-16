@@ -52,10 +52,10 @@ export default function LoginPage() {
           </Link>
 
           <h1 className="font-display font-bold text-3xl tracking-[-0.04em] text-[#0D1729]">
-            Bem-vindo de volta.
+            Acesse seu painel.
           </h1>
           <p className="text-[15px] text-[#475872] mt-2">
-            Acesse o painel para gerenciar suas campanhas e cotas.
+            Gerencie suas rifas rápidas, aprove comprovantes e acompanhe os recebimentos no PIX.
           </p>
         </div>
 

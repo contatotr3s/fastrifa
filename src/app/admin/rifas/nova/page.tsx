@@ -82,10 +82,10 @@ export default function NewRafflePage() {
         </Link>
         <div>
           <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
-            Criar Nova Rifa
+            Criar Rifa Rápida
           </h1>
           <p className="text-sm text-[#475872]">
-            Defina o prêmio, a quantidade de cotas e sua chave PIX para recebimento direto.
+            Configure seu prêmio, valor da cota e chave PIX em 2 minutos para começar a divulgar no WhatsApp.
           </p>
         </div>
       </div>

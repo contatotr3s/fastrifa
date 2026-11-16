@@ -60,10 +60,10 @@ export default function SignupPage() {
           </Link>
 
           <h1 className="font-display font-bold text-3xl tracking-[-0.04em] text-[#0D1729]">
-            Crie sua conta gratuita.
+            Crie sua conta grátis.
           </h1>
           <p className="text-[15px] text-[#475872] mt-2">
-            Comece a criar e gerenciar suas campanhas com PIX direto.
+            Pra você criar sua rifa em 2 minutos, divulgar no zap e receber direto no PIX.
           </p>
         </div>
 

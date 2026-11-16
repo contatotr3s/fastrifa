@@ -58,7 +58,7 @@ export default function AdminDashboardPage() {
             Painel de Controle
           </h1>
           <p className="text-[#475872] text-[15px] mt-1.5">
-            Acompanhe suas campanhas ativas, aprove comprovantes PIX e realize sorteios.
+            Acompanhe suas rifas rápidas, aprove comprovantes e confirme cotas com agilidade no PIX.
           </p>
         </div>
         <Link
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
           className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-[15px] font-bold inline-flex items-center justify-center gap-2"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>Criar Nova Rifa</span>
+          <span>Criar Rifa Rápida</span>
         </Link>
       </div>
 

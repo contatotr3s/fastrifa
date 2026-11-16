@@ -29,20 +29,28 @@ export default function HomePage() {
 
   const faqs = [
     {
-      q: 'O dinheiro das vendas passa pela plataforma?',
-      a: 'Não. O comprador copia a sua chave PIX diretamente na página da rifa e faz a transferência para a sua conta bancária. Você recebe 100% do valor na hora, sem retenções e sem taxas de intermediação.',
+      q: 'Quanto tempo leva para colocar uma rifa no ar?',
+      a: 'Menos de 2 minutos. Basta definir o prêmio, a quantidade de cotas, o valor por número e informar sua chave PIX. O link fica pronto para divulgar imediatamente.',
     },
     {
-      q: 'Como eu confirmo que o participante pagou?',
-      a: 'Assim que o comprador reserva as cotas, o sistema gera um botão direto para o seu WhatsApp já preenchido com o nome dele, os números escolhidos e o valor total. Você confere o comprovante e aprova com 1 clique no painel.',
+      q: 'O dinheiro das vendas passa pela FastRifa?',
+      a: 'Não! Essa é a grande praticidade da FastRifa: o comprador copia a sua chave PIX direto na página da rifa e paga diretamente para o seu banco. O valor cai 100% na sua conta na hora, sem taxas sobre suas vendas e sem retenções.',
     },
     {
-      q: 'E se alguém reservar números e não pagar?',
-      a: 'No seu painel de controle você visualiza todos os pedidos pendentes e pode liberar as cotas de volta para a grade pública com apenas um clique.',
+      q: 'O meu cliente precisa fazer cadastro para comprar cotas?',
+      a: 'Não. Para o comprador é tudo vapt-vupt: ele só digita o nome e WhatsApp para identificação dos números reservados. Nada de criar senhas ou preencher formulários longos.',
     },
     {
-      q: 'Quantas cotas posso criar em cada campanha?',
-      a: 'Você pode criar campanhas rápidas de 50, 100, 200, 500 ou até 10.000 cotas. A grade interativa possui busca instantânea por número e botões de seleção aleatória (+5, +10, +25, +50).',
+      q: 'Como eu confirmo os pagamentos?',
+      a: 'Assim que o participante reserva os números, a plataforma gera um botão para ele enviar o comprovante diretamente no seu WhatsApp com os números e o valor certinho. Você confere no seu banco e aprova com 1 clique no painel.',
+    },
+    {
+      q: 'E se alguém reservar cotas e não pagar?',
+      a: 'Você tem controle total no painel. Se a pessoa não mandar o comprovante ou desistir, você libera os números de volta para a grade pública instantaneamente com apenas um toque.',
+    },
+    {
+      q: 'Quantas cotas posso colocar na rifa?',
+      a: 'Você escolhe a quantidade que quiser: 50, 100, 200, 500, 1.000 ou mais cotas. A grade conta com botões de seleção rápida da sorte (+5, +10, +25, +50) para acelerar ainda mais as vendas.',
     },
   ];
 
@@ -80,10 +88,10 @@ export default function HomePage() {
               Demonstração
             </a>
             <a href="#transparencia" className="hover:text-[#0869F5] transition">
-              Recebimento PIX
+              PIX Direto
             </a>
             <a href="#perguntas" className="hover:text-[#0869F5] transition">
-              FAQ
+              Dúvidas
             </a>
           </nav>
 
@@ -101,7 +109,7 @@ export default function HomePage() {
               className="ora-btn-primary rounded-full px-5 sm:px-6 py-2.5 text-[14px] font-bold inline-flex items-center gap-2"
             >
               <span className="w-2 h-2 rounded-full bg-white" />
-              <span>Comece agora mesmo</span>
+              <span>Criar Rifa Rápida</span>
             </Link>
           </div>
         </div>
@@ -111,14 +119,20 @@ export default function HomePage() {
       <main className="flex-1">
         <section className="ora-hero-stage pt-8 pb-20 sm:pt-14 sm:pb-28 px-4 sm:px-8 relative overflow-hidden">
           <div className="max-w-[1180px] mx-auto text-center">
+            {/* Top Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide mb-6">
+              <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
+              <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
+            </div>
+
             <h1 className="font-display font-bold text-[clamp(2.5rem,5.2vw,4.65rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729] max-w-4xl mx-auto">
-              Sua próxima campanha
+              Crie. Divulgue. Venda.
               <br />
-              pode <span className="text-[#0869F5]">abrir uma porta.</span>
+              <span className="text-[#0869F5]">Tudo vapt-vupt no seu PIX.</span>
             </h1>
 
-            <p className="mt-6 text-[clamp(1.05rem,1.45vw,1.25rem)] text-[#475872] max-w-[62ch] mx-auto leading-[1.6] font-normal">
-              Um objetivo que merece sair do papel. Uma arrecadação simples, limpa e direta na sua conta. Crie sua rifa em segundos e receba 100% via PIX.
+            <p className="mt-6 text-[clamp(1.05rem,1.45vw,1.25rem)] text-[#475872] max-w-[65ch] mx-auto leading-[1.6] font-normal">
+              Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
             </p>
 
             {/* Bioluminescent Centerpiece + Floating Pills Stage */}
@@ -130,16 +144,16 @@ export default function HomePage() {
               />
 
               <div className="relative z-10 w-full max-w-[1120px] flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-5">
-                {/* Left Floating Stream (Before / Common doubts) */}
+                {/* Left Floating Stream (O que ficou no passado) */}
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-3">
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm">
-                    planilhas confusas...
+                    sem planilhas confusas
                   </div>
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm">
-                    taxas retidas no saque...
+                    sem cadastro chato pro cliente
                   </div>
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm hidden sm:block">
-                    qual número está livre?
+                    sem taxa retida no saque
                   </div>
                 </div>
 
@@ -156,16 +170,16 @@ export default function HomePage() {
                   />
                 </div>
 
-                {/* Right Floating Stream (Clarity & Action in Cobalt Blue) */}
+                {/* Right Floating Stream (Vantagens FastRifa) */}
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-3">
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] font-semibold text-[#0869F5] shadow-sm">
-                    PIX direto na sua conta.
+                    ⚡ Criação em 2 minutos
                   </div>
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] font-semibold text-[#0869F5] shadow-sm">
-                    Cota #007 confirmada.
+                    📲 Link pronto pro WhatsApp
                   </div>
                   <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] font-semibold text-[#0869F5] shadow-sm hidden sm:block">
-                    Comprovante no WhatsApp.
+                    💸 PIX direto na sua conta
                   </div>
                 </div>
               </div>
@@ -177,16 +191,16 @@ export default function HomePage() {
                 href="/cadastro"
                 className="ora-btn-primary rounded-[20px] px-8 py-4 text-[17px] font-bold inline-flex items-center justify-center gap-3 w-full sm:w-auto"
               >
-                <span>Comece agora mesmo</span>
+                <span>Criar Rifa Rápida Agora</span>
                 <ArrowUpRight className="w-5 h-5" />
               </Link>
-              <Link
-                href="/cadastro"
+              <a
+                href="#campanha-ao-vivo"
                 className="ora-btn-secondary rounded-[20px] px-7 py-4 text-[17px] font-semibold inline-flex items-center justify-center gap-2.5 w-full sm:w-auto"
               >
-                <span>Criar uma rifa</span>
+                <span>Ver Demonstração</span>
                 <ArrowRight className="w-4 h-4 text-[#0869F5]" />
-              </Link>
+              </a>
             </div>
           </div>
         </section>
@@ -198,11 +212,14 @@ export default function HomePage() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                 {/* Left Editorial Explanation */}
                 <div className="lg:col-span-5 space-y-6">
+                  <div className="inline-block px-3.5 py-1.5 rounded-full bg-white text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
+                    Experiência do Comprador
+                  </div>
                   <h2 className="font-display font-bold text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
-                    Uma página tão clara que o comprador escolhe em segundos.
+                    Pro seu cliente é vapt-vupt: escolheu, pagou no PIX, confirmou.
                   </h2>
                   <p className="text-[16px] sm:text-[17px] text-[#475872] leading-[1.6]">
-                    Sem cadastros longos para quem compra. O participante abre o seu link, escolhe seus números favoritos ou adiciona cotas aleatórias com um toque e paga via PIX.
+                    Zero atrito. O comprador não precisa baixar nenhum aplicativo e nem criar conta com senha. Ele abre o seu link no celular, escolhe os números da sorte em segundos e já te manda o comprovante no WhatsApp.
                   </p>
 
                   <div className="space-y-3 pt-2">
@@ -210,19 +227,19 @@ export default function HomePage() {
                       <span className="w-6 h-6 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-xs font-bold">
                         ✓
                       </span>
-                      <span>Grade visual com status em tempo real</span>
+                      <span>Grade interativa com números livres e ocupados em tempo real</span>
                     </div>
                     <div className="flex items-center gap-3 text-[15px] font-medium text-[#14213A]">
                       <span className="w-6 h-6 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-xs font-bold">
                         ✓
                       </span>
-                      <span>Seleção rápida (+5, +10, +25, +50 cotas)</span>
+                      <span>Seleção rápida da sorte (+5, +10, +25, +50 cotas com um toque)</span>
                     </div>
                     <div className="flex items-center gap-3 text-[15px] font-medium text-[#14213A]">
                       <span className="w-6 h-6 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-xs font-bold">
                         ✓
                       </span>
-                      <span>Envio automático de comprovante para seu WhatsApp</span>
+                      <span>Chave PIX copiada com 1 clique e envio do comprovante no zap</span>
                     </div>
                   </div>
 
@@ -231,7 +248,7 @@ export default function HomePage() {
                       href="/cadastro"
                       className="ora-btn-primary rounded-[18px] px-7 py-3.5 text-[15px] font-bold inline-flex items-center gap-2"
                     >
-                      <span>Criar campanha personalizada</span>
+                      <span>Criar Minha Rifa Agora</span>
                       <ArrowUpRight className="w-4 h-4" />
                     </Link>
                   </div>
@@ -243,10 +260,10 @@ export default function HomePage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E3EDFB]">
                       <div>
                         <span className="inline-block px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold tracking-wide uppercase mb-2">
-                          Exemplo de Demonstração
+                          Demonstração da Grade
                         </span>
                         <h3 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
-                          Grade Interativa com Baixa PIX
+                          Grade Ágil de Cotas Interativas
                         </h3>
                       </div>
                       <div className="text-left sm:text-right tabular-nums">
@@ -258,8 +275,8 @@ export default function HomePage() {
                     {/* Sample Cota Grid Preview */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs font-semibold text-[#475872]">
-                        <span>Prévia da grade de números</span>
-                        <span className="text-[#0869F5] tabular-nums">3 cotas selecionadas (R$ 3,00)</span>
+                        <span>Prévia de como seu cliente visualiza</span>
+                        <span className="text-[#0869F5] tabular-nums font-bold">3 cotas selecionadas (R$ 3,00)</span>
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 tabular-nums">
                         {sampleCotas.map((cota) => {
@@ -289,7 +306,7 @@ export default function HomePage() {
 
                     <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F5F9FF] rounded-[18px] p-4 border border-[#E0E9F7]">
                       <div className="text-xs sm:text-sm text-[#475872]">
-                        Os compradores selecionam números na grade visual e pagam diretamente via PIX com baixa automática.
+                        Seu comprador clica nos números da sorte, paga no seu PIX e você confirma pelo painel com 1 clique.
                       </div>
                       <Link
                         href="/cadastro"
@@ -306,77 +323,95 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Section 3: How It Works (3 Editorial Steps) */}
+        {/* Section 3: How It Works (4 Practical Steps) */}
         <section id="como-funciona" className="ora-section-glow py-20 sm:py-28 px-4 sm:px-8">
           <div className="max-w-[1340px] mx-auto space-y-14">
             <div className="max-w-2xl">
+              <div className="inline-block px-3.5 py-1.5 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC] mb-4">
+                Praticidade de Ponta a Ponta
+              </div>
               <h2 className="font-display font-bold text-[clamp(2.1rem,4vw,3.5rem)] leading-[1.05] tracking-[-0.045em] text-[#0D1729]">
-                Publique. Compartilhe. Receba direto no PIX.
+                Criar. Divulgar. Vender. Receber.
               </h2>
               <p className="mt-4 text-[17px] text-[#475872] leading-[1.6]">
-                Construímos um fluxo sem atrito para organizadores que precisam de agilidade, visual impecável e controle total das cotas.
+                Desenvolvemos a FastRifa para eliminar qualquer perda de tempo entre você e o dinheiro das suas cotas.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Step 1 */}
-              <div className="ora-card-soft rounded-[32px] p-8 flex flex-col justify-between space-y-6">
+              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
                     <Sparkles className="w-6 h-6" />
                   </div>
-                  <h3 className="font-display font-bold text-[23px] text-[#0D1729] tracking-[-0.03em] leading-[1.18]">
-                    Configure o prêmio e a quantidade de cotas
+                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 1</span>
+                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
+                    Você cria em 2 minutos
                   </h3>
-                  <p className="text-[15px] text-[#475872] leading-[1.6]">
-                    Escolha o título, foto do prêmio, valor por bilhete e total de números. O sistema calcula sua meta de arrecadação na hora.
+                  <p className="text-[14px] text-[#475872] leading-[1.6]">
+                    Coloque o título do prêmio, a quantidade de cotas, o valor do número e sua chave PIX. Sem burocracia.
                   </p>
                 </div>
-                <div className="bg-white rounded-[20px] p-4 border border-[#E0E9F7] flex items-center justify-between text-xs tabular-nums">
-                  <span className="font-semibold text-[#475872]">200 cotas × R$ 10,00</span>
-                  <span className="font-display font-bold text-sm text-[#0869F5]">Meta: R$ 2.000,00</span>
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                  ⚡ Rifa no ar na hora
                 </div>
               </div>
 
               {/* Step 2 */}
-              <div className="ora-card-soft rounded-[32px] p-8 flex flex-col justify-between space-y-6">
+              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
-                    <QrCode className="w-6 h-6" />
+                    <MessageCircle className="w-6 h-6" />
                   </div>
-                  <h3 className="font-display font-bold text-[23px] text-[#0D1729] tracking-[-0.03em] leading-[1.18]">
-                    O comprador paga na sua chave PIX
+                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 2</span>
+                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
+                    Você divulga no WhatsApp
                   </h3>
-                  <p className="text-[15px] text-[#475872] leading-[1.6]">
-                    CPF, CNPJ, celular, e-mail ou chave aleatória. O participante copia sua chave com um clique e transfere direto para o seu banco.
+                  <p className="text-[14px] text-[#475872] leading-[1.6]">
+                    Copie seu link exclusivo e mande nos grupos, status do zap e redes sociais. O link abre rápido em qualquer celular.
                   </p>
                 </div>
-                <div className="bg-white rounded-[20px] p-4 border border-[#E0E9F7] flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#475872]">Taxa da plataforma</span>
-                  <span className="px-2.5 py-1 rounded-full bg-[#EDF5FF] text-[#0755DE] font-bold">
-                    R$ 0,00 (Zero)
-                  </span>
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                  📲 Link pronto com 1 clique
                 </div>
               </div>
 
               {/* Step 3 */}
-              <div className="ora-card-soft rounded-[32px] p-8 flex flex-col justify-between space-y-6">
+              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
+                    <QrCode className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 3</span>
+                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
+                    Seu cliente escolhe e paga
+                  </h3>
+                  <p className="text-[14px] text-[#475872] leading-[1.6]">
+                    Ele clica nos números da sorte, copia seu PIX, faz o pagamento e envia o comprovante direto no seu WhatsApp.
+                  </p>
+                </div>
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                  💸 PIX direto pro seu banco
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
                     <Trophy className="w-6 h-6" />
                   </div>
-                  <h3 className="font-display font-bold text-[23px] text-[#0D1729] tracking-[-0.03em] leading-[1.18]">
-                    Aprove pedidos e publique o ganhador
+                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 4</span>
+                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
+                    Você recebe e confirma
                   </h3>
-                  <p className="text-[15px] text-[#475872] leading-[1.6]">
-                    Confirme comprovantes recebidos no WhatsApp e, no dia do sorteio, registre a cota vencedora para exibição pública.
+                  <p className="text-[14px] text-[#475872] leading-[1.6]">
+                    O dinheiro já está na sua conta bancária. Você confere no painel e confirma as cotas com 1 toque.
                   </p>
                 </div>
-                <div className="bg-white rounded-[20px] p-4 border border-[#E0E9F7] flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#475872]">Status público</span>
-                  <span className="inline-flex items-center gap-1 text-[#0869F5] font-bold">
-                    <CheckCircle2 className="w-4 h-4" /> Transparente
-                  </span>
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                  🏆 100% sob seu controle
                 </div>
               </div>
             </div>
@@ -390,13 +425,13 @@ export default function HomePage() {
               <div className="lg:col-span-8 space-y-4">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0869F5] text-white text-xs font-bold tracking-wider uppercase">
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Autonomia Total para o Organizador</span>
+                  <span>Dinheiro Direto na Sua Conta Bancária</span>
                 </div>
                 <h2 className="font-display font-bold text-[clamp(1.85rem,3.2vw,2.75rem)] leading-[1.1] tracking-[-0.04em] text-[#0D1729]">
-                  Você no comando da sua arrecadação, do primeiro número ao sorteio final.
+                  Zero taxa sobre suas vendas. Sem esperar 30 dias para sacar.
                 </h2>
                 <p className="text-[16px] text-[#475872] leading-[1.6] max-w-2xl">
-                  Acesse o painel de demonstração agora mesmo com 1 clique ou crie sua conta gratuita para lançar sua primeira campanha.
+                  Enquanto outras plataformas seguram o seu dinheiro por semanas e cobram comissões por bilhete, na FastRifa o comprador paga diretamente na sua chave PIX. Caiu na conta, é seu. Tudo vapt-vupt.
                 </p>
               </div>
               <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3">
@@ -404,7 +439,7 @@ export default function HomePage() {
                   href="/cadastro"
                   className="ora-btn-primary rounded-[18px] px-6 py-4 text-center text-[16px] font-bold flex items-center justify-center gap-2"
                 >
-                  <span>Criar minha campanha</span>
+                  <span>Criar Rifa Rápida Agora</span>
                   <ArrowUpRight className="w-5 h-5" />
                 </Link>
                 <Link
@@ -412,7 +447,7 @@ export default function HomePage() {
                   className="ora-btn-secondary rounded-[18px] px-6 py-3.5 text-center text-[15px] font-semibold flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4 text-[#0869F5]" />
-                  <span>Acessar painel demo</span>
+                  <span>Acessar Meu Painel</span>
                 </Link>
               </div>
             </div>
@@ -423,11 +458,14 @@ export default function HomePage() {
         <section id="perguntas" className="py-20 sm:py-28 px-4 sm:px-8 bg-gradient-to-b from-white to-[#F5F9FF]">
           <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4">
+              <div className="inline-block px-3.5 py-1.5 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
+                Tira-Dúvidas Rápido
+              </div>
               <h2 className="font-display font-bold text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
                 Perguntas frequentes.
               </h2>
               <p className="text-[16px] text-[#475872] leading-[1.6]">
-                Tudo o que você precisa saber sobre criação de campanhas, reservas de cotas e recebimento via PIX.
+                Tudo o que você precisa saber sobre rapidez na criação, reservas de cotas e recebimento via PIX.
               </p>
             </div>
 
@@ -453,17 +491,17 @@ export default function HomePage() {
         <section className="py-20 sm:py-28 px-4 text-center bg-[radial-gradient(ellipse_at_50%_95%,#E5F0FF_0%,transparent_65%),#FFFFFF]">
           <div className="max-w-3xl mx-auto space-y-6">
             <h2 className="font-display font-bold text-[clamp(2.2rem,4.4vw,3.75rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
-              Pronto para colocar sua campanha no ar?
+              Pronto para colocar sua rifa no ar?
             </h2>
             <p className="text-[17px] text-[#475872] max-w-xl mx-auto leading-[1.6]">
-              Leva menos de 2 minutos para configurar o prêmio, informar sua chave PIX e compartilhar seu link exclusivo.
+              Pra você criar, pra você divulgar, pro seu cliente escolher, pagar e pra você receber. Tudo vapt-vupt em menos de 2 minutos.
             </p>
             <div className="pt-2">
               <Link
                 href="/cadastro"
                 className="ora-btn-primary rounded-[18px] px-9 py-4 text-[18px] font-bold inline-flex items-center gap-3"
               >
-                <span>Comece agora mesmo</span>
+                <span>Criar Rifa Rápida Grátis</span>
                 <ArrowUpRight className="w-5 h-5" />
               </Link>
             </div>
@@ -485,7 +523,7 @@ export default function HomePage() {
             <span className="font-display font-bold text-[#0D1729] tracking-[-0.03em]">
               Fast<span className="text-[#0869F5]">Rifa</span>
             </span>
-            <span>© 2026 — Plataforma de campanhas e cotas online.</span>
+            <span>© 2026 — Rifa rápida, prática e 100% no PIX.</span>
           </div>
           <div className="flex items-center gap-6 font-medium">
             <Link href="/admin" className="hover:text-[#0869F5] transition">
