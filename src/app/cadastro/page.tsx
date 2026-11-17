@@ -4,13 +4,28 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import {
+  ArrowRight,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+} from 'lucide-react';
+
+interface FormErrors {
+  fullName?: string;
+  phone?: string;
+  email?: string;
+  password?: string;
+}
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -18,38 +33,88 @@ export default function SignupPage() {
   const { signup, loginWithGoogle } = useAuth();
   const router = useRouter();
 
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (!digits) return '';
+    if (digits.length <= 2) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  }
+
+  function validateSignupForm(): boolean {
+    const errors: FormErrors = {};
+    const trimmedName = fullName.trim();
+    const rawPhone = phone.replace(/\D/g, '');
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || trimmedName.length < 3) {
+      errors.fullName = 'Informe seu nome completo ou razão social (mínimo 3 letras).';
+    }
+
+    if (!rawPhone || rawPhone.length < 10) {
+      errors.phone = 'Informe um WhatsApp válido com DDD (ex: 11 99999-9999).';
+    }
+
+    if (!trimmedEmail) {
+      errors.email = 'Informe seu e-mail.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errors.email = 'Informe um e-mail válido (ex: seu@email.com).';
+    }
+
+    if (!password) {
+      errors.password = 'Crie uma senha de acesso.';
+    } else if (password.length < 6) {
+      errors.password = 'A senha deve conter pelo menos 6 caracteres.';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
-    if (password.length < 6) {
-      setError('A senha deve conter pelo menos 6 caracteres.');
-      setLoading(false);
+    if (!validateSignupForm()) {
       return;
     }
 
-    const result = await signup(fullName, phone, email, password);
+    setLoading(true);
+    try {
+      const result = await signup(fullName, phone, email, password);
 
-    if (result.error) {
-      setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+      } else {
+        router.push('/admin');
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError('Ocorreu um erro ao criar a conta. Tente novamente.');
       setLoading(false);
-    } else {
-      router.push('/admin');
     }
   }
 
   async function handleGoogleSignup() {
     setError(null);
+    setFieldErrors({});
     setGoogleLoading(true);
 
-    const result = await loginWithGoogle();
+    try {
+      const result = await loginWithGoogle();
 
-    if (result.error) {
-      setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        setGoogleLoading(false);
+      } else {
+        router.push('/admin');
+      }
+    } catch (err) {
+      console.error('Google signup error:', err);
+      setError('Não foi possível conectar com o Google no momento.');
       setGoogleLoading(false);
-    } else {
-      router.push('/admin');
     }
   }
 
@@ -87,9 +152,10 @@ export default function SignupPage() {
           {error && (
             <div
               role="alert"
-              className="mb-6 p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[16px]"
+              className="mb-6 p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[16px] flex items-start gap-2.5"
             >
-              {error}
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#BE123C]" />
+              <span>{error}</span>
             </div>
           )}
 
@@ -132,7 +198,8 @@ export default function SignupPage() {
             </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            {/* Full Name */}
             <div>
               <label
                 className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
@@ -143,14 +210,30 @@ export default function SignupPage() {
               <input
                 id="fullName"
                 type="text"
-                required
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (fieldErrors.fullName) {
+                    setFieldErrors((prev) => ({ ...prev, fullName: undefined }));
+                  }
+                  if (error) setError(null);
+                }}
                 placeholder="Ex: João da Silva"
-                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
+                className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                  fieldErrors.fullName
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                }`}
               />
+              {fieldErrors.fullName && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.fullName}</span>
+                </p>
+              )}
             </div>
 
+            {/* WhatsApp */}
             <div>
               <label
                 className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
@@ -161,14 +244,31 @@ export default function SignupPage() {
               <input
                 id="phone"
                 type="tel"
-                required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const formatted = formatPhone(e.target.value);
+                  setPhone(formatted);
+                  if (fieldErrors.phone) {
+                    setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                  }
+                  if (error) setError(null);
+                }}
                 placeholder="(11) 99999-9999"
-                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
+                className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                  fieldErrors.phone
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                }`}
               />
+              {fieldErrors.phone && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.phone}</span>
+                </p>
+              )}
             </div>
 
+            {/* Email */}
             <div>
               <label
                 className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
@@ -179,15 +279,31 @@ export default function SignupPage() {
               <input
                 id="email"
                 type="email"
-                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) {
+                    setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                  }
+                  if (error) setError(null);
+                }}
                 autoComplete="email"
                 placeholder="seu@email.com"
-                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
+                className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                  fieldErrors.email
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                }`}
               />
+              {fieldErrors.email && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.email}</span>
+                </p>
+              )}
             </div>
 
+            {/* Password with Visibility Toggle */}
             <div>
               <label
                 className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
@@ -195,16 +311,45 @@ export default function SignupPage() {
               >
                 Senha
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="Mínimo 6 caracteres"
-                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (fieldErrors.password) {
+                      setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                    }
+                    if (error) setError(null);
+                  }}
+                  autoComplete="new-password"
+                  placeholder="Mínimo 6 caracteres"
+                  className={`w-full pl-4 pr-12 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                    fieldErrors.password
+                      ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                      : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-[#526480] hover:text-[#0D1729] rounded-lg transition cursor-pointer"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-[#475872]" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-[#475872]" />
+                  )}
+                </button>
+              </div>
+              {fieldErrors.password && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.password}</span>
+                </p>
+              )}
             </div>
 
             <button

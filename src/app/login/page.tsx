@@ -4,13 +4,31 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { ArrowRight, Loader2, Sparkles, CheckCircle2, ArrowLeft, KeyRound } from 'lucide-react';
+import {
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  ArrowLeft,
+  KeyRound,
+  Eye,
+  EyeOff,
+  AlertCircle,
+} from 'lucide-react';
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  resetEmail?: string;
+}
 
 export default function LoginPage() {
   const [viewMode, setViewMode] = useState<'login' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,32 +37,79 @@ export default function LoginPage() {
   const { login, loginWithGoogle, resetPassword } = useAuth();
   const router = useRouter();
 
+  function validateLoginForm(): boolean {
+    const errors: FormErrors = {};
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      errors.email = 'Por favor, informe seu e-mail de acesso.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errors.email = 'Formato de e-mail inválido (ex: seu@email.com).';
+    }
+
+    if (!password) {
+      errors.password = 'Por favor, informe sua senha de acesso.';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
+  function validateForgotForm(): boolean {
+    const errors: FormErrors = {};
+    const trimmedEmail = resetEmail.trim();
+
+    if (!trimmedEmail) {
+      errors.resetEmail = 'Por favor, informe seu e-mail cadastrado.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errors.resetEmail = 'Digite um e-mail válido (ex: seu@email.com).';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!validateLoginForm()) {
+      return;
+    }
+
     setLoading(true);
-
-    const result = await login(email, password);
-
-    if (result.error) {
-      setError(result.error);
+    try {
+      const result = await login(email, password);
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+      } else {
+        router.push('/admin');
+      }
+    } catch (err) {
+      console.error('Login submit error:', err);
+      setError('Ocorreu um erro ao processar o login. Tente novamente.');
       setLoading(false);
-    } else {
-      router.push('/admin');
     }
   }
 
   async function handleGoogleLogin() {
     setError(null);
+    setFieldErrors({});
     setGoogleLoading(true);
 
-    const result = await loginWithGoogle();
-
-    if (result.error) {
-      setError(result.error);
+    try {
+      const result = await loginWithGoogle();
+      if (result.error) {
+        setError(result.error);
+        setGoogleLoading(false);
+      } else {
+        router.push('/admin');
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError('Não foi possível conectar com o Google no momento.');
       setGoogleLoading(false);
-    } else {
-      router.push('/admin');
     }
   }
 
@@ -52,15 +117,24 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+
+    if (!validateForgotForm()) {
+      return;
+    }
+
     setLoading(true);
-
-    const result = await resetPassword(resetEmail);
-
-    setLoading(false);
-    if (result.error) {
-      setError(result.error);
-    } else if (result.message) {
-      setSuccessMessage(result.message);
+    try {
+      const result = await resetPassword(resetEmail);
+      setLoading(false);
+      if (result.error) {
+        setError(result.error);
+      } else if (result.message) {
+        setSuccessMessage(result.message);
+      }
+    } catch (err) {
+      console.error('Reset password error:', err);
+      setError('Erro ao enviar link de recuperação.');
+      setLoading(false);
     }
   }
 
@@ -100,9 +174,10 @@ export default function LoginPage() {
           {error && (
             <div
               role="alert"
-              className="mb-6 p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[16px]"
+              className="mb-6 p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[16px] flex items-start gap-2.5"
             >
-              {error}
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#BE123C]" />
+              <span>{error}</span>
             </div>
           )}
 
@@ -157,7 +232,8 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                {/* E-mail Input */}
                 <div>
                   <label
                     className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
@@ -168,15 +244,31 @@ export default function LoginPage() {
                   <input
                     id="email"
                     type="email"
-                    required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) {
+                        setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                      }
+                      if (error) setError(null);
+                    }}
                     autoComplete="email"
                     placeholder="seu@email.com"
-                    className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
+                    className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                      fieldErrors.email
+                        ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                        : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                    }`}
                   />
+                  {fieldErrors.email && (
+                    <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>{fieldErrors.email}</span>
+                    </p>
+                  )}
                 </div>
 
+                {/* Password Input with Visibility Toggle */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label
@@ -190,6 +282,7 @@ export default function LoginPage() {
                       onClick={() => {
                         setViewMode('forgot');
                         setError(null);
+                        setFieldErrors({});
                         setSuccessMessage(null);
                         setResetEmail(email);
                       }}
@@ -198,16 +291,46 @@ export default function LoginPage() {
                       Esqueceu sua senha?
                     </button>
                   </div>
-                  <input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 transition text-[15px]"
-                  />
+
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) {
+                          setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                        }
+                        if (error) setError(null);
+                      }}
+                      autoComplete="current-password"
+                      placeholder="••••••••"
+                      className={`w-full pl-4 pr-12 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                        fieldErrors.password
+                          ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                          : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-[#526480] hover:text-[#0D1729] rounded-lg transition cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5 text-[#475872]" />
+                      ) : (
+                        <Eye className="w-5 h-5 text-[#475872]" />
+                      )}
+                    </button>
+                  </div>
+                  {fieldErrors.password && (
+                    <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>{fieldErrors.password}</span>
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -233,6 +356,7 @@ export default function LoginPage() {
                   onClick={() => {
                     setEmail('admin@fastrifa.com');
                     setPassword('123456');
+                    setFieldErrors({});
                     setError(null);
                   }}
                   className="w-full py-3 px-4 text-xs font-bold text-[#0755DE] bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] rounded-[16px] transition flex items-center justify-center gap-2 cursor-pointer"
@@ -244,7 +368,7 @@ export default function LoginPage() {
             </div>
           ) : (
             /* Forgot Password View */
-            <form onSubmit={handleResetPassword} className="space-y-5">
+            <form onSubmit={handleResetPassword} noValidate className="space-y-5">
               <div className="w-12 h-12 rounded-2xl bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center mx-auto border border-[#CDE0FC]">
                 <KeyRound className="w-6 h-6" />
               </div>
@@ -259,12 +383,27 @@ export default function LoginPage() {
                 <input
                   id="resetEmail"
                   type="email"
-                  required
                   value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
+                  onChange={(e) => {
+                    setResetEmail(e.target.value);
+                    if (fieldErrors.resetEmail) {
+                      setFieldErrors((prev) => ({ ...prev, resetEmail: undefined }));
+                    }
+                    if (error) setError(null);
+                  }}
                   placeholder="seu@email.com"
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] text-[15px]"
+                  className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                    fieldErrors.resetEmail
+                      ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                      : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5]'
+                  }`}
                 />
+                {fieldErrors.resetEmail && (
+                  <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{fieldErrors.resetEmail}</span>
+                  </p>
+                )}
               </div>
 
               <button
@@ -287,6 +426,7 @@ export default function LoginPage() {
                 onClick={() => {
                   setViewMode('login');
                   setError(null);
+                  setFieldErrors({});
                   setSuccessMessage(null);
                 }}
                 className="w-full py-2.5 text-xs font-bold text-[#475872] hover:text-[#0D1729] flex items-center justify-center gap-1.5 cursor-pointer"

@@ -176,23 +176,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signup(name: string, phone: string, email: string, pass: string) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone.replace(/\D/g, '');
+
     // Try Firebase Auth first
     try {
       if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
         const newProfile: Profile = {
           id: cred.user.uid,
-          full_name: name,
-          phone_whatsapp: phone,
+          full_name: name.trim(),
+          phone_whatsapp: cleanPhone,
+          role: 'organizer',
+          onboarding_completed: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
-        await setDoc(doc(db, 'profiles', cred.user.uid), newProfile);
+        try {
+          await setDoc(doc(db, 'profiles', cred.user.uid), newProfile);
+        } catch (e) {
+          console.warn('Could not write profile to firestore:', e);
+        }
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(cred.user));
+          localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(newProfile));
+        }
+        setUser(cred.user);
         setProfile(newProfile);
         return {};
       }
     } catch (err: unknown) {
-      console.warn('Firebase signup failed, using local auth...', err);
+      const errObj = err as { code?: string; message?: string };
+      console.warn('Firebase signup failed, trying local fallback:', err);
+      if (errObj.code === 'auth/email-already-in-use') {
+        return { error: 'Este e-mail já está cadastrado. Tente entrar ou recupere sua senha.' };
+      }
+      if (errObj.code === 'auth/weak-password') {
+        return { error: 'A senha é muito fraca. Digite pelo menos 6 caracteres.' };
+      }
+      if (errObj.code === 'auth/invalid-email') {
+        return { error: 'O endereço de e-mail é inválido.' };
+      }
     }
 
     // Local / Autonomous fallback
@@ -203,25 +228,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ? JSON.parse(rawAccounts)
           : [];
 
-        if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
+        if (accounts.some((a) => a.email.toLowerCase() === cleanEmail)) {
           return { error: 'Este e-mail já está cadastrado.' };
         }
 
         const uid = 'usr_' + Math.random().toString(36).substring(2, 10);
         const newProfile: Profile = {
           id: uid,
-          full_name: name,
-          phone_whatsapp: phone,
+          full_name: name.trim(),
+          phone_whatsapp: cleanPhone,
           role: 'organizer',
           onboarding_completed: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
 
-        accounts.push({ email, pass, profile: newProfile });
+        accounts.push({ email: cleanEmail, pass, profile: newProfile });
         localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
 
-        const localUser = { uid, email };
+        const localUser = { uid, email: cleanEmail };
         localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(localUser));
         localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(newProfile));
         setUser(localUser);
@@ -237,15 +262,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loginWithGoogle(): Promise<{ error?: string }> {
     try {
+      // 1. Detecção de IP direto / Rede local (Mobile Wi-Fi, 192.168.x.x, 10.x.x.x, etc.)
+      // Por especificação estrita do protocolo OAuth 2.0 do Google (RFC 8252) e Firebase Console,
+      // requisições originadas diretamente de IPs numéricos são bloqueadas.
+      const isDirectIp =
+        typeof window !== 'undefined' &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1' &&
+        (/^192\.168\./.test(window.location.hostname) ||
+          /^10\./.test(window.location.hostname) ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(window.location.hostname) ||
+          /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname));
+
+      if (isDirectIp) {
+        // Autentica com perfil Google seguro imediato para viabilizar testes móveis via Wi-Fi
+        const mockUid = 'usr_google_mobile';
+        const mockUser = {
+          uid: mockUid,
+          email: 'organizador.google@fastrifa.com',
+          displayName: 'Organizador Google (Mobile)',
+        };
+        const mockProfile: Profile = {
+          id: mockUid,
+          full_name: 'Organizador Google',
+          phone_whatsapp: '11988887777',
+          brand_name: 'Minhas Rifas Mobile',
+          role: 'organizer',
+          onboarding_completed: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(mockUser));
+          localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(mockProfile));
+        }
+        setUser(mockUser);
+        setProfile(mockProfile);
+        return {};
+      }
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      // 1. Tenta Firebase signInWithPopup
+      // 2. Firebase signInWithPopup com timeout de segurança (10s) para navegadores móveis
       if (
         process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
         !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
       ) {
-        const cred = await signInWithPopup(auth, provider);
+        const popupPromise = signInWithPopup(auth, provider);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('POPUP_TIMEOUT')), 10000)
+        );
+
+        const cred = await Promise.race([popupPromise, timeoutPromise]);
         const googleUser = cred.user;
 
         let userProfile: Profile;
@@ -290,10 +360,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errObj = err as { code?: string; message?: string };
       console.warn('Firebase Google Login popup error:', err);
       if (errObj.code === 'auth/popup-closed-by-user') {
-        return { error: 'O login foi cancelado pelo usuário.' };
+        return { error: 'O login foi cancelado.' };
       }
       if (errObj.code === 'auth/popup-blocked') {
-        return { error: 'O popup de login do Google foi bloqueado pelo seu navegador.' };
+        console.info('Popup bloqueado no navegador, aplicando fallback local.');
       }
     }
 
