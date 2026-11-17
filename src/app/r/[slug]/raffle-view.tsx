@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { createOrder } from '@/lib/firebase/raffles';
+import { generateBrandInitials } from '@/lib/image-processor';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
 
 interface RafflePublicViewProps {
@@ -161,7 +162,7 @@ export default function RafflePublicView({
       {/* Top Floating Pill Navbar with Smooth Feathered Atmosphere */}
       <header className="sticky top-0 z-40 h-[84px] flex items-center">
         <div className="ora-header-feather" aria-hidden="true" />
-        <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between">
+        <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
           <Link
             href="/"
             className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
@@ -177,6 +178,31 @@ export default function RafflePublicView({
               Fast<span className="text-[#0869F5]">Rifa</span>
             </span>
           </Link>
+
+          {/* Organizer Brand Badge */}
+          {raffle.brand_name && (
+            <div className="ora-glass-pill rounded-full px-3.5 py-1.5 hidden sm:flex items-center gap-2.5 border-[#CDE0FC]">
+              <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white text-[10px] font-bold flex-shrink-0 shadow-sm">
+                {raffle.brand_logo_url ? (
+                  <img
+                    src={raffle.brand_logo_url}
+                    alt={raffle.brand_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{generateBrandInitials(raffle.brand_name)}</span>
+                )}
+              </div>
+              <div className="text-left">
+                <span className="text-[10px] uppercase font-bold text-[#526480] block leading-none">
+                  Organizador
+                </span>
+                <strong className="text-xs text-[#0D1729] font-bold leading-tight block">
+                  {raffle.brand_name}
+                </strong>
+              </div>
+            </div>
+          )}
 
           <Link
             href="/cadastro"
@@ -225,9 +251,16 @@ export default function RafflePublicView({
 
             <div className="flex-1 space-y-4 w-full">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="px-3.5 py-1 bg-[#0869F5] text-white text-xs font-bold rounded-full uppercase tracking-wider">
-                  Campanha Oficial
-                </span>
+                {raffle.brand_name ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9FF] border border-[#CDE0FC] text-[#0869F5] text-xs font-bold rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-[#0869F5]" />
+                    <span>Oficial: <strong>{raffle.brand_name}</strong></span>
+                  </span>
+                ) : (
+                  <span className="px-3.5 py-1 bg-[#0869F5] text-white text-xs font-bold rounded-full uppercase tracking-wider">
+                    Campanha Oficial
+                  </span>
+                )}
                 <span className="px-3.5 py-1 bg-[#F5F9FF] border border-[#D9E5F7] text-[#475872] text-xs font-semibold rounded-full tabular-nums">
                   {raffle.total_tickets} cotas no total
                 </span>
@@ -384,6 +417,16 @@ export default function RafflePublicView({
             </div>
           </section>
         )}
+
+        {/* Footer Brand & Security Attribution */}
+        <footer className="pt-6 pb-2 text-center text-xs text-[#526480] space-y-1">
+          <p className="font-semibold text-[#0D1729]">
+            Campanha gerenciada por <strong>{raffle.brand_name || 'Organizador Oficial'}</strong>
+          </p>
+          <p className="text-[11px] text-[#526480]">
+            Tecnologia FastRifa • Pagamentos 100% diretos via PIX sem intermediários
+          </p>
+        </footer>
       </main>
 
       {/* Floating Bottom Capsule (Active when tickets are selected) */}

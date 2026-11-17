@@ -192,3 +192,211 @@ h1, h2, h3, h4, .font-display {
 .animate-float-slow {
   animation: floatSlow 6s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   TEMA EQUIVALENTE VERDE ESMERALDA (Luminoso, Suave e Tecnológico)
+   Ativado exclusivamente quando html[data-theme="green"].
+   Mantém a mesma assinatura visual de alta qualidade do Oratry.
+   ========================================================================== */
+
+html[data-theme="green"] {
+  --ora-bg: #FFFFFF;
+  --ora-surface: #F3FAF6;
+  --ora-surface-alt: #E8F7F0;
+  --ora-blue: #00A868;
+  --ora-blue-deep: #008F58;
+  --ora-blue-dark: #064E3B;
+  --ora-blue-soft: #DCF4E9;
+  --ora-border: #D6EFE3;
+  --ora-border-strong: #B9E7D2;
+}
+
+html[data-theme="green"] ::selection {
+  background-color: #D3F5E4;
+  color: #064E3B;
+}
+
+html[data-theme="green"] :focus-visible {
+  outline-color: #00A868;
+}
+
+html[data-theme="green"] ::-webkit-scrollbar-track {
+  background: #F3FAF6;
+}
+
+html[data-theme="green"] ::-webkit-scrollbar-thumb {
+  background: #B9E7D2;
+}
+
+html[data-theme="green"] ::-webkit-scrollbar-thumb:hover {
+  background: #00A868;
+}
+
+/* Superfícies Atmosféricas e Iluminação Oratry no Tema Verde */
+html[data-theme="green"] .ora-hero-stage {
+  background: radial-gradient(60% 55% at 50% 54%, #DCF4E9 0%, #F1FAF5 46%, #FFFFFF 76%);
+}
+
+html[data-theme="green"] .ora-section-glow {
+  background:
+    radial-gradient(circle at 18% 28%, rgba(52, 211, 153, 0.16), transparent 32%),
+    radial-gradient(circle at 82% 68%, rgba(0, 168, 104, 0.10), transparent 34%),
+    #FFFFFF;
+}
+
+html[data-theme="green"] .ora-glass-pill {
+  border-color: #D6EFE3;
+  box-shadow: 0 8px 24px rgba(20, 100, 65, 0.05);
+}
+
+html[data-theme="green"] .ora-card {
+  border-color: #D6EFE3;
+  box-shadow: 0 14px 40px rgba(20, 100, 65, 0.05);
+}
+
+html[data-theme="green"] .ora-card-soft {
+  background: #F3FAF6;
+  border-color: rgba(134, 215, 180, 0.35);
+  box-shadow: 0 18px 50px rgba(20, 100, 65, 0.05);
+}
+
+html[data-theme="green"] .ora-btn-primary {
+  background: linear-gradient(145deg, #34D399 0%, #00A868 55%, #047857 100%);
+  border: 1px solid #22C55E;
+  box-shadow: 0 12px 30px rgba(0, 168, 104, 0.22);
+}
+
+html[data-theme="green"] .ora-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 16px 36px rgba(0, 168, 104, 0.30);
+}
+
+html[data-theme="green"] .ora-btn-secondary:hover:not(:disabled) {
+  background: #F3FAF6;
+  border-color: #B9E7D2;
+}
+
+/* Transmutação Luminosa do Badge 3D Central para Verde Esmeralda */
+html[data-theme="green"] img[src*="badge-3d-centro"] {
+  filter: hue-rotate(-75deg) saturate(1.08) brightness(1.02);
+}
+
+/* Mapeamento de Classes Utilitárias do Sistema para o Tom Verde */
+html[data-theme="green"] .text-\[\#0869F5\],
+html[data-theme="green"] .text-\[\#0755DE\] {
+  color: #00A868 !important;
+}
+
+html[data-theme="green"] .text-\[\#052498\] {
+  color: #064E3B !important;
+}
+
+html[data-theme="green"] .hover\:text-\[\#0869F5\]:hover {
+  color: #00A868 !important;
+}
+
+html[data-theme="green"] .hover\:text-\[\#052498\]:hover {
+  color: #064E3B !important;
+}
+
+html[data-theme="green"] .bg-\[\#0869F5\] {
+  background-color: #00A868 !important;
+}
+
+html[data-theme="green"] .hover\:bg-\[\#0755DE\]:hover,
+html[data-theme="green"] .hover\:bg-\[\#0869F5\]:hover {
+  background-color: #008F58 !important;
+}
+
+html[data-theme="green"] .bg-\[\#EDF5FF\],
+html[data-theme="green"] .bg-\[\#F2F7FF\] {
+  background-color: #E8F7F0 !important;
+}
+
+html[data-theme="green"] .bg-\[\#F5F9FF\] {
+  background-color: #F3FAF6 !important;
+}
+
+html[data-theme="green"] .bg-\[\#F8FBFF\] {
+  background-color: #F5FAF7 !important;
+}
+
+html[data-theme="green"] .bg-\[\#E1EDFF\] {
+  background-color: #DCF4E9 !important;
+}
+
+html[data-theme="green"] .hover\:bg-\[\#E3EFFF\]:hover,
+html[data-theme="green"] .hover\:bg-\[\#EDF5FF\]:hover,
+html[data-theme="green"] .hover\:bg-\[\#F5F9FF\]:hover {
+  background-color: #DCF4E9 !important;
+}
+
+html[data-theme="green"] .border-\[\#0869F5\] {
+  border-color: #00A868 !important;
+}
+
+html[data-theme="green"] .border-\[\#CDE0FC\],
+html[data-theme="green"] .border-\[\#B9D3F8\],
+html[data-theme="green"] .border-\[\#D0E2FC\] {
+  border-color: #B9E7D2 !important;
+}
+
+html[data-theme="green"] .border-\[\#E0E9F7\],
+html[data-theme="green"] .border-\[\#E3EDFB\],
+html[data-theme="green"] .border-\[\#DBE7F6\],
+html[data-theme="green"] .border-\[\#D9E5F7\] {
+  border-color: #D6EFE3 !important;
+}
+
+html[data-theme="green"] .hover\:border-\[\#B9D3F8\]:hover,
+html[data-theme="green"] .hover\:border-\[\#97BAE7\]:hover,
+html[data-theme="green"] .hover\:border-\[\#CDE0FC\]:hover {
+  border-color: #86D7B4 !important;
+}
+
+html[data-theme="green"] .from-\[\#62A5FF\] {
+  --tw-gradient-from: #34D399 var(--tw-gradient-from-position) !important;
+}
+
+html[data-theme="green"] .via-\[\#0869F5\] {
+  --tw-gradient-via: #00A868 var(--tw-gradient-via-position) !important;
+}
+
+html[data-theme="green"] .to-\[\#052498\] {
+  --tw-gradient-to: #064E3B var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="green"] .shadow-\[0_4px_14px_rgba\(8\,105\,245\,0\.35\)\] {
+  box-shadow: 0 4px 14px rgba(0, 168, 104, 0.35) !important;
+}
+
+html[data-theme="green"] .shadow-\[0_8px_18px_rgba\(8\,105\,245\,0\.28\)\] {
+  box-shadow: 0 8px 18px rgba(0, 168, 104, 0.28) !important;
+}
+
+html[data-theme="green"] .shadow-\[0_20px_50px_rgba\(8\,105\,245\,0\.22\)\] {
+  box-shadow: 0 20px 50px rgba(0, 168, 104, 0.22) !important;
+}
+
+html[data-theme="green"] .shadow-\[0_24px_48px_rgba\(8\,105\,245\,0\.35\)\] {
+  box-shadow: 0 24px 48px rgba(0, 168, 104, 0.35) !important;
+}
+
+html[data-theme="green"] .from-\[\#3888FF\] {
+  --tw-gradient-from: #34D399 var(--tw-gradient-from-position) !important;
+}
+
+html[data-theme="green"] .to-\[\#0869F5\] {
+  --tw-gradient-to: #00A868 var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="green"] .bg-\[\#EBF3FF\] {
+  background-color: #E6F6EE !important;
+}
+
+html[data-theme="green"] .border-\[\#C5DCFA\] {
+  border-color: #B2E5CF !important;
+}
+
+html[data-theme="green"] .ring-\[\#0869F5\]\/20 {
+  --tw-ring-color: rgba(0, 168, 104, 0.20) !important;
+}

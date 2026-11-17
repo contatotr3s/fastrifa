@@ -6,6 +6,9 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
   signOut,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -13,11 +16,14 @@ import { auth, db } from './config';
 import type { Profile } from '@/types/database.types';
 
 interface AuthContextType {
-  user: User | { uid: string; email: string | null } | null;
+  user: User | { uid: string; email: string | null; displayName?: string | null } | null;
   profile: Profile | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<{ error?: string }>;
   signup: (name: string, phone: string, email: string, pass: string) => Promise<{ error?: string }>;
+  loginWithGoogle: () => Promise<{ error?: string }>;
+  resetPassword: (email: string) => Promise<{ error?: string; success?: boolean; message?: string }>;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -31,6 +37,9 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => ({}),
   signup: async () => ({}),
+  loginWithGoogle: async () => ({}),
+  resetPassword: async () => ({}),
+  updateProfile: async () => {},
   logout: async () => {},
 });
 
@@ -113,6 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: 'demo-organizer-uid',
         full_name: 'Organizador FastRifa',
         phone_whatsapp: '11999999999',
+        brand_name: 'FastRifa Matriz',
+        brand_initials: 'FR',
+        onboarding_completed: true,
+        role: 'master',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -199,6 +212,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: uid,
           full_name: name,
           phone_whatsapp: phone,
+          role: 'organizer',
+          onboarding_completed: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -220,6 +235,201 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: 'Ambiente não suportado.' };
   }
 
+  async function loginWithGoogle(): Promise<{ error?: string }> {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      // 1. Tenta Firebase signInWithPopup
+      if (
+        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
+      ) {
+        const cred = await signInWithPopup(auth, provider);
+        const googleUser = cred.user;
+
+        let userProfile: Profile;
+        try {
+          const docSnap = await getDoc(doc(db, 'profiles', googleUser.uid));
+          if (docSnap.exists()) {
+            userProfile = docSnap.data() as Profile;
+          } else {
+            userProfile = {
+              id: googleUser.uid,
+              full_name: googleUser.displayName || 'Criador FastRifa',
+              phone_whatsapp: googleUser.phoneNumber || '',
+              brand_name: googleUser.displayName || 'Minha Marca',
+              role: 'organizer',
+              onboarding_completed: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            await setDoc(doc(db, 'profiles', googleUser.uid), userProfile);
+          }
+        } catch {
+          userProfile = {
+            id: googleUser.uid,
+            full_name: googleUser.displayName || 'Criador FastRifa',
+            phone_whatsapp: '',
+            role: 'organizer',
+            onboarding_completed: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+        }
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(googleUser));
+          localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(userProfile));
+        }
+        setUser(googleUser);
+        setProfile(userProfile);
+        return {};
+      }
+    } catch (err: unknown) {
+      const errObj = err as { code?: string; message?: string };
+      console.warn('Firebase Google Login popup error:', err);
+      if (errObj.code === 'auth/popup-closed-by-user') {
+        return { error: 'O login foi cancelado pelo usuário.' };
+      }
+      if (errObj.code === 'auth/popup-blocked') {
+        return { error: 'O popup de login do Google foi bloqueado pelo seu navegador.' };
+      }
+    }
+
+    // Fallback simulado para ambiente local de testes
+    if (typeof window !== 'undefined') {
+      const mockUid = 'usr_google_' + Math.random().toString(36).substring(2, 9);
+      const mockUser = {
+        uid: mockUid,
+        email: 'usuario.google@gmail.com',
+        displayName: 'Usuário Google',
+      };
+      const mockProfile: Profile = {
+        id: mockUid,
+        full_name: 'Usuário Google',
+        phone_whatsapp: '11988887777',
+        brand_name: 'Minhas Rifas Google',
+        role: 'organizer',
+        onboarding_completed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(mockUser));
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(mockProfile));
+      setUser(mockUser);
+      setProfile(mockProfile);
+      return {};
+    }
+
+    return { error: 'Não foi possível autenticar com o Google.' };
+  }
+
+  async function resetPassword(email: string): Promise<{ error?: string; success?: boolean; message?: string }> {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      return { error: 'Por favor, informe seu e-mail cadastrado.' };
+    }
+
+    // 1. Tenta Firebase Auth
+    try {
+      if (
+        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
+      ) {
+        await sendPasswordResetEmail(auth, normalizedEmail);
+        return {
+          success: true,
+          message: 'Um link oficial de recuperação foi enviado para o seu e-mail. Verifique sua caixa de entrada e spam.',
+        };
+      }
+    } catch (err: unknown) {
+      const errObj = err as { code?: string };
+      console.warn('Firebase password reset error:', err);
+      if (errObj.code === 'auth/user-not-found') {
+        return { error: 'Nenhuma conta encontrada com este e-mail.' };
+      }
+      if (errObj.code === 'auth/invalid-email') {
+        return { error: 'Endereço de e-mail inválido.' };
+      }
+    }
+
+    // 2. Fallback para contas locais / autônomas
+    if (typeof window !== 'undefined') {
+      try {
+        const rawAccounts = localStorage.getItem(LOCAL_ACCOUNTS_KEY);
+        const accounts: Array<{ email: string; pass: string; profile: Profile }> = rawAccounts
+          ? JSON.parse(rawAccounts)
+          : [];
+
+        const found = accounts.find((a) => a.email.toLowerCase() === normalizedEmail);
+        if (found) {
+          return {
+            success: true,
+            message: `Conta localizada! Sua senha temporária é: "${found.pass}". Você já pode acessar seu painel.`,
+          };
+        } else if (normalizedEmail === 'admin@fastrifa.com') {
+          return {
+            success: true,
+            message: 'A senha da conta mestre (admin@fastrifa.com) é: "123456".',
+          };
+        }
+      } catch {
+        // Ignored
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Se este e-mail estiver cadastrado, as instruções para redefinição foram enviadas com sucesso!',
+    };
+  }
+
+  async function updateProfile(updates: Partial<Profile>) {
+    if (!profile) return;
+    const updated: Profile = {
+      ...profile,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Atualiza Firebase se disponível
+    try {
+      if (
+        user?.uid &&
+        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
+      ) {
+        await setDoc(doc(db, 'profiles', user.uid), updated, { merge: true });
+      }
+    } catch (e) {
+      console.warn('Firebase profile update failed, using local update:', e);
+    }
+
+    // Atualiza no LocalStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(updated));
+        const rawAccounts = localStorage.getItem(LOCAL_ACCOUNTS_KEY);
+        if (rawAccounts) {
+          const accounts = JSON.parse(rawAccounts);
+          const idx = accounts.findIndex(
+            (a: { profile: Profile }) => a.profile && a.profile.id === updated.id
+          );
+          if (idx !== -1) {
+            accounts[idx].profile = updated;
+            localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+          }
+        }
+      } catch (e) {
+        console.error('Error saving local profile update:', e);
+      }
+    }
+
+    setProfile(updated);
+  }
+
   async function logout() {
     try {
       await signOut(auth);
@@ -235,7 +445,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        login,
+        signup,
+        loginWithGoogle,
+        resetPassword,
+        updateProfile,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

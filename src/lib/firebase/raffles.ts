@@ -10,7 +10,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db } from './config';
-import type { Raffle, Order, OccupiedTicket } from '@/types/database.types';
+import type { Raffle, Order, OccupiedTicket, Profile } from '@/types/database.types';
 
 const LOCAL_RAFFLES_KEY = 'fastrifa_local_raffles';
 const LOCAL_ORDERS_KEY = 'fastrifa_local_orders';
@@ -138,6 +138,53 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   // For regular user accounts, show their raffles or allMerged fallback
   const filtered = allMerged.filter((r) => r.user_id === userId);
   return filtered.length > 0 ? filtered : allMerged;
+}
+
+export async function getAllRaffles(): Promise<Raffle[]> {
+  return getUserRaffles('demo-organizer-uid');
+}
+
+export async function getAllCreators(): Promise<Array<{ email?: string; profile: Profile }>> {
+  const creators: Array<{ email?: string; profile: Profile }> = [];
+  const seenIds = new Set<string>();
+
+  // 1. Contas salvas localmente
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('fastrifa_auth_accounts');
+      if (raw) {
+        const accounts: Array<{ email: string; profile: Profile }> = JSON.parse(raw);
+        for (const a of accounts) {
+          if (a.profile && !seenIds.has(a.profile.id)) {
+            creators.push(a);
+            seenIds.add(a.profile.id);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading local creators:', e);
+    }
+  }
+
+  // 2. Conta Mestre / Teste oficial
+  if (!seenIds.has('demo-organizer-uid')) {
+    creators.unshift({
+      email: 'admin@fastrifa.com',
+      profile: {
+        id: 'demo-organizer-uid',
+        full_name: 'Organizador FastRifa',
+        phone_whatsapp: '11999999999',
+        brand_name: 'FastRifa Matriz',
+        brand_initials: 'FR',
+        onboarding_completed: true,
+        role: 'master',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    });
+  }
+
+  return creators;
 }
 
 export async function getRaffleById(raffleId: string): Promise<Raffle | null> {

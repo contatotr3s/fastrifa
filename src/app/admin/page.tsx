@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { getUserRaffles } from '@/lib/firebase/raffles';
+import ThemeSwitcher from '@/components/theme-switcher';
+import BrandOnboardingModal from '@/components/brand-onboarding-modal';
+import { generateBrandInitials } from '@/lib/image-processor';
 import {
   PlusCircle,
   ExternalLink,
@@ -12,16 +15,25 @@ import {
   Trophy,
   Sparkles,
   Tag,
+  Store,
   Loader2,
 } from 'lucide-react';
 import type { Raffle } from '@/types/database.types';
 
 export default function AdminDashboardPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
+
+  // Exibe onboarding automaticamente no primeiro acesso se não tiver configurado marca
+  const shouldAutoOnboard =
+    !authLoading &&
+    profile &&
+    profile.onboarding_completed !== true &&
+    !profile.brand_name;
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -54,6 +66,13 @@ export default function AdminDashboardPage() {
       {/* Page Title & Primary Action */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0869F5]">
+              {profile?.brand_name ? profile.brand_name : 'FastRifa'}
+            </span>
+            <span className="text-[#B9D3F8]">•</span>
+            <span className="text-xs text-[#526480] font-medium">Painel do Organizador</span>
+          </div>
           <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
             Painel de Controle
           </h1>
@@ -61,13 +80,66 @@ export default function AdminDashboardPage() {
             Acompanhe suas rifas rápidas, aprove comprovantes e confirme cotas com agilidade no PIX.
           </p>
         </div>
-        <Link
-          href="/admin/rifas/nova"
-          className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-[15px] font-bold inline-flex items-center justify-center gap-2"
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsBrandModalOpen(true)}
+            className="ora-btn-secondary rounded-[18px] px-5 py-3.5 text-sm font-bold inline-flex items-center gap-2 cursor-pointer"
+          >
+            <Store className="w-4 h-4 text-[#0869F5]" />
+            <span>Minha Marca</span>
+          </button>
+          <Link
+            href="/admin/rifas/nova"
+            className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-[15px] font-bold inline-flex items-center justify-center gap-2"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Criar Rifa Rápida</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Brand Identity Banner */}
+      <div className="ora-card-soft rounded-[25px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4 text-center sm:text-left">
+          <div className="w-14 h-14 rounded-[18px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
+            {profile?.brand_logo_url ? (
+              <img
+                src={profile.brand_logo_url}
+                alt={profile.brand_name || 'Logo'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-xl">
+                {profile?.brand_initials || generateBrandInitials(profile?.brand_name || profile?.full_name || 'FR')}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <strong className="font-display font-bold text-lg text-[#0D1729]">
+                {profile?.brand_name || 'Configure sua marca'}
+              </strong>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EDF5FF] text-[#0869F5] border border-[#CDE0FC]">
+                Oficial
+              </span>
+            </div>
+            <p className="text-xs text-[#526480] mt-0.5">
+              {profile?.brand_name
+                ? 'Sua marca e logo são exibidas no topo de todas as suas campanhas públicas.'
+                : 'Defina o nome do seu negócio e carregue sua logo para personalizar suas páginas.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsBrandModalOpen(true)}
+          className="ora-btn-secondary rounded-full px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
         >
-          <PlusCircle className="w-4 h-4" />
-          <span>Criar Rifa Rápida</span>
-        </Link>
+          <Store className="w-3.5 h-3.5 text-[#0869F5]" />
+          <span>{profile?.brand_name ? 'Editar Identidade' : 'Configurar Minha Marca'}</span>
+        </button>
       </div>
 
       {/* Overview Summary Strip */}
@@ -102,6 +174,9 @@ export default function AdminDashboardPage() {
           <div className="font-display font-bold text-3xl text-[#0D1729]">{completedRaffles}</div>
         </div>
       </div>
+
+      {/* Theme Customizer Switcher */}
+      <ThemeSwitcher variant="full" />
 
       {/* Raffles List */}
       <div className="space-y-5">
@@ -203,6 +278,13 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Brand Setup / Onboarding Modal */}
+      <BrandOnboardingModal
+        isOpen={Boolean(shouldAutoOnboard || isBrandModalOpen)}
+        onClose={() => setIsBrandModalOpen(false)}
+        isEditMode={!shouldAutoOnboard}
+      />
     </div>
   );
 }

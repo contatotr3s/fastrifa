@@ -12,9 +12,15 @@ import {
   Trophy,
   MessageCircle,
   Loader2,
-  X,
+  Share2,
+  CheckCircle2,
+  Phone,
+  Store,
+  Sparkles,
 } from 'lucide-react';
 import { updateOrderStatus, finishRaffle } from '@/lib/firebase/raffles';
+import SocialShareModal from '@/components/social-share-modal';
+import DrawRouletteModal from '@/components/draw-roulette-modal';
 import type { Raffle, Order } from '@/types/database.types';
 
 interface RaffleManagerProps {
@@ -28,11 +34,10 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Winner draw form state
+  // Modais
+  const [showShareModal, setShowShareModal] = useState(false);
   const [showDrawModal, setShowDrawModal] = useState(false);
-  const [winnerTicket, setWinnerTicket] = useState('');
-  const [winnerName, setWinnerName] = useState('');
-  const [drawLoading, setDrawLoading] = useState(false);
+  const [approvalNotification, setApprovalNotification] = useState<Order | null>(null);
 
   const publicUrl =
     typeof window !== 'undefined'
@@ -57,6 +62,44 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
   );
   const totalRevenue = paidOrders.reduce((acc, o) => acc + Number(o.total_amount), 0);
 
+  function formatTickets(numbers: number[]): string {
+    return numbers.map((n) => `#${n.toString().padStart(3, '0')}`).join(', ');
+  }
+
+  function getApprovedWhatsAppUrl(order: Order): string {
+    const cleanPhone = (order.buyer_phone || '').replace(/\D/g, '');
+    const tickets = formatTickets(order.ticket_numbers);
+    const brand = raffle.brand_name || 'FastRifa Oficial';
+    const msg = `🎉 *PAGAMENTO CONFIRMADO!*
+Olá ${order.buyer_name}, seu pagamento de R$ ${Number(order.total_amount).toFixed(2)} foi confirmado com sucesso na rifa *"${raffle.title}"*!
+
+🎟️ Suas cotas oficiais:
+${tickets}
+
+Acompanhe a campanha no link:
+${publicUrl}
+
+Boa sorte! 🍀
+— *${brand}*`;
+
+    return `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`;
+  }
+
+  function getPendingReminderWhatsAppUrl(order: Order): string {
+    const cleanPhone = (order.buyer_phone || '').replace(/\D/g, '');
+    const tickets = formatTickets(order.ticket_numbers);
+    const brand = raffle.brand_name || 'FastRifa Oficial';
+    const msg = `Olá ${order.buyer_name}! Notamos que você reservou as cotas (${tickets}) na rifa *"${raffle.title}"*.
+
+💰 Total: R$ ${Number(order.total_amount).toFixed(2)}
+🔑 Chave PIX: ${raffle.pix_key} (${(raffle.pix_key_type || 'PIX').toUpperCase()})
+
+Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
+— *${brand}*`;
+
+    return `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`;
+  }
+
   async function handleStatusChange(
     orderId: string,
     newStatus: 'paid' | 'cancelled' | 'pending'
@@ -64,9 +107,15 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
     setActionLoading(orderId);
     try {
       await updateOrderStatus(orderId, newStatus);
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-      );
+      const updated = orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o));
+      setOrders(updated);
+
+      if (newStatus === 'paid') {
+        const order = updated.find((o) => o.id === orderId);
+        if (order) {
+          setApprovalNotification(order);
+        }
+      }
     } catch (err) {
       console.error('Erro ao atualizar status do pedido:', err);
     } finally {
@@ -74,21 +123,9 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
     }
   }
 
-  async function handleFinishRaffle(e: React.FormEvent) {
-    e.preventDefault();
-    if (!winnerTicket) return;
-
-    setDrawLoading(true);
-    try {
-      const ticketNum = parseInt(winnerTicket, 10);
-      await finishRaffle(raffle.id, ticketNum, winnerName);
-      setShowDrawModal(false);
-      window.location.reload();
-    } catch (err) {
-      console.error('Erro ao finalizar rifa:', err);
-    } finally {
-      setDrawLoading(false);
-    }
+  async function handleFinishDraw(winnerTicket: number, winnerName: string) {
+    await finishRaffle(raffle.id, winnerTicket, winnerName);
+    window.location.reload();
   }
 
   const filteredOrders = orders.filter((o) => {
@@ -131,6 +168,12 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
                   Cota Premiada: #{String(raffle.winner_ticket).padStart(3, '0')}
                 </span>
               )}
+              {raffle.brand_name && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#526480] bg-[#F5F9FF] px-2.5 py-0.5 rounded-full border border-[#E0E9F7]">
+                  <Store className="w-3 h-3 text-[#0869F5]" />
+                  <span>{raffle.brand_name}</span>
+                </span>
+              )}
             </div>
             <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
               {raffle.title}
@@ -138,8 +181,19 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
           </div>
         </div>
 
-        {/* Public Link and Draw actions */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Divulgar nas Redes */}
+          <button
+            type="button"
+            onClick={() => setShowShareModal(true)}
+            className="ora-btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-full cursor-pointer hover:border-[#0869F5]"
+            title="Gerar card com QR Code para Stories e WhatsApp"
+          >
+            <Share2 className="w-4 h-4 text-[#0869F5]" />
+            <span>Divulgar nas Redes</span>
+          </button>
+
           <button
             type="button"
             onClick={copyPublicLink}
@@ -221,22 +275,22 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
       <div className="ora-card rounded-[28px] p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="font-display font-bold text-xl text-[#0D1729] tracking-[-0.03em]">
-              Pedidos & Participantes
+            <h2 className="font-display font-bold text-xl sm:text-2xl text-[#0D1729] tracking-[-0.03em]">
+              Pedidos e Comprovantes
             </h2>
-            <p className="text-sm text-[#475872]">
-              Confirme os pagamentos recebidos via PIX para liberar definitivamente os números.
+            <p className="text-xs text-[#475872] mt-0.5">
+              Confirme os comprovantes recebidos no WhatsApp e notifique os compradores instantaneamente.
             </p>
           </div>
 
-          {/* Oratry Capsule Filter Toggle */}
-          <div className="inline-flex items-center gap-1 p-1.5 bg-[#F8FBFF] rounded-full border border-[#DBE7F6] self-start sm:self-auto text-xs font-bold tabular-nums">
+          {/* Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 bg-[#F5F9FF] p-1.5 rounded-[18px] border border-[#E0E9F7]">
             <button
               type="button"
               onClick={() => setFilter('all')}
-              className={`px-3.5 py-1.5 rounded-full transition cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
                 filter === 'all'
-                  ? 'bg-[#0869F5] text-white shadow-[0_4px_12px_rgba(8,105,245,0.2)]'
+                  ? 'bg-white text-[#0869F5] shadow-sm'
                   : 'text-[#475872] hover:text-[#0D1729]'
               }`}
             >
@@ -245,9 +299,9 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
             <button
               type="button"
               onClick={() => setFilter('pending')}
-              className={`px-3.5 py-1.5 rounded-full transition cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
                 filter === 'pending'
-                  ? 'bg-[#0869F5] text-white shadow-[0_4px_12px_rgba(8,105,245,0.2)]'
+                  ? 'bg-white text-[#9A6700] shadow-sm'
                   : 'text-[#475872] hover:text-[#0D1729]'
               }`}
             >
@@ -256,47 +310,43 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
             <button
               type="button"
               onClick={() => setFilter('paid')}
-              className={`px-3.5 py-1.5 rounded-full transition cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
                 filter === 'paid'
-                  ? 'bg-[#0869F5] text-white shadow-[0_4px_12px_rgba(8,105,245,0.2)]'
+                  ? 'bg-white text-[#0869F5] shadow-sm'
                   : 'text-[#475872] hover:text-[#0D1729]'
               }`}
             >
-              Pagos ({paidOrders.length})
+              Confirmados ({paidOrders.length})
             </button>
           </div>
         </div>
 
-        {/* Orders List */}
         {filteredOrders.length === 0 ? (
-          <div className="p-10 text-center bg-[#F5F9FF] rounded-[20px] border border-[#E0E9F7] text-[#475872] text-sm">
+          <div className="py-12 text-center text-[#526480] text-sm">
             Nenhum pedido encontrado nesta categoria.
           </div>
         ) : (
-          <div className="divide-y divide-[#E0E9F7]">
+          <div className="space-y-3">
             {filteredOrders.map((order) => {
-              const cleanPhone = order.buyer_phone.replace(/\D/g, '');
-              const whatsappUrl = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(
-                `Olá ${order.buyer_name}! Entro em contato referente ao seu pedido na rifa "${raffle.title}".`
-              )}`;
+              const cleanPhone = (order.buyer_phone || '').replace(/\D/g, '');
 
               return (
                 <div
                   key={order.id}
-                  className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-4 sm:p-5 bg-white border border-[#E0E9F7] rounded-[22px] flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[#B9D3F8] transition"
                 >
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 flex-1">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="font-display font-bold text-[#0D1729] text-base">
+                      <strong className="font-display font-bold text-base text-[#0D1729]">
                         {order.buyer_name}
-                      </span>
+                      </strong>
                       <a
-                        href={whatsappUrl}
+                        href={`https://wa.me/55${cleanPhone}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-[#0755DE] bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] px-2.5 py-1 rounded-full inline-flex items-center gap-1 font-bold transition"
+                        className="inline-flex items-center gap-1 text-xs text-[#0869F5] hover:underline tabular-nums"
                       >
-                        <MessageCircle className="w-3.5 h-3.5" />
+                        <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
                         <span>{order.buyer_phone}</span>
                       </a>
                     </div>
@@ -327,8 +377,34 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
+                  {/* Actions & WhatsApp Direct */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Botão de Notificação no WhatsApp do Comprador */}
+                    {order.status === 'paid' ? (
+                      <a
+                        href={getApprovedWhatsAppUrl(order)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2 sm:px-3 sm:py-2 rounded-[14px] bg-[#EBF7F0] hover:bg-[#D5EFE1] border border-[#BCECD4] text-[#00A868] text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer"
+                        title="Enviar comprovante de cotas no WhatsApp"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Enviar Comprovante</span>
+                      </a>
+                    ) : order.status === 'pending' ? (
+                      <a
+                        href={getPendingReminderWhatsAppUrl(order)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2 sm:px-3 sm:py-2 rounded-[14px] bg-[#FFF8EB] hover:bg-[#FDECC8] border border-[#F5D08A] text-[#9A6700] text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer"
+                        title="Enviar lembrete e chave PIX no WhatsApp"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Cobrar PIX</span>
+                      </a>
+                    ) : null}
+
+                    {/* Status Toggle Buttons */}
                     {order.status === 'pending' ? (
                       <>
                         <button
@@ -357,7 +433,7 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
                     ) : order.status === 'paid' ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EDF5FF] text-[#0755DE] border border-[#CDE0FC] rounded-full text-xs font-bold">
                         <CheckCircle className="w-3.5 h-3.5" />
-                        <span>Pago</span>
+                        <span>Confirmado</span>
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FFF1F2] text-[#BE123C] border border-[#FECDD3] rounded-full text-xs font-bold">
@@ -372,85 +448,66 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
         )}
       </div>
 
-      {/* Sorteio / Modal de Ganhador */}
-      {showDrawModal && (
-        <div className="fixed inset-0 z-50 bg-[#0D1729]/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="ora-card rounded-[28px] max-w-md w-full p-7 space-y-5 relative">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display font-bold text-xl text-[#0D1729] flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-[#0869F5]" />
-                <span>Definir Ganhador da Rifa</span>
-              </h3>
-              <button
-                type="button"
-                aria-label="Fechar modal"
-                onClick={() => setShowDrawModal(false)}
-                className="p-1.5 text-[#475872] hover:text-[#0D1729] rounded-full"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      {/* MODAL 1: Divulgação nas Redes (Stories / Feed com QR Code) */}
+      <SocialShareModal
+        raffle={raffle}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
+
+      {/* MODAL 2: Sorteio da Roleta Animada com Confetes */}
+      <DrawRouletteModal
+        raffle={raffle}
+        paidOrders={paidOrders}
+        isOpen={showDrawModal}
+        onClose={() => setShowDrawModal(false)}
+        onFinish={handleFinishDraw}
+      />
+
+      {/* MODAL 3: Confirmação Imediata de Aprovação de PIX */}
+      {approvalNotification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/55 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[28px] max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#D9E5F7] space-y-5 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-[#EBF7F0] text-[#00A868] flex items-center justify-center mx-auto border border-[#BCECD4]">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
 
-            <p className="text-sm text-[#475872] leading-relaxed">
-              Ao informar o número sorteado, a campanha será marcada como Concluída e o resultado ficará visível publicamente na página da rifa.
-            </p>
+            <div>
+              <h3 className="font-display font-bold text-xl text-[#0D1729]">
+                Pagamento Confirmado!
+              </h3>
+              <p className="text-xs text-[#526480] mt-1">
+                As cotas de <strong>{approvalNotification.buyer_name}</strong> foram ativadas com sucesso.
+              </p>
+            </div>
 
-            <form onSubmit={handleFinishRaffle} className="space-y-4">
-              <div>
-                <label
-                  className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
-                  htmlFor="winnerTicket"
-                >
-                  Número do Bilhete Premiado *
-                </label>
-                <input
-                  id="winnerTicket"
-                  type="number"
-                  min={1}
-                  max={raffle.total_tickets}
-                  required
-                  value={winnerTicket}
-                  onChange={(e) => setWinnerTicket(e.target.value)}
-                  placeholder="Ex: 42"
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5] tabular-nums"
-                />
-              </div>
+            <div className="bg-[#F5F9FF] p-3.5 rounded-[16px] border border-[#E0E9F7] text-xs text-left space-y-1">
+              <span className="text-[#526480] font-semibold block">Cotas Oficiais:</span>
+              <strong className="text-[#0869F5] font-display font-bold text-sm block">
+                {formatTickets(approvalNotification.ticket_numbers)}
+              </strong>
+            </div>
 
-              <div>
-                <label
-                  className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
-                  htmlFor="winnerName"
-                >
-                  Nome do Ganhador (opcional)
-                </label>
-                <input
-                  id="winnerName"
-                  type="text"
-                  value={winnerName}
-                  onChange={(e) => setWinnerName(e.target.value)}
-                  placeholder="Ex: Carlos Eduardo"
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5]"
-                />
-              </div>
+            <div className="space-y-2 pt-2">
+              <a
+                href={getApprovedWhatsAppUrl(approvalNotification)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setApprovalNotification(null)}
+                className="w-full py-3.5 rounded-[16px] bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Enviar Comprovante no WhatsApp</span>
+              </a>
 
-              <div className="pt-2 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowDrawModal(false)}
-                  className="ora-btn-secondary px-5 py-2.5 rounded-[14px] text-xs font-bold cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={drawLoading}
-                  className="ora-btn-primary px-5 py-2.5 rounded-[14px] text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                >
-                  {drawLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Confirmar Sorteio</span>
-                </button>
-              </div>
-            </form>
+              <button
+                type="button"
+                onClick={() => setApprovalNotification(null)}
+                className="w-full py-2.5 text-xs font-bold text-[#526480] hover:text-[#0D1729] cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         </div>
       )}

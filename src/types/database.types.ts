@@ -4,12 +4,23 @@ export type RaffleStatus = 'draft' | 'active' | 'paused' | 'completed' | 'cancel
 
 export type OrderStatus = 'pending' | 'paid' | 'cancelled';
 
+export type UserRole = 'organizer' | 'master';
+
 export interface Profile {
   id: string; // Firebase Auth UID
   full_name: string;
   phone_whatsapp: string;
   pix_key?: string | null;
   pix_key_type?: PixKeyType | null;
+
+  // Customização de Marca (White-label do Criador)
+  brand_name?: string | null; // ex: "Freire Rifas"
+  brand_logo_url?: string | null; // DataURL ou URL da logo processada em 512x512
+  brand_initials?: string | null; // Iniciais geradas automaticamente ex: "FR"
+  brand_color?: 'blue' | 'green' | string | null; // Preferência de cor da marca
+  onboarding_completed?: boolean; // Se já concluiu o setup inicial de marca
+  role?: UserRole; // 'organizer' ou 'master'
+
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +41,11 @@ export interface Raffle {
   winner_ticket?: number | null;
   winner_name?: string | null;
   draw_date?: string | null;
+
+  // Marca vinculada à campanha
+  brand_name?: string | null;
+  brand_logo_url?: string | null;
+
   created_at: string;
   updated_at: string;
 }

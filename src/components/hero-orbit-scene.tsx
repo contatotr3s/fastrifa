@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '@/lib/theme-context';
 import {
   Zap,
   QrCode,
@@ -50,6 +51,7 @@ const CARDS: OrbitCardData[] = [
 ];
 
 export default function HeroOrbitScene() {
+  const { theme } = useTheme();
   const [angle, setAngle] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -109,13 +111,19 @@ export default function HeroOrbitScene() {
       {/* Ambient Radial Halo */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)] blur-2xl -z-10"
+        className={`pointer-events-none absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] rounded-full blur-2xl -z-10 ${
+          theme === 'green'
+            ? 'bg-[radial-gradient(circle,rgba(52,211,153,0.30)_0%,rgba(220,244,233,0.45)_45%,transparent_72%)]'
+            : 'bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)]'
+        }`}
       />
 
       {/* Orbit Ellipse 1 (Inner Dashed) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/70"
+        className={`pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed ${
+          theme === 'green' ? 'border-[#B9E7D2]/80' : 'border-[#B9D3F8]/70'
+        }`}
         style={{
           width: isMobile ? 320 : 450,
           height: isMobile ? 160 : 225,
@@ -126,7 +134,11 @@ export default function HeroOrbitScene() {
       {/* Orbit Ellipse 2 (Outer Soft Ring) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/45 shadow-[0_0_30px_rgba(8,105,245,0.06)]"
+        className={`pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border ${
+          theme === 'green'
+            ? 'border-[#B9E7D2]/50 shadow-[0_0_30px_rgba(0,168,104,0.08)]'
+            : 'border-[#CDE0FC]/45 shadow-[0_0_30px_rgba(8,105,245,0.06)]'
+        }`}
         style={{
           width: isMobile ? 360 : 510,
           height: isMobile ? 180 : 255,
@@ -140,12 +152,20 @@ export default function HeroOrbitScene() {
           {/* Pulsing Backlight */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)] blur-2xl animate-pulse"
+            className={`pointer-events-none absolute inset-0 rounded-full blur-2xl animate-pulse ${
+              theme === 'green'
+                ? 'bg-[radial-gradient(circle,rgba(52,211,153,0.45)_0%,rgba(0,168,104,0.22)_55%,transparent_75%)]'
+                : 'bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]'
+            }`}
           />
           <img
             src="/badge-3d-centro.png"
             alt="FastRifa Oficial"
-            className="relative z-10 w-full h-full object-contain drop-shadow-[0_24px_48px_rgba(8,105,245,0.35)] animate-float-slow"
+            className={`relative z-10 w-full h-full object-contain animate-float-slow ${
+              theme === 'green'
+                ? 'drop-shadow-[0_24px_48px_rgba(0,168,104,0.35)]'
+                : 'drop-shadow-[0_24px_48px_rgba(8,105,245,0.35)]'
+            }`}
           />
         </div>
 
@@ -202,6 +222,11 @@ export default function HeroOrbitScene() {
 
         const IconComponent = card.icon;
 
+        const cardBoxShadow =
+          theme === 'green'
+            ? `rgba(16, 100, 60, ${shadowAlpha.toFixed(3)}) 0px ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px, rgb(185, 231, 210) 0px 3px 0px, white 0px 1px 0px inset`
+            : `rgba(25, 77, 150, ${shadowAlpha.toFixed(3)}) 0px ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px, rgb(217, 232, 251) 0px 3px 0px, white 0px 1px 0px inset`;
+
         return (
           <div
             key={card.id}
@@ -210,7 +235,7 @@ export default function HeroOrbitScene() {
               zIndex,
               opacity,
               transform: `translate(-50%, -50%) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`,
-              boxShadow: `rgba(25, 77, 150, ${shadowAlpha.toFixed(3)}) 0px ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px, rgb(217, 232, 251) 0px 3px 0px, white 0px 1px 0px inset`,
+              boxShadow: cardBoxShadow,
             }}
           >
             <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">

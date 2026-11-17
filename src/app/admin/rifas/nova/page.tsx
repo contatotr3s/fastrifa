@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
+import PrizeImageUploader from '@/components/prize-image-uploader';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { PixKeyType } from '@/types/database.types';
 
 export default function NewRafflePage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
@@ -19,9 +20,9 @@ export default function NewRafflePage() {
   const [prizeImageUrl, setPrizeImageUrl] = useState('');
   const [totalTickets, setTotalTickets] = useState<number>(100);
   const [ticketPrice, setTicketPrice] = useState<number>(1.0);
-  const [pixKeyType, setPixKeyType] = useState<PixKeyType>('cpf');
-  const [pixKey, setPixKey] = useState('');
-  const [phoneWhatsapp, setPhoneWhatsapp] = useState('');
+  const [pixKeyType, setPixKeyType] = useState<PixKeyType>(profile?.pix_key_type || 'cpf');
+  const [pixKey, setPixKey] = useState(profile?.pix_key || '');
+  const [phoneWhatsapp, setPhoneWhatsapp] = useState(profile?.phone_whatsapp || '');
 
   const presets = [50, 100, 200, 500, 1000];
 
@@ -53,6 +54,8 @@ export default function NewRafflePage() {
         pix_key: pixKey,
         pix_key_type: pixKeyType,
         phone_whatsapp: phoneWhatsapp || '',
+        brand_name: profile?.brand_name || profile?.full_name || 'FastRifa',
+        brand_logo_url: profile?.brand_logo_url || null,
         status: 'active',
         winner_ticket: null,
         winner_name: null,
@@ -142,22 +145,11 @@ export default function NewRafflePage() {
             />
           </div>
 
-          <div>
-            <label
-              className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
-              htmlFor="prizeImageUrl"
-            >
-              URL da Foto do Prêmio (opcional)
-            </label>
-            <input
-              id="prizeImageUrl"
-              type="url"
-              value={prizeImageUrl}
-              onChange={(e) => setPrizeImageUrl(e.target.value)}
-              placeholder="https://exemplo.com/foto-do-premio.jpg"
-              className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
-            />
-          </div>
+          {/* Foto do Prêmio com Uploader inteligente */}
+          <PrizeImageUploader
+            value={prizeImageUrl}
+            onChange={(val) => setPrizeImageUrl(val)}
+          />
         </div>
 
         {/* Cotas e Valores */}
