@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import HeroOrbitScene from '@/components/hero-orbit-scene';
 import {
   ArrowUpRight,
   ArrowRight,
@@ -136,55 +137,8 @@ export default function HomePage() {
               Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
             </p>
 
-            {/* Bioluminescent Centerpiece + Floating Pills Stage */}
-            <div className="relative my-12 sm:my-16 py-6 flex flex-col items-center justify-center">
-              {/* Ambient Radial Halo */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.28)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)] blur-xl"
-              />
-
-              <div className="relative z-10 w-full max-w-[1120px] flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-5">
-                {/* Left Floating Stream (O que ficou no passado) */}
-                <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-3">
-                  <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm">
-                    sem planilhas confusas
-                  </div>
-                  <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm">
-                    sem cadastro chato pro cliente
-                  </div>
-                  <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] text-[#526480] shadow-sm hidden sm:block">
-                    sem taxa retida no saque
-                  </div>
-                </div>
-
-                {/* Central Bioluminescent 3D Brand Badge (The "Ora" of FastRifa) */}
-                <div className="relative mx-4 my-2 w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center animate-float-slow flex-shrink-0">
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(98,165,255,0.35)_0%,rgba(8,105,245,0.18)_55%,transparent_75%)] blur-2xl"
-                  />
-                  <img
-                    src="/badge-3d-centro.png"
-                    alt="FastRifa Oficial"
-                    className="relative z-10 w-full h-full object-contain drop-shadow-[0_24px_48px_rgba(8,105,245,0.35)] transition-transform hover:scale-105 duration-300"
-                  />
-                </div>
-
-                {/* Right Floating Stream (Vantagens FastRifa) */}
-                <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-3">
-                  <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] font-semibold text-[#0869F5] shadow-sm">
-                    ⚡ Criação em 2 minutos
-                  </div>
-                  <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] font-semibold text-[#0869F5] shadow-sm">
-                    📲 Link pronto pro WhatsApp
-                  </div>
-                  <div className="ora-glass-pill rounded-[18px] px-4 py-3 text-[14px] font-semibold text-[#0869F5] shadow-sm hidden sm:block">
-                    💸 PIX direto na sua conta
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* 3D Orbital Scene (Oratry Style with 5 Orbiting Feature Cards) */}
+            <HeroOrbitScene />
 
             {/* Primary CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
