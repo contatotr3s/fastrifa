@@ -158,9 +158,10 @@ export default function RafflePublicView({
 
   return (
     <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-32">
-      {/* Top Floating Pill Navbar */}
-      <header className="sticky top-0 z-40 h-[84px] flex items-center bg-gradient-to-b from-white/95 via-white/80 to-transparent backdrop-blur-[6px]">
-        <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between">
+      {/* Top Floating Pill Navbar with Smooth Feathered Atmosphere */}
+      <header className="sticky top-0 z-40 h-[84px] flex items-center">
+        <div className="ora-header-feather" aria-hidden="true" />
+        <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link
             href="/"
             className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"

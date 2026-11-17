@@ -56,9 +56,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#0D1729] flex flex-col">
-      {/* Oratry-style Floating Pill Header */}
-      <header className="sticky top-0 z-50 h-[92px] flex items-center bg-gradient-to-b from-white/95 via-white/80 to-transparent backdrop-blur-[6px]">
-        <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
+      {/* Oratry-style Floating Pill Header with Smooth Feathered Atmosphere */}
+      <header className="sticky top-0 z-50 h-[92px] flex items-center">
+        <div className="ora-header-feather" aria-hidden="true" />
+        <div className="relative z-10 max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
           {/* Brand Pill */}
           <Link
             href="/"
