@@ -1,259 +1,780 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useTheme } from '@/lib/theme-context';
-import {
-  Zap,
-  QrCode,
-  MessageCircle,
-  LayoutGrid,
-  ShieldCheck,
-} from 'lucide-react';
-
-interface OrbitCardData {
-  id: string;
-  title: string;
-  subtitle: string;
-  icon: typeof Zap;
-}
-
-const CARDS: OrbitCardData[] = [
-  {
-    id: 'c1',
-    title: 'Criação em 2 min',
-    subtitle: 'Sem cadastro longo',
-    icon: Zap,
-  },
-  {
-    id: 'c2',
-    title: 'Chave PIX Direta',
-    subtitle: '100% no seu banco',
-    icon: QrCode,
-  },
-  {
-    id: 'c3',
-    title: 'Link pro WhatsApp',
-    subtitle: 'Divulgação em 1 clique',
-    icon: MessageCircle,
-  },
-  {
-    id: 'c4',
-    title: 'Grade em Tempo Real',
-    subtitle: 'Números livres e pagos',
-    icon: LayoutGrid,
-  },
-  {
-    id: 'c5',
-    title: 'Sem Taxa no Saque',
-    subtitle: 'Caiu no PIX já é seu',
-    icon: ShieldCheck,
-  },
-];
+import React, { useEffect, useRef } from 'react';
 
 export default function HeroOrbitScene() {
-  const { theme } = useTheme();
-  const [angle, setAngle] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const animationFrameRef = useRef<number | null>(null);
-  const lastTimeRef = useRef<number | null>(null);
-  const angleRef = useRef(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const numberRef = useRef<HTMLSpanElement>(null);
 
-  // Check viewport size
   useEffect(() => {
-    function handleResize() {
-      setIsMobile(window.innerWidth < 640);
-    }
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    const root = rootRef.current;
+    if (!root) return;
 
-  // Smooth continuous 60fps orbit loop
-  useEffect(() => {
-    function animate(currentTime: number) {
-      if (lastTimeRef.current === null) {
-        lastTimeRef.current = currentTime;
+    const items = Array.from(root.querySelectorAll<HTMLElement>('.fr-orbit-item'));
+    const numberEl = numberRef.current;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const tiltRad = (-12.032113697747288 * Math.PI) / 180;
+    const cosT = Math.cos(tiltRad);
+    const sinT = Math.sin(tiltRad);
+
+    const settings = {
+      orbitSpeed: 0.00024,
+      lotteryInterval: 6000,
+      lotteryFrames: 25,
+      numberSpeed: 58,
+    };
+
+    let angle = -2.15;
+    let lastTime = 0;
+    let drawing = false;
+    let paused = false;
+
+    const cards = root.querySelectorAll<HTMLElement>('.fr-orbit-card');
+    const onEnter = () => { paused = true; };
+    const onLeave = () => { paused = false; };
+
+    cards.forEach((card) => {
+      card.addEventListener('mouseenter', onEnter);
+      card.addEventListener('mouseleave', onLeave);
+    });
+
+    let animationFrameId: number;
+
+    function renderOrbit(timestamp: number) {
+      if (!root || !root.isConnected) return;
+
+      if (!lastTime) lastTime = timestamp;
+      const dt = Math.min(timestamp - lastTime, 60);
+      lastTime = timestamp;
+
+      if (!reduceMotion.matches && !paused) {
+        angle += dt * settings.orbitSpeed;
       }
-      const deltaTime = (currentTime - lastTimeRef.current) / 1000;
-      lastTimeRef.current = currentTime;
 
-      // Speed: ~0.35 rad/s (approx 18s per full rotation), slows to 0.08 rad/s when hovered
-      const speed = isHovered ? 0.08 : 0.35;
-      angleRef.current = (angleRef.current + speed * deltaTime) % (Math.PI * 2);
-      setAngle(angleRef.current);
+      const w = root.clientWidth;
+      const isMobile = w < 640;
+      const radiusX = isMobile ? Math.min(w * 0.36, 155) : Math.min(w * 0.34, 240);
+      const radiusY = isMobile ? 90 : 122;
 
-      animationFrameRef.current = requestAnimationFrame(animate);
+      items.forEach((item, index) => {
+        const a = angle + index * ((Math.PI * 2) / items.length);
+
+        const ex = Math.cos(a) * radiusX;
+        const ey = Math.sin(a) * radiusY;
+
+        const x = ex * cosT - ey * sinT;
+        const y = ex * sinT + ey * cosT;
+
+        const depth = Math.sin(a);
+        const norm = (depth + 1) / 2;
+
+        const scale = (isMobile ? 0.72 : 0.78) + norm * (isMobile ? 0.22 : 0.24);
+        const opacity = 0.76 + norm * 0.24;
+
+        item.style.zIndex = depth >= 0 ? '30' : '10';
+        item.style.opacity = opacity.toFixed(3);
+
+        const isCard = item.classList.contains('fr-orbit-card');
+
+        if (isCard) {
+          const rotX = (-depth * 8.2).toFixed(2);
+          const rotY = (-(ex / radiusX) * 21).toFixed(2);
+          const rotZ = ((ex / radiusX) * 4.2).toFixed(2);
+
+          item.style.transform =
+            `translate(-50%, -50%) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) ` +
+            `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale.toFixed(3)})`;
+
+          const shadowAlpha = (0.075 + norm * 0.065).toFixed(3);
+          const shadowY = (7 + norm * 11).toFixed(1);
+          const shadowBlur = (14 + norm * 18).toFixed(1);
+          item.style.boxShadow =
+            `rgba(25, 77, 150, ${shadowAlpha}) 0px ${shadowY}px ${shadowBlur}px, ` +
+            `rgb(217, 232, 251) 0px 3px 0px, white 0px 1px 0px inset`;
+        } else {
+          item.style.transform =
+            `translate(-50%, -50%) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) scale(${scale.toFixed(3)})`;
+        }
+      });
+
+      if (!reduceMotion.matches) {
+        animationFrameId = requestAnimationFrame(renderOrbit);
+      }
     }
 
-    animationFrameRef.current = requestAnimationFrame(animate);
+    function animateNumber() {
+      if (drawing || reduceMotion.matches || !numberEl) return;
+      drawing = true;
+      let frames = 0;
+
+      const timer = setInterval(() => {
+        if (!root || !root.isConnected) {
+          clearInterval(timer);
+          drawing = false;
+          return;
+        }
+        const value = Math.floor(Math.random() * 1000000);
+        if (numberEl) {
+          numberEl.textContent = String(value).padStart(6, '0');
+        }
+        frames++;
+
+        if (frames >= settings.lotteryFrames) {
+          clearInterval(timer);
+          drawing = false;
+        }
+      }, settings.numberSpeed);
+    }
+
+    animationFrameId = requestAnimationFrame(renderOrbit);
+
+    let intervalId: NodeJS.Timeout | null = null;
+    if (!reduceMotion.matches) {
+      animateNumber();
+      intervalId = setInterval(() => {
+        if (root && root.isConnected) animateNumber();
+      }, settings.lotteryInterval);
+    }
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      cancelAnimationFrame(animationFrameId);
+      if (intervalId) clearInterval(intervalId);
+      cards.forEach((card) => {
+        card.removeEventListener('mouseenter', onEnter);
+        card.removeEventListener('mouseleave', onLeave);
+      });
     };
-  }, [isHovered]);
-
-  // Orbit ellipse geometry
-  const radiusX = isMobile ? 140 : 190;
-  const radiusY = isMobile ? 70 : 95;
-  const tiltAngle = -0.21; // -12 degrees tilt
+  }, []);
 
   return (
     <div
-      className="relative w-full max-w-[560px] h-[420px] sm:h-[480px] mx-auto flex items-center justify-center my-2 sm:my-4 select-none overflow-visible"
-      style={{ perspective: 1200 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      ref={rootRef}
+      id="fastRifaOrbit"
+      className="fr-orbit-root relative w-full max-w-[720px] h-[440px] sm:h-[490px] mx-auto flex items-center justify-center my-6 sm:my-10 select-none overflow-visible"
       aria-label="FastRifa em órbita tridimensional interativa"
     >
-      {/* Ambient Radial Halo */}
+      {/* Brilho radial de fundo */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] rounded-full blur-2xl -z-10 ${
-          theme === 'green'
-            ? 'bg-[radial-gradient(circle,rgba(52,211,153,0.30)_0%,rgba(220,244,233,0.45)_45%,transparent_72%)]'
-            : 'bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)]'
-        }`}
+        className="pointer-events-none absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] rounded-full blur-2xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)]"
       />
 
-      {/* Orbit Ellipse 1 (Inner Dashed) */}
+      {/* Anéis da órbita inclinados */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed ${
-          theme === 'green' ? 'border-[#B9E7D2]/80' : 'border-[#B9D3F8]/70'
-        }`}
+        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/70"
         style={{
-          width: isMobile ? 320 : 450,
-          height: isMobile ? 160 : 225,
-          transform: `translate(-50%, -50%) rotate(${tiltAngle * (180 / Math.PI)}deg)`,
+          width: 460,
+          height: 230,
+          transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/45 shadow-[0_0_30px_rgba(8,105,245,0.06)]"
+        style={{
+          width: 520,
+          height: 260,
+          transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
 
-      {/* Orbit Ellipse 2 (Outer Soft Ring) */}
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border ${
-          theme === 'green'
-            ? 'border-[#B9E7D2]/50 shadow-[0_0_30px_rgba(0,168,104,0.08)]'
-            : 'border-[#CDE0FC]/45 shadow-[0_0_30px_rgba(8,105,245,0.06)]'
-        }`}
-        style={{
-          width: isMobile ? 360 : 510,
-          height: isMobile ? 180 : 255,
-          transform: `translate(-50%, -50%) rotate(${tiltAngle * (180 / Math.PI)}deg)`,
-        }}
-      />
+      {/* Partículas luminosas */}
+      <span className="fr-star fr-star-1" aria-hidden="true">✦</span>
+      <span className="fr-star fr-star-2" aria-hidden="true">✧</span>
+      <span className="fr-star fr-star-3" aria-hidden="true">✦</span>
 
-      {/* Central Bioluminescent Orb with 3D Badge */}
-      <div className="relative z-20 flex flex-col items-center justify-center pointer-events-none">
-        <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center">
-          {/* Pulsing Backlight */}
+      {/* CENTRO: Bilhete 3D em formato real de bilhete */}
+      <div className="relative z-20 flex items-center justify-center pointer-events-none">
+        <div className="relative w-[252px] h-[128px] sm:w-[292px] sm:h-[144px] flex items-center justify-center">
           <div
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-0 rounded-full blur-2xl animate-pulse ${
-              theme === 'green'
-                ? 'bg-[radial-gradient(circle,rgba(52,211,153,0.45)_0%,rgba(0,168,104,0.22)_55%,transparent_75%)]'
-                : 'bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]'
-            }`}
+            className="pointer-events-none absolute -inset-5 rounded-full blur-2xl animate-pulse bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]"
           />
-          <img
-            src="/badge-3d-centro.png"
-            alt="FastRifa Oficial"
-            className={`relative z-10 w-full h-full object-contain animate-float-slow ${
-              theme === 'green'
-                ? 'drop-shadow-[0_24px_48px_rgba(0,168,104,0.35)]'
-                : 'drop-shadow-[0_24px_48px_rgba(8,105,245,0.35)]'
-            }`}
-          />
-        </div>
 
-        {/* Central Tagline (Ora Style) */}
-        <div className="mt-2 text-center pointer-events-auto">
-          <strong className="block text-[13px] sm:text-[14px] font-semibold text-[#0D1729] tracking-[-0.02em]">
-            Esta é a <b className="text-[#0869F5] font-bold">FastRifa.</b>
-          </strong>
-          <span className="block text-[11px] sm:text-[12px] font-medium text-[#475872] mt-0.5">
-            Sua rifa rápida, prática e no PIX.
-          </span>
-        </div>
-      </div>
+          <div className="fr-ticket-holder">
+            <div className="fr-speed" aria-hidden="true">
+              <i /><i /><i /><i /><i />
+            </div>
 
-      {/* Orbiting 3D Cards */}
-      {CARDS.map((card, index) => {
-        const phi = angle + (index * 2 * Math.PI) / CARDS.length;
+            {/* Camada de espessura 3D atrás do bilhete */}
+            <div className="fr-ticket-depth" aria-hidden="true" />
 
-        // Base 3D elliptical position
-        const cosPhi = Math.cos(phi);
-        const sinPhi = Math.sin(phi);
+            {/* Face principal do bilhete com recortes laterais */}
+            <div className="fr-ticket">
+              <div className="fr-shine" />
 
-        const x0 = radiusX * cosPhi;
-        const y0 = radiusY * sinPhi;
-        const z = sinPhi; // Depth: [-1 (back), +1 (front)]
+              {/* Canhoto esquerdo do bilhete */}
+              <div className="fr-ticket-stub">
+                <span className="fr-stub-brand">FASTRIFA</span>
+              </div>
 
-        // Rotate by orbital tilt
-        const cosTilt = Math.cos(tiltAngle);
-        const sinTilt = Math.sin(tiltAngle);
-        const x = x0 * cosTilt - y0 * sinTilt;
-        const y = x0 * sinTilt + y0 * cosTilt;
-
-        // 3D rotations based on orbital position
-        const rotX = -y0 * 0.08;
-        const rotY = -x0 * 0.11;
-        const rotZ = x0 * 0.022;
-
-        // Scale: [0.78, 1.0]
-        const depthNorm = (z + 1) / 2; // [0, 1]
-        const scale = isMobile
-          ? 0.72 + 0.18 * depthNorm
-          : 0.78 + 0.22 * depthNorm;
-
-        // Opacity: softer in back, crisp in front
-        const opacity = z < 0 ? 0.78 + 0.22 * depthNorm : 1.0;
-
-        // Depth layering: back cards behind orb (z-index 10), front cards in front (z-index 30)
-        const zIndex = z < 0 ? 10 : 30;
-
-        // Shadow parameters
-        const shadowY = 7 + 11 * depthNorm;
-        const shadowBlur = 14 + 18 * depthNorm;
-        const shadowAlpha = 0.08 + 0.06 * depthNorm;
-
-        const IconComponent = card.icon;
-
-        const cardBoxShadow =
-          theme === 'green'
-            ? `rgba(16, 100, 60, ${shadowAlpha.toFixed(3)}) 0px ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px, rgb(185, 231, 210) 0px 3px 0px, white 0px 1px 0px inset`
-            : `rgba(25, 77, 150, ${shadowAlpha.toFixed(3)}) 0px ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px, rgb(217, 232, 251) 0px 3px 0px, white 0px 1px 0px inset`;
-
-        return (
-          <div
-            key={card.id}
-            className="absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200"
-            style={{
-              zIndex,
-              opacity,
-              transform: `translate(-50%, -50%) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`,
-              boxShadow: cardBoxShadow,
-            }}
-          >
-            <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
-              <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
-                <IconComponent className="w-4 h-4 text-[#0869F5]" />
-              </span>
-              <div className="text-left select-none">
-                <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
-                  {card.title}
-                </strong>
-                <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
-                  {card.subtitle}
-                </small>
+              {/* Corpo principal com número sorteado */}
+              <div className="fr-ticket-main">
+                <div className="fr-ticket-inner">
+                  <span className="fr-ticket-label">Número sorteado:</span>
+                  <span className="fr-number" ref={numberRef}>073842</span>
+                </div>
               </div>
             </div>
           </div>
-        );
-      })}
+        </div>
+      </div>
+
+      {/* 1. Card: Criação em 2 min */}
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
+          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-zap w-4 h-4 text-[#0869F5]"
+              aria-hidden="true"
+            >
+              <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" />
+            </svg>
+          </span>
+          <div className="text-left select-none">
+            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+              Criação em 2 min
+            </strong>
+            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+              Sem cadastro longo
+            </small>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Ícone: Ferradura dourada */}
+      <div className="fr-orbit-item fr-object" aria-label="Ferradura dourada">
+        <svg viewBox="0 0 120 125">
+          <defs>
+            <linearGradient id="fr-horse-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#fff9cf" />
+              <stop offset=".25" stopColor="#f8db70" />
+              <stop offset=".55" stopColor="#d99c22" />
+              <stop offset=".75" stopColor="#ffe68a" />
+              <stop offset="1" stopColor="#97580d" />
+            </linearGradient>
+          </defs>
+          <path d="M25 14V65A35 35 0 0 0 95 65V14" transform="translate(4 6)" fill="none" stroke="#875013" strokeWidth="28" />
+          <path d="M25 14V65A35 35 0 0 0 95 65V14" fill="none" stroke="url(#fr-horse-gold)" strokeWidth="27" />
+          <path d="M25 14V65A35 35 0 0 0 95 65V14" transform="translate(-7 -1)" fill="none" stroke="#fff5c0" strokeWidth="3" opacity=".85" />
+          <g fill="#785019" stroke="#ffeda4" strokeWidth="1.8">
+            <circle cx="25" cy="24" r="4" />
+            <circle cx="25" cy="49" r="4" />
+            <circle cx="35" cy="82" r="4" />
+            <circle cx="60" cy="100" r="4" />
+            <circle cx="85" cy="82" r="4" />
+            <circle cx="95" cy="49" r="4" />
+            <circle cx="95" cy="24" r="4" />
+          </g>
+        </svg>
+      </div>
+
+      {/* 3. Card: Chave PIX Direta */}
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
+          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-qr-code w-4 h-4 text-[#0869F5]"
+              aria-hidden="true"
+            >
+              <rect width="5" height="5" x="3" y="3" rx="1" />
+              <rect width="5" height="5" x="16" y="3" rx="1" />
+              <rect width="5" height="5" x="3" y="16" rx="1" />
+              <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+              <path d="M21 21v.01" />
+              <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+              <path d="M3 12h.01" />
+              <path d="M12 3h.01" />
+              <path d="M12 16v.01" />
+              <path d="M16 12h1" />
+              <path d="M21 12v.01" />
+              <path d="M12 21v-1" />
+            </svg>
+          </span>
+          <div className="text-left select-none">
+            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+              Chave PIX Direta
+            </strong>
+            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+              100% no seu banco
+            </small>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Ícone: Trevo de quatro folhas */}
+      <div className="fr-orbit-item fr-object" aria-label="Trevo de quatro folhas">
+        <svg viewBox="0 0 120 125">
+          <defs>
+            <radialGradient id="fr-leaf-gradient" cx=".32" cy=".25" r=".85">
+              <stop offset="0" stopColor="#bbff91" />
+              <stop offset=".35" stopColor="#72e546" />
+              <stop offset=".7" stopColor="#41bd2c" />
+              <stop offset="1" stopColor="#168326" />
+            </radialGradient>
+            <path id="fr-heart" d="M0 0 C-11 -11 -35 -13 -34 -34 C-33 -51 -12 -54 0 -37 C12 -54 33 -51 34 -34 C35 -13 11 -11 0 0 Z" />
+          </defs>
+          <path d="M60 61Q83 87 71 118" stroke="#167a27" strokeWidth="12" strokeLinecap="round" fill="none" />
+          <path d="M58 60Q80 85 69 115" stroke="#65ce3c" strokeWidth="8" strokeLinecap="round" fill="none" />
+          <g transform="translate(60 59)">
+            <g transform="translate(1 4)" fill="#146b25">
+              <use href="#fr-heart" />
+              <use href="#fr-heart" transform="rotate(90)" />
+              <use href="#fr-heart" transform="rotate(180)" />
+              <use href="#fr-heart" transform="rotate(270)" />
+            </g>
+            <g fill="url(#fr-leaf-gradient)" stroke="#339d2a" strokeWidth="1.3">
+              <use href="#fr-heart" />
+              <use href="#fr-heart" transform="rotate(90)" />
+              <use href="#fr-heart" transform="rotate(180)" />
+              <use href="#fr-heart" transform="rotate(270)" />
+            </g>
+            <g stroke="#e7ffd2" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".7">
+              <path d="M-18 -27Q-11 -42 -3 -32" />
+              <path d="M27 -18Q42 -10 30 -3" />
+              <path d="M18 27Q10 38 3 30" />
+              <path d="M-28 18Q-40 10 -30 3" />
+            </g>
+            <circle r="5" fill="#52c83a" />
+          </g>
+        </svg>
+      </div>
+
+      {/* 5. Card: Link pro WhatsApp */}
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
+          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-message-circle w-4 h-4 text-[#0869F5]"
+              aria-hidden="true"
+            >
+              <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
+            </svg>
+          </span>
+          <div className="text-left select-none">
+            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+              Link pro WhatsApp
+            </strong>
+            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+              Divulgação em 1 clique
+            </small>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Ícone: Raio dourado */}
+      <div className="fr-orbit-item fr-object" aria-label="Raio dourado">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="fr-lightning-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#fff7c5" />
+              <stop offset=".45" stopColor="#ffdb3b" />
+              <stop offset="1" stopColor="#d77c06" />
+            </linearGradient>
+          </defs>
+          <path d="M70 5L22 65H56L38 114L104 46H68L83 5Z" fill="#956019" transform="translate(5 5)" />
+          <path d="M70 5L22 65H56L38 114L104 46H68L83 5Z" fill="url(#fr-lightning-gold)" stroke="#fff0a5" strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M70 14L37 57H63" stroke="#fff9dc" strokeWidth="5" fill="none" strokeLinecap="round" />
+        </svg>
+      </div>
+
+      {/* 7. Card: Grade em Tempo Real */}
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
+          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-layout-grid w-4 h-4 text-[#0869F5]"
+              aria-hidden="true"
+            >
+              <rect width="7" height="7" x="3" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="14" rx="1" />
+              <rect width="7" height="7" x="3" y="14" rx="1" />
+            </svg>
+          </span>
+          <div className="text-left select-none">
+            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+              Grade em Tempo Real
+            </strong>
+            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+              Números livres e pagos
+            </small>
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Ícone: Moeda dourada */}
+      <div className="fr-orbit-item fr-object" aria-label="Moeda dourada">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="fr-coin-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#fff6bd" />
+              <stop offset=".5" stopColor="#ffd046" />
+              <stop offset="1" stopColor="#b16f12" />
+            </linearGradient>
+          </defs>
+          <circle cx="64" cy="64" r="43" fill="#89530f" />
+          <circle cx="58" cy="57" r="43" fill="url(#fr-coin-gold)" stroke="#fff1a1" strokeWidth="3" />
+          <circle cx="58" cy="57" r="33" fill="none" stroke="#ae7219" strokeWidth="4" />
+          <text x="58" y="75" textAnchor="middle" fontSize="52" fontWeight="900" fill="#a36b16">$</text>
+          <path d="M34 34Q55 19 76 33" stroke="#fff9d3" strokeWidth="4" fill="none" strokeLinecap="round" />
+        </svg>
+      </div>
+
+      {/* 9. Card: Sem Taxa no Saque */}
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
+          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-shield-check w-4 h-4 text-[#0869F5]"
+              aria-hidden="true"
+            >
+              <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+          </span>
+          <div className="text-left select-none">
+            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+              Sem Taxa no Saque
+            </strong>
+            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+              Caiu no PIX já é seu
+            </small>
+          </div>
+        </div>
+      </div>
+
+      {/* 10. Ícone: Maço de dinheiro */}
+      <div className="fr-orbit-item fr-object fr-money" aria-label="Maço de dinheiro">
+        <svg viewBox="0 0 140 120">
+          <defs>
+            <linearGradient id="fr-money-green" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#baff83" />
+              <stop offset=".5" stopColor="#5cdb36" />
+              <stop offset="1" stopColor="#218e20" />
+            </linearGradient>
+          </defs>
+          <g transform="rotate(-13 70 60)">
+            <rect x="14" y="42" width="110" height="45" rx="10" fill="#227b1d" />
+            <rect x="11" y="35" width="110" height="45" rx="10" fill="#34a526" />
+            <rect x="8" y="28" width="110" height="45" rx="10" fill="#49c632" />
+            <rect x="5" y="21" width="110" height="45" rx="10" fill="url(#fr-money-green)" stroke="#d1ffa9" strokeWidth="2" />
+            <rect x="21" y="29" width="77" height="29" rx="7" stroke="#319c28" strokeWidth="3" fill="none" />
+            <circle cx="61" cy="43" r="13" fill="#42ac2b" />
+            <circle cx="61" cy="43" r="6" fill="#8ff268" />
+            <rect x="51" y="17" width="27" height="55" rx="7" fill="#eac49c" />
+            <path d="M56 21V67" stroke="#fff4e2" strokeWidth="3" opacity=".7" />
+          </g>
+        </svg>
+      </div>
+
+      <style>{`
+        .fr-orbit-root .fr-object {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 68px;
+          height: 68px;
+          pointer-events: none;
+          will-change: transform, opacity;
+          filter: drop-shadow(0 9px 10px rgba(8, 52, 118, 0.22));
+        }
+
+        .fr-orbit-root .fr-object.fr-money {
+          width: 80px;
+          height: 68px;
+        }
+
+        .fr-orbit-root .fr-object svg {
+          display: block;
+          width: 100%;
+          height: 100%;
+          overflow: visible;
+          animation: fr-icon-float 3.5s ease-in-out infinite;
+        }
+
+        .fr-orbit-root .fr-orbit-card {
+          border-radius: 20px;
+          will-change: transform, opacity;
+        }
+
+        .fr-orbit-root .fr-ticket-holder {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          animation: fr-ticket-float 4s ease-in-out infinite;
+          filter: drop-shadow(0 18px 26px rgba(8, 52, 118, 0.24));
+        }
+
+        .fr-orbit-root .fr-ticket-depth {
+          position: absolute;
+          inset: 0;
+          transform: translate(7px, 9px);
+          border-radius: 14px;
+          background: linear-gradient(145deg, #b88632 0%, #815821 100%);
+          -webkit-mask-image:
+            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
+            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+          -webkit-mask-composite: source-in;
+          mask-image:
+            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
+            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+          mask-composite: intersect;
+        }
+
+        .fr-orbit-root .fr-ticket {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          border-radius: 14px;
+          display: flex;
+          overflow: hidden;
+          background: linear-gradient(
+            145deg,
+            #fff9dd 0%,
+            #f7e2a3 45%,
+            #d6a747 78%,
+            #ab7525 100%
+          );
+          box-shadow:
+            inset 0 2px 6px rgba(255, 255, 255, 0.85),
+            inset 0 0 0 2px #fff0ac;
+          -webkit-mask-image:
+            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
+            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+          -webkit-mask-composite: source-in;
+          mask-image:
+            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
+            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+          mask-composite: intersect;
+        }
+
+        .fr-orbit-root .fr-ticket-stub {
+          position: relative;
+          width: 48px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-right: 2px dashed rgba(135, 88, 28, 0.55);
+          background: rgba(255, 248, 214, 0.25);
+        }
+
+        .fr-orbit-root .fr-stub-brand {
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.2em;
+          color: #7a5018;
+          opacity: 0.85;
+        }
+
+        .fr-orbit-root .fr-ticket-main {
+          position: relative;
+          flex: 1;
+          padding: 12px 16px 12px 12px;
+          display: flex;
+        }
+
+        .fr-orbit-root .fr-ticket-inner {
+          position: relative;
+          width: 100%;
+          border: 1.5px dashed #b28543;
+          border-radius: 9px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          padding: 6px 10px;
+        }
+
+        .fr-orbit-root .fr-ticket-label {
+          position: relative;
+          z-index: 2;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #724b16;
+          text-shadow: 0 1px 0 rgba(255, 250, 220, 0.8);
+        }
+
+        .fr-orbit-root .fr-number {
+          position: relative;
+          z-index: 2;
+          color: #165b3b;
+          font-size: clamp(24px, 4.5vw, 34px);
+          font-weight: 950;
+          letter-spacing: 1.5px;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+          line-height: 1;
+          text-shadow: 0 1px 0 #fff6c8;
+        }
+
+        .fr-orbit-root .fr-shine {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          pointer-events: none;
+          background: linear-gradient(
+            110deg,
+            transparent 20%,
+            rgba(255, 255, 255, 0.7) 45%,
+            transparent 60%
+          );
+          background-size: 260% 100%;
+          animation: fr-shine-move 5s ease-in-out infinite;
+        }
+
+        .fr-orbit-root .fr-speed {
+          position: absolute;
+          left: -105px;
+          top: 12px;
+          width: 150px;
+          height: 110px;
+          transform: rotate(-8deg);
+          z-index: -1;
+        }
+
+        .fr-orbit-root .fr-speed i {
+          position: absolute;
+          right: 0;
+          display: block;
+          height: 5px;
+          border-radius: 50px;
+          background: linear-gradient(90deg, transparent, #ffc34a, #ffea94, transparent);
+          filter: drop-shadow(0 0 5px #ffc642);
+          animation: fr-speed-motion 1s ease-in-out infinite;
+        }
+
+        .fr-orbit-root .fr-speed i:nth-child(1) { top: 12px; width: 110px; }
+        .fr-orbit-root .fr-speed i:nth-child(2) { top: 32px; width: 140px; animation-delay: -0.2s; }
+        .fr-orbit-root .fr-speed i:nth-child(3) { top: 53px; width: 85px; animation-delay: -0.4s; }
+        .fr-orbit-root .fr-speed i:nth-child(4) { top: 75px; width: 130px; animation-delay: -0.6s; }
+        .fr-orbit-root .fr-speed i:nth-child(5) { top: 95px; width: 80px; animation-delay: -0.8s; }
+
+        .fr-orbit-root .fr-star {
+          position: absolute;
+          z-index: 25;
+          color: #f8bf35;
+          pointer-events: none;
+          font-size: 20px;
+          animation: fr-sparkle 2.4s ease-in-out infinite;
+        }
+
+        .fr-orbit-root .fr-star-1 { top: 20%; left: 38%; }
+        .fr-orbit-root .fr-star-2 { top: 32%; right: 15%; animation-delay: -0.8s; }
+        .fr-orbit-root .fr-star-3 { bottom: 20%; left: 22%; animation-delay: -1.5s; }
+
+        @keyframes fr-ticket-float {
+          0%, 100% {
+            transform: perspective(1000px) translateY(0) rotate(-6deg) rotateX(6deg) rotateY(-10deg);
+          }
+          50% {
+            transform: perspective(1000px) translateY(-10px) rotate(-2deg) rotateX(-3deg) rotateY(7deg);
+          }
+        }
+
+        @keyframes fr-icon-float {
+          0%, 100% { transform: rotate(-8deg) scale(1); }
+          50% { transform: rotate(10deg) scale(1.06); }
+        }
+
+        @keyframes fr-shine-move {
+          0%, 30% { background-position: 130% 0; }
+          70%, 100% { background-position: -140% 0; }
+        }
+
+        @keyframes fr-speed-motion {
+          0% { opacity: 0; transform: translateX(25px) scaleX(0.7); }
+          45% { opacity: 1; }
+          100% { opacity: 0; transform: translateX(-45px) scaleX(1.2); }
+        }
+
+        @keyframes fr-sparkle {
+          0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0deg); }
+          50% { opacity: 1; transform: scale(1.2) rotate(75deg); }
+        }
+
+        @media (max-width: 640px) {
+          .fr-orbit-root .fr-object {
+            width: 54px;
+            height: 54px;
+          }
+          .fr-orbit-root .fr-object.fr-money {
+            width: 64px;
+            height: 54px;
+          }
+          .fr-orbit-root .fr-speed {
+            left: -65px;
+            transform: rotate(-8deg) scale(0.75);
+          }
+          .fr-orbit-root .fr-ticket-stub {
+            width: 40px;
+          }
+          .fr-orbit-root .fr-ticket-label {
+            font-size: 9.5px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .fr-orbit-root *,
+          .fr-orbit-root *::before,
+          .fr-orbit-root *::after {
+            animation: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
