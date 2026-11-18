@@ -37,13 +37,18 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    if (user && isMaster) {
+      router.replace('/admin/master');
+      return;
+    }
+
     if (user) {
       getUserRaffles(user.uid)
         .then((data) => setRaffles(data))
         .catch((err) => console.error('Erro ao buscar rifas:', err))
         .finally(() => setLoading(false));
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, isMaster]);
 
   if (authLoading || loading) {
     return (

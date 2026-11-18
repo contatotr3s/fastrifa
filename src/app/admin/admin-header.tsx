@@ -37,7 +37,7 @@ export default function AdminHeader() {
             <Link
               href={isMaster ? '/admin/master' : '/admin'}
               className="ora-glass-pill rounded-full pl-2.5 pr-4 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
-              title={isMaster ? 'FastRifa — Owner do Sistema' : `Painel do Organizador — ${brandName}`}
+              title={isMaster ? 'FastRifa — Painel Master' : `Painel do Organizador — ${brandName}`}
             >
               {isMaster ? (
                 <img
@@ -82,7 +82,7 @@ export default function AdminHeader() {
                 </span>
                 <span className="text-[10px] font-semibold text-[#526480] leading-none mt-0.5">
                   {isMaster
-                    ? 'Owner do Sistema'
+                    ? 'Painel Master'
                     : profile?.brand_name
                     ? 'Painel do Criador'
                     : 'Configuração Inicial'}
@@ -93,34 +93,33 @@ export default function AdminHeader() {
             {/* Navigation links (escondidos se estiver no onboarding) */}
             {!isOnboarding && (
               <nav className="hidden md:flex items-center gap-6 text-[15px] font-medium text-[#475872]">
-                <Link
-                  href="/admin"
-                  className={`hover:text-[#0869F5] font-semibold transition ${
-                    pathname === '/admin' ? 'text-[#0869F5]' : 'text-[#0D1729]'
-                  }`}
-                >
-                  Minhas Campanhas
-                </Link>
-                <Link
-                  href="/admin/rifas/nova"
-                  className={`hover:text-[#052498] font-semibold transition ${
-                    pathname === '/admin/rifas/nova' ? 'text-[#0869F5]' : 'text-[#0869F5]'
-                  }`}
-                >
-                  + Nova Rifa
-                </Link>
-                {isMaster && (
+                {isMaster ? (
                   <Link
                     href="/admin/master"
-                    className={`px-3 py-1 rounded-full border text-xs font-bold transition flex items-center gap-1.5 ${
-                      pathname === '/admin/master'
-                        ? 'bg-[#0869F5] text-white border-[#0869F5]'
-                        : 'bg-[#FFF8EB] border-[#F5D08A] text-[#9A6700] hover:bg-[#FDECC8]'
-                    }`}
+                    className="px-3.5 py-1.5 rounded-full bg-[#0869F5] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
                   >
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Painel Master (Owner)</span>
+                    <span>Painel Master</span>
                   </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/admin"
+                      className={`hover:text-[#0869F5] font-semibold transition ${
+                        pathname === '/admin' ? 'text-[#0869F5]' : 'text-[#0D1729]'
+                      }`}
+                    >
+                      Minhas Campanhas
+                    </Link>
+                    <Link
+                      href="/admin/rifas/nova"
+                      className={`hover:text-[#052498] font-semibold transition ${
+                        pathname === '/admin/rifas/nova' ? 'text-[#0869F5]' : 'text-[#0869F5]'
+                      }`}
+                    >
+                      + Nova Rifa
+                    </Link>
+                  </>
                 )}
               </nav>
             )}

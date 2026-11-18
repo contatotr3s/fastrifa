@@ -96,13 +96,13 @@ export default function HeroOrbitScene() {
   }, [isHovered]);
 
   // Orbit ellipse geometry
-  const radiusX = isMobile ? 150 : 215;
-  const radiusY = isMobile ? 75 : 105;
+  const radiusX = isMobile ? 140 : 190;
+  const radiusY = isMobile ? 70 : 95;
   const tiltAngle = -0.21; // -12 degrees tilt
 
   return (
     <div
-      className="relative w-full max-w-[720px] h-[440px] sm:h-[490px] mx-auto flex items-center justify-center my-6 sm:my-10 select-none overflow-visible"
+      className="relative w-full max-w-[560px] h-[420px] sm:h-[480px] mx-auto flex items-center justify-center my-2 sm:my-4 select-none overflow-visible"
       style={{ perspective: 1200 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

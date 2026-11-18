@@ -83,6 +83,8 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error);
         setLoading(false);
+      } else if (result.isMaster) {
+        router.push('/admin/master');
       } else if (result.needsOnboarding) {
         router.push('/admin/onboarding');
       } else {
@@ -105,6 +107,8 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error);
         setGoogleLoading(false);
+      } else if (result.isMaster) {
+        router.push('/admin/master');
       } else if (result.needsOnboarding) {
         router.push('/admin/onboarding');
       } else {
@@ -149,16 +153,13 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 inline-flex items-center gap-2.5 mb-5 hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full px-4 py-2 inline-flex items-center justify-center mb-5 hover:border-[#B9D3F8] transition"
           >
             <img
-              src="/icone-isolado.png"
-              alt="Ícone Fast Rifa"
-              className="w-8 h-8 object-contain"
+              src="/logo-fastrifa.png"
+              alt="Fast Rifa"
+              className="h-8 w-auto object-contain"
             />
-            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
-              Fast<span className="text-[#0869F5]">Rifa</span>
-            </span>
           </Link>
 
           <h1 className="font-display font-bold text-3xl tracking-[-0.04em] text-[#0D1729]">

@@ -21,6 +21,7 @@ export interface AuthResult {
   error?: string;
   isNewUser?: boolean;
   needsOnboarding?: boolean;
+  isMaster?: boolean;
 }
 
 interface AuthContextType {
@@ -124,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Documento ainda não existia: cria novo perfil
               const initialProfile: Profile = {
                 id: currentUser.uid,
-                full_name: currentUser.displayName || (isMaster ? 'Danilo (Owner FastRifa)' : 'Organizador'),
+                full_name: currentUser.displayName || (isMaster ? 'Danilo' : 'Organizador'),
                 phone_whatsapp: currentUser.phoneNumber || '',
                 brand_name: isMaster ? 'FastRifa' : '',
                 brand_initials: isMaster ? 'FR' : '',
@@ -151,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (isMaster) {
               const fallbackMaster: Profile = {
                 id: currentUser.uid,
-                full_name: 'Danilo (Owner FastRifa)',
+                full_name: 'Danilo',
                 phone_whatsapp: '11999999999',
                 role: 'master',
                 brand_name: 'FastRifa',
@@ -204,7 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const activeProfile: Profile = userProfile || {
         id: cred.user.uid,
-        full_name: isMasterUser ? 'Danilo (Owner FastRifa)' : 'Organizador',
+        full_name: isMasterUser ? 'Danilo' : 'Organizador',
         phone_whatsapp: isMasterUser ? '11999999999' : '',
         brand_name: isMasterUser ? 'FastRifa' : '',
         brand_initials: isMasterUser ? 'FR' : '',
@@ -223,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(activeProfile);
 
       const needsOnboarding = !isMasterUser && (!activeProfile.onboarding_completed || !activeProfile.brand_name);
-      return { needsOnboarding };
+      return { needsOnboarding, isMaster: isMasterUser };
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.warn('Firebase login error:', err);
@@ -327,7 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           userProfile = {
             id: googleUser.uid,
-            full_name: googleUser.displayName || (isMasterUser ? 'Danilo (Owner FastRifa)' : 'Organizador'),
+            full_name: googleUser.displayName || (isMasterUser ? 'Danilo' : 'Organizador'),
             phone_whatsapp: googleUser.phoneNumber || '',
             brand_name: isMasterUser ? 'FastRifa' : '', // Começa sem marca para forçar o onboarding
             brand_initials: isMasterUser ? 'FR' : '',
@@ -345,7 +346,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         needsOnboarding = !isMasterUser;
         userProfile = {
           id: googleUser.uid,
-          full_name: googleUser.displayName || (isMasterUser ? 'Danilo (Owner FastRifa)' : 'Organizador'),
+          full_name: googleUser.displayName || (isMasterUser ? 'Danilo' : 'Organizador'),
           phone_whatsapp: '',
           brand_name: isMasterUser ? 'FastRifa' : '',
           brand_initials: isMasterUser ? 'FR' : '',
@@ -363,7 +364,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(googleUser);
       setProfile(userProfile);
-      return { isNewUser, needsOnboarding };
+      return { isNewUser, needsOnboarding, isMaster: isMasterUser };
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.error('Firebase Google Login error:', err);

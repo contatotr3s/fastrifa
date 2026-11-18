@@ -479,3 +479,67 @@ export async function deleteCreatorProfile(userId: string): Promise<boolean> {
 
   return true;
 }
+
+export async function updateRaffleByMaster(raffleId: string, updates: Partial<Raffle>): Promise<boolean> {
+  const now = new Date().toISOString();
+  const payload = { ...updates, updated_at: now };
+
+  // 1. Update remote in Firestore
+  try {
+    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
+      await updateDoc(doc(db, 'raffles', raffleId), payload);
+    }
+  } catch (err) {
+    console.warn('Error updating remote raffle:', err);
+  }
+
+  // 2. Update local storage
+  const current = getLocalRaffles();
+  saveLocalRaffles(
+    current.map((r) => (r.id === raffleId ? { ...r, ...payload } : r))
+  );
+
+  return true;
+}
+
+export async function updateProfileByMaster(
+  userId: string,
+  updates: Partial<Profile>,
+  updatedEmail?: string
+): Promise<boolean> {
+  const now = new Date().toISOString();
+  const payload = { ...updates, updated_at: now, ...(updatedEmail ? { email: updatedEmail } : {}) };
+
+  // 1. Update remote in Firestore
+  try {
+    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
+      await updateDoc(doc(db, 'profiles', userId), payload);
+    }
+  } catch (err) {
+    console.warn('Error updating remote profile:', err);
+  }
+
+  // 2. Update local storage if present
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('fastrifa_auth_accounts');
+      if (raw) {
+        const accounts = JSON.parse(raw);
+        const updated = accounts.map((a: { email?: string; profile: Profile }) => {
+          if (a?.profile?.id === userId) {
+            return {
+              email: updatedEmail || a.email,
+              profile: { ...a.profile, ...payload },
+            };
+          }
+          return a;
+        });
+        localStorage.setItem('fastrifa_auth_accounts', JSON.stringify(updated));
+      }
+    } catch (e) {
+      console.warn('Error updating local creator storage:', e);
+    }
+  }
+
+  return true;
+}

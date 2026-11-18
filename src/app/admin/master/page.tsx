@@ -9,10 +9,16 @@ import {
   getAllCreators,
   deleteRaffle,
   deleteCreatorProfile,
+  updateRaffleByMaster,
+  updateProfileByMaster,
 } from '@/lib/firebase/raffles';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { generateBrandInitials } from '@/lib/image-processor';
+import {
+  MasterEditUserModal,
+  MasterEditRaffleModal,
+} from '@/components/master-modals';
 import {
   ShieldCheck,
   Users,
@@ -28,6 +34,7 @@ import {
   CheckCircle2,
   Trash2,
   AlertTriangle,
+  Edit3,
 } from 'lucide-react';
 import type { Raffle, Profile } from '@/types/database.types';
 
@@ -37,7 +44,7 @@ interface CreatorItem {
 }
 
 export default function AdminMasterPage() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, resetPassword } = useAuth();
   const router = useRouter();
 
   const [creators, setCreators] = useState<CreatorItem[]>([]);
@@ -48,6 +55,10 @@ export default function AdminMasterPage() {
   const [cleanFeedback, setCleanFeedback] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [deletingRaffleId, setDeletingRaffleId] = useState<string | null>(null);
+
+  // Modais de edição direta pelo Master
+  const [selectedUserToEdit, setSelectedUserToEdit] = useState<CreatorItem | null>(null);
+  const [selectedRaffleToEdit, setSelectedRaffleToEdit] = useState<Raffle | null>(null);
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
@@ -158,6 +169,32 @@ export default function AdminMasterPage() {
     }
   }
 
+  async function handleSaveUser(userId: string, updates: Partial<Profile>, updatedEmail?: string) {
+    setCleanFeedback(null);
+    await updateProfileByMaster(userId, updates, updatedEmail);
+    setCreators((prev) =>
+      prev.map((c) => {
+        if (c.profile.id === userId) {
+          return {
+            email: updatedEmail || c.email,
+            profile: { ...c.profile, ...updates },
+          };
+        }
+        return c;
+      })
+    );
+    setCleanFeedback(`Dados do usuário "${updates.brand_name || updates.full_name}" foram atualizados com sucesso.`);
+  }
+
+  async function handleSaveRaffle(raffleId: string, updates: Partial<Raffle>) {
+    setCleanFeedback(null);
+    await updateRaffleByMaster(raffleId, updates);
+    setRaffles((prev) =>
+      prev.map((r) => (r.id === raffleId ? { ...r, ...updates } : r))
+    );
+    setCleanFeedback(`Campanha "${updates.title || 'Rifa'}" atualizada com sucesso.`);
+  }
+
   if (authLoading || loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
@@ -207,13 +244,13 @@ export default function AdminMasterPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] text-xs font-bold uppercase tracking-wider mb-2">
             <ShieldCheck className="w-4 h-4" />
-            <span>Painel Master • Owner do FastRifa</span>
+            <span>Painel Master</span>
           </div>
           <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
-            Monitoramento de Criadores
+            Administração do Sistema
           </h1>
           <p className="text-[#475872] text-[15px] mt-1">
-            Acompanhe em tempo real quem está criando rifas, as marcas ativas e o volume transacionado na plataforma.
+            Clique em qualquer usuário ou campanha para editar dados, redefinir senhas, ajustar PIX ou gerenciar o status.
           </p>
         </div>
 
@@ -223,7 +260,7 @@ export default function AdminMasterPage() {
             disabled={isCleaning}
             onClick={handleCleanTestData}
             className="px-4 py-2.5 text-xs font-bold text-[#BE123C] bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#FECDD3] rounded-full transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="Remove usuários e rifas de teste, mantendo apenas a conta do owner"
+            title="Remove usuários e rifas de teste, mantendo apenas a conta master"
           >
             {isCleaning ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -366,11 +403,16 @@ export default function AdminMasterPage() {
                   const cleanPhone = (p.phone_whatsapp || '').replace(/\D/g, '');
 
                   return (
-                    <tr key={p.id} className="hover:bg-[#F8FBFF] transition">
+                    <tr
+                      key={p.id}
+                      onClick={() => setSelectedUserToEdit(c)}
+                      className="hover:bg-[#F2F7FF] transition cursor-pointer group"
+                      title="Clique para editar dados, chave PIX e resetar senha deste usuário"
+                    >
                       {/* Brand Info */}
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-[14px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 rounded-[14px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0 group-hover:border-[#0869F5] transition">
                             {p.brand_logo_url ? (
                               <img
                                 src={p.brand_logo_url}
@@ -384,7 +426,7 @@ export default function AdminMasterPage() {
                             )}
                           </div>
                           <div>
-                            <strong className="block font-display font-bold text-[#0D1729] text-[14px] leading-tight">
+                            <strong className="block font-display font-bold text-[#0D1729] text-[14px] leading-tight group-hover:text-[#0869F5] transition">
                               {brandName}
                             </strong>
                             <span className="text-[11px] text-[#526480] flex items-center gap-1 mt-0.5">
@@ -416,6 +458,7 @@ export default function AdminMasterPage() {
                                 href={`https://wa.me/55${cleanPhone}?text=Ol%C3%A1!%20Aqui%20%C3%A9%20do%20suporte%20FastRifa.`}
                                 target="_blank"
                                 rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
                                 className="p-1 rounded-full text-[#0869F5] hover:bg-[#EDF5FF] transition"
                                 title="Chamar no WhatsApp"
                               >
@@ -442,7 +485,20 @@ export default function AdminMasterPage() {
 
                       {/* Actions */}
                       <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div
+                          className="flex items-center justify-end gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setSelectedUserToEdit(c)}
+                            className="ora-btn-secondary px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer hover:border-[#0869F5] hover:text-[#0869F5] transition"
+                            title="Editar dados cadastrais, marca, PIX e redefinir senha"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-[#0869F5]" />
+                            <span>Administrar</span>
+                          </button>
+
                           {cleanPhone && (
                             <a
                               href={`https://wa.me/55${cleanPhone}`}
@@ -470,7 +526,7 @@ export default function AdminMasterPage() {
                                 ) : (
                                   <Trash2 className="w-3.5 h-3.5" />
                                 )}
-                                <span>Excluir Usuário</span>
+                                <span>Excluir</span>
                               </button>
                             )}
                         </div>
@@ -515,9 +571,14 @@ export default function AdminMasterPage() {
               </thead>
               <tbody className="divide-y divide-[#E0E9F7]">
                 {raffles.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#F8FBFF] transition">
+                  <tr
+                    key={r.id}
+                    onClick={() => setSelectedRaffleToEdit(r)}
+                    className="hover:bg-[#F2F7FF] transition cursor-pointer group"
+                    title="Clique para editar dados da campanha, cota, status e chave PIX"
+                  >
                     <td className="py-4 px-6">
-                      <strong className="block font-display font-bold text-[#0D1729] text-sm">
+                      <strong className="block font-display font-bold text-[#0D1729] text-sm group-hover:text-[#0869F5] transition">
                         {r.title}
                       </strong>
                       <span className="text-xs text-[#526480]">slug: {r.slug}</span>
@@ -553,13 +614,26 @@ export default function AdminMasterPage() {
                     </td>
 
                     <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div
+                        className="flex items-center justify-end gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRaffleToEdit(r)}
+                          className="ora-btn-secondary px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer hover:border-[#0869F5] hover:text-[#0869F5] transition"
+                          title="Ajustar dados da rifa, valor da cota e status"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-[#0869F5]" />
+                          <span>Editar</span>
+                        </button>
+
                         <Link
                           href={`/r/${r.slug}`}
                           target="_blank"
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#F2F7FF] text-[#0869F5] text-xs font-bold hover:bg-[#E3EFFF] transition"
                         >
-                          <span>Abrir Rifa</span>
+                          <span>Página</span>
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
 
@@ -586,6 +660,24 @@ export default function AdminMasterPage() {
           </div>
         </div>
       )}
+
+      {/* Modais de Edição e Administração Master */}
+      <MasterEditUserModal
+        isOpen={!!selectedUserToEdit}
+        onClose={() => setSelectedUserToEdit(null)}
+        creatorItem={selectedUserToEdit}
+        onSave={handleSaveUser}
+        onResetPassword={resetPassword}
+        onDeleteUser={handleDeleteUser}
+      />
+
+      <MasterEditRaffleModal
+        isOpen={!!selectedRaffleToEdit}
+        onClose={() => setSelectedRaffleToEdit(null)}
+        raffle={selectedRaffleToEdit}
+        onSave={handleSaveRaffle}
+        onDeleteRaffle={handleDeleteRaffle}
+      />
     </div>
   );
 }

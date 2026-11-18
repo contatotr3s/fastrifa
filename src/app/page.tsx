@@ -64,16 +64,13 @@ export default function HomePage() {
           {/* Brand Pill */}
           <Link
             href="/"
-            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full px-4 py-2 flex items-center justify-center hover:border-[#B9D3F8] transition"
           >
             <img
-              src="/icone-isolado.png"
-              alt="Ícone Fast Rifa"
-              className="w-8 h-8 object-contain"
+              src="/logo-fastrifa.png"
+              alt="Fast Rifa"
+              className="h-8 w-auto object-contain"
             />
-            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
-              Fast<span className="text-[#0869F5]">Rifa</span>
-            </span>
           </Link>
 
           {/* Center Navigation Pill */}
@@ -117,43 +114,66 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-8 pb-20 sm:pt-14 sm:pb-28 px-4 sm:px-8 relative overflow-hidden">
-          <div className="max-w-[1180px] mx-auto text-center">
-            {/* Top Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
-              <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
-            </div>
+        <section className="ora-hero-stage pt-6 pb-16 sm:pt-12 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
+          <div className="max-w-[1300px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Left Column: Headline with inline pill element + CTA */}
+              <div className="lg:col-span-7 text-left space-y-6">
+                {/* Eyebrow Tag */}
+                <div className="text-xs sm:text-sm font-bold uppercase tracking-[0.16em] text-[#0869F5]">
+                  Sua campanha abre ou fecha portas
+                </div>
 
-            <h1 className="font-display font-bold text-[clamp(2.5rem,5.2vw,4.65rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729] max-w-4xl mx-auto">
-              Crie. Divulgue. Venda.
-              <br />
-              <span className="text-[#0869F5]">Tudo vapt-vupt no seu PIX.</span>
-            </h1>
+                {/* H1 Headline with Inline Pill Element */}
+                <h1 className="font-display font-bold text-[clamp(2.4rem,4.4vw,4.1rem)] leading-[1.08] tracking-[-0.04em] text-[#0D1729]">
+                  Não perca{' '}
+                  <span className="inline-flex items-center justify-center align-middle mx-1 sm:mx-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] shadow-[0_2px_10px_rgba(8,105,245,0.08)]">
+                    <img
+                      src="/icone-isolado.png"
+                      alt="Ícone Fast Rifa"
+                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+                    />
+                  </span>{' '}
+                  <span className="text-[#0869F5]">o cliente</span>
+                  <br />
+                  por não conseguir
+                  <br />
+                  vender rápido.
+                </h1>
 
-            <p className="mt-6 text-[clamp(1.05rem,1.45vw,1.25rem)] text-[#475872] max-w-[65ch] mx-auto leading-[1.6] font-normal">
-              Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
-            </p>
+                <p className="text-[17px] sm:text-[19px] text-[#475872] leading-[1.6] max-w-[50ch]">
+                  Pra você criar em 2 minutos, divulgar no zap e receber direto na sua conta. Sem taxa no saque, sem intermediário e sem complicação.
+                </p>
 
-            {/* 3D Orbital Scene (Oratry Style with 5 Orbiting Feature Cards) */}
-            <HeroOrbitScene />
+                {/* Primary CTA Button & Subtext */}
+                <div className="pt-2 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                      href="/cadastro"
+                      className="ora-btn-primary rounded-full px-8 py-4 text-[16px] sm:text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-lg shadow-[#0869F5]/25 hover:shadow-[#0869F5]/40 transition"
+                    >
+                      <span>Comece grátis</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </Link>
+                    <a
+                      href="#campanha-ao-vivo"
+                      className="ora-btn-secondary rounded-full px-6 py-4 text-[15px] sm:text-[16px] font-semibold inline-flex items-center justify-center gap-2"
+                    >
+                      <span>Ver Demonstração</span>
+                    </a>
+                  </div>
 
-            {/* Primary CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/cadastro"
-                className="ora-btn-primary rounded-[20px] px-8 py-4 text-[17px] font-bold inline-flex items-center justify-center gap-3 w-full sm:w-auto"
-              >
-                <span>Criar Rifa Rápida Agora</span>
-                <ArrowUpRight className="w-5 h-5" />
-              </Link>
-              <a
-                href="#campanha-ao-vivo"
-                className="ora-btn-secondary rounded-[20px] px-7 py-4 text-[17px] font-semibold inline-flex items-center justify-center gap-2.5 w-full sm:w-auto"
-              >
-                <span>Ver Demonstração</span>
-                <ArrowRight className="w-4 h-4 text-[#0869F5]" />
-              </a>
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[#526480] pt-1">
+                    <span className="w-2 h-2 rounded-full bg-[#0869F5]" />
+                    <span>Crie grátis para praticar e testar como quiser. Sem cartão.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: 3D Orbital Scene */}
+              <div className="lg:col-span-5 flex items-center justify-center relative">
+                <HeroOrbitScene />
+              </div>
             </div>
           </div>
         </section>
@@ -465,15 +485,12 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[#E0E9F7] bg-white py-10 px-4 sm:px-8">
         <div className="max-w-[1340px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#526480]">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <img
-              src="/icone-isolado.png"
-              alt="Ícone Fast Rifa"
-              className="w-6 h-6 object-contain"
+              src="/logo-fastrifa.png"
+              alt="Fast Rifa"
+              className="h-6 w-auto object-contain"
             />
-            <span className="font-display font-bold text-[#0D1729] tracking-[-0.03em]">
-              Fast<span className="text-[#0869F5]">Rifa</span>
-            </span>
             <span>© 2026 — Rifa rápida, prática e 100% no PIX.</span>
           </div>
           <div className="flex items-center gap-6 font-medium">

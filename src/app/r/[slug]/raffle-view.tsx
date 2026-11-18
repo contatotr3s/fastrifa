@@ -165,16 +165,13 @@ export default function RafflePublicView({
         <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full px-4 py-2 flex items-center justify-center hover:border-[#B9D3F8] transition"
           >
             <img
-              src="/icone-isolado.png"
-              alt="Ícone Fast Rifa"
-              className="w-8 h-8 object-contain"
+              src="/logo-fastrifa.png"
+              alt="Fast Rifa"
+              className="h-8 w-auto object-contain"
             />
-            <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
-              Fast<span className="text-[#0869F5]">Rifa</span>
-            </span>
           </Link>
 
           {/* Organizer Brand Badge */}
