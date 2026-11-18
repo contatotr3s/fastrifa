@@ -19,11 +19,11 @@ import {
   MasterEditUserModal,
   MasterEditRaffleModal,
 } from '@/components/master-modals';
-import ThemeSwitcher from '@/components/theme-switcher';
 import {
   ShieldCheck,
   Users,
   Sparkles,
+  Ticket,
   ExternalLink,
   MessageCircle,
   TrendingUp,
@@ -337,9 +337,6 @@ export default function AdminMasterPage() {
         </div>
       </div>
 
-      {/* Controle de Identidade Visual Global do Sistema */}
-      <ThemeSwitcher variant="full" />
-
       {/* Tabs Switcher */}
       <div className="flex items-center gap-3 border-b border-[#E0E9F7] pb-3">
         <button
@@ -364,7 +361,7 @@ export default function AdminMasterPage() {
               : 'text-[#475872] hover:text-[#0D1729] hover:bg-[#F2F7FF]'
           }`}
         >
-          <Sparkles className="w-4 h-4" />
+          <Ticket className="w-4 h-4" />
           <span>Todas as Campanhas ({raffles.length})</span>
         </button>
       </div>

@@ -354,8 +354,8 @@ export default function RafflePublicView({
                   <span>Reservada</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#EBF3FF] border border-[#C5DCFA]" />
-                  <span>Paga ({paidCount})</span>
+                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF0F0] border border-[#FCA5A5]" />
+                  <span className="text-[#DC2626] font-semibold">Paga ({paidCount})</span>
                 </div>
               </div>
 
@@ -390,7 +390,7 @@ export default function RafflePublicView({
                       'bg-[#0869F5] text-white font-bold border-[#0869F5] shadow-[0_8px_18px_rgba(8,105,245,0.28)] scale-[1.02] cursor-pointer';
                   } else if (isPaid) {
                     btnStyle =
-                      'bg-[#EBF3FF] text-[#526480] border-[#C5DCFA] line-through opacity-55 cursor-not-allowed';
+                      'bg-[#FFF0F0] text-[#DC2626] border-[#FCA5A5] line-through font-bold opacity-80 cursor-not-allowed shadow-[inset_0_1px_2px_rgba(220,38,38,0.06)]';
                   } else if (isPending) {
                     btnStyle =
                       'bg-[#FFF8EB] text-[#9A6700] border-[#F5D08A] cursor-not-allowed';

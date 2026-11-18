@@ -266,7 +266,7 @@ export default function HomePage() {
                               'bg-[#0869F5] border-[#0869F5] text-white shadow-[0_6px_16px_rgba(8,105,245,0.25)]';
                           } else if (cota.status === 'paid') {
                             style =
-                              'bg-[#EBF3FF] border-[#C5DCFA] text-[#526480] line-through opacity-60';
+                              'bg-[#FFF0F0] border-[#FCA5A5] text-[#DC2626] line-through font-bold opacity-80';
                           } else if (cota.status === 'pending') {
                             style =
                               'bg-[#FFF8EB] border-[#F5D08A] text-[#9A6700]';
