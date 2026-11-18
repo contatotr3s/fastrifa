@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { createOrder } from '@/lib/firebase/raffles';
 import { generateBrandInitials } from '@/lib/image-processor';
+import { useAuth } from '@/lib/firebase/auth-context';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
 
 interface RafflePublicViewProps {
@@ -27,6 +28,7 @@ export default function RafflePublicView({
   raffle,
   initialOccupiedTickets,
 }: RafflePublicViewProps) {
+  const { user, profile } = useAuth();
   const [selectedTickets, setSelectedTickets] = useState<number[]>([]);
   const [occupiedTickets, setOccupiedTickets] = useState<OccupiedTicket[]>(
     initialOccupiedTickets
@@ -199,13 +201,31 @@ export default function RafflePublicView({
             </div>
           )}
 
-          <Link
-            href="/cadastro"
-            className="ora-btn-secondary rounded-full px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold inline-flex items-center gap-1.5"
-          >
-            <span>Criar Minha Rifa</span>
-            <ArrowUpRight className="w-4 h-4 text-[#0869F5]" />
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin/rifas/nova"
+                className="ora-btn-primary rounded-full px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 shadow-sm"
+              >
+                <span>Criar Minha Rifa</span>
+                <ArrowUpRight className="w-4 h-4 text-white" />
+              </Link>
+              <Link
+                href={profile?.role === 'master' ? '/admin/master' : '/admin'}
+                className="ora-btn-secondary rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 text-[#475872] hover:text-[#0D1729]"
+              >
+                <span>Painel</span>
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href="/cadastro"
+              className="ora-btn-secondary rounded-full px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold inline-flex items-center gap-1.5"
+            >
+              <span>Criar Minha Rifa</span>
+              <ArrowUpRight className="w-4 h-4 text-[#0869F5]" />
+            </Link>
+          )}
         </div>
       </header>
 

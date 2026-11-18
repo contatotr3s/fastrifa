@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
@@ -34,8 +34,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { login, loginWithGoogle, resetPassword } = useAuth();
+  const { user, profile, loading: authLoading, login, loginWithGoogle, resetPassword } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (profile?.role === 'master') {
+        router.replace('/admin/master');
+      } else if (profile?.onboarding_completed) {
+        router.replace('/admin');
+      } else {
+        router.replace('/admin/onboarding');
+      }
+    }
+  }, [user, profile, authLoading, router]);
 
   function validateLoginForm(): boolean {
     const errors: FormErrors = {};
