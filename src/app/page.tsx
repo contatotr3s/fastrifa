@@ -114,66 +114,63 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-6 pb-16 sm:pt-12 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
-          <div className="max-w-[1300px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              {/* Left Column: Headline with inline pill element + CTA */}
-              <div className="lg:col-span-7 text-left space-y-6">
-                {/* Eyebrow Tag */}
-                <div className="text-xs sm:text-sm font-bold uppercase tracking-[0.16em] text-[#0869F5]">
-                  Sua campanha abre ou fecha portas
-                </div>
+        <section className="ora-hero-stage pt-8 pb-20 sm:pt-14 sm:pb-28 px-4 sm:px-8 relative overflow-hidden">
+          <div className="max-w-[1180px] mx-auto text-center">
+            {/* Top Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide mb-6">
+              <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
+              <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
+            </div>
 
-                {/* H1 Headline with Inline Pill Element */}
-                <h1 className="font-display font-bold text-[clamp(2.4rem,4.4vw,4.1rem)] leading-[1.08] tracking-[-0.04em] text-[#0D1729]">
-                  Não perca{' '}
-                  <span className="inline-flex items-center justify-center align-middle mx-1 sm:mx-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] shadow-[0_2px_10px_rgba(8,105,245,0.08)]">
-                    <img
-                      src="/icone-isolado.png"
-                      alt="Ícone Fast Rifa"
-                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
-                    />
-                  </span>{' '}
-                  <span className="text-[#0869F5]">o cliente</span>
-                  <br />
-                  por não conseguir
-                  <br />
-                  vender rápido.
-                </h1>
+            <h1 className="font-display font-bold text-[clamp(2.5rem,5.2vw,4.65rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729] max-w-4xl mx-auto">
+              Crie. Divulgue. Venda.
+              <br />
+              <span className="text-[#0869F5]">Tudo vapt-vupt no seu PIX.</span>
+            </h1>
 
-                <p className="text-[17px] sm:text-[19px] text-[#475872] leading-[1.6] max-w-[50ch]">
-                  Pra você criar em 2 minutos, divulgar no zap e receber direto na sua conta. Sem taxa no saque, sem intermediário e sem complicação.
-                </p>
+            <p className="mt-6 text-[clamp(1.05rem,1.45vw,1.25rem)] text-[#475872] max-w-[65ch] mx-auto leading-[1.6] font-normal">
+              Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
+            </p>
 
-                {/* Primary CTA Button & Subtext */}
-                <div className="pt-2 space-y-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Link
-                      href="/cadastro"
-                      className="ora-btn-primary rounded-full px-8 py-4 text-[16px] sm:text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-lg shadow-[#0869F5]/25 hover:shadow-[#0869F5]/40 transition"
-                    >
-                      <span>Comece grátis</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
-                    <a
-                      href="#campanha-ao-vivo"
-                      className="ora-btn-secondary rounded-full px-6 py-4 text-[15px] sm:text-[16px] font-semibold inline-flex items-center justify-center gap-2"
-                    >
-                      <span>Ver Demonstração</span>
-                    </a>
-                  </div>
+            {/* 3D Orbital Scene (Oratry Style with 5 Orbiting Feature Cards) */}
+            <HeroOrbitScene />
 
-                  <div className="flex items-center gap-2 text-xs font-semibold text-[#526480] pt-1">
-                    <span className="w-2 h-2 rounded-full bg-[#0869F5]" />
-                    <span>Crie grátis para praticar e testar como quiser. Sem cartão.</span>
-                  </div>
-                </div>
-              </div>
+            {/* Primary CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/cadastro"
+                className="ora-btn-primary rounded-[18px] px-8 py-4 text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)]"
+              >
+                <span>Criar Minha Rifa Rápida</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <a
+                href="#campanha-ao-vivo"
+                className="ora-btn-secondary rounded-[18px] px-8 py-4 text-[17px] font-semibold inline-flex items-center justify-center gap-2"
+              >
+                <span>Ver Demonstração ao Vivo</span>
+                <ArrowUpRight className="w-5 h-5 text-[#475872]" />
+              </a>
+            </div>
 
-              {/* Right Column: 3D Orbital Scene */}
-              <div className="lg:col-span-5 flex items-center justify-center relative">
-                <HeroOrbitScene />
-              </div>
+            {/* Social Proof Line */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-[#526480] font-medium">
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                100% no seu PIX
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                Sem taxa de saque
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                Criação em menos de 2 min
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                Comprador não precisa de cadastro
+              </span>
             </div>
           </div>
         </section>
