@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import { AuthProvider } from "@/lib/firebase/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import "./globals.css";
@@ -29,13 +28,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <Script
-          id="fastrifa-theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('fastrifa_theme');if(t==='green'){document.documentElement.setAttribute('data-theme','green');}else{document.documentElement.setAttribute('data-theme','blue');}}catch(e){}`,
-          }}
-        />
         <link
           rel="preconnect"
           href="https://api.fontshare.com"
@@ -47,9 +39,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#FFFFFF] text-[#0D1729]">
-        <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

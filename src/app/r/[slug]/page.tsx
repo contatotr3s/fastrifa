@@ -31,6 +31,12 @@ export default function RafflePublicPage({
           setRaffle(raffleData);
           const occupied = await getOccupiedTickets(raffleData.id);
           setOccupiedTickets(occupied);
+
+          // Aplica dinamicamente a cor da marca do organizador da rifa
+          if (typeof window !== 'undefined') {
+            const themeToApply = raffleData.brand_color === 'green' ? 'green' : 'blue';
+            document.documentElement.setAttribute('data-theme', themeToApply);
+          }
         })
         .catch((err) => {
           console.error(err);
@@ -38,6 +44,13 @@ export default function RafflePublicPage({
         })
         .finally(() => setLoading(false));
     }
+
+    return () => {
+      // Ao sair da página pública da rifa, restaura o tema azul padrão
+      if (typeof window !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', 'blue');
+      }
+    };
   }, [slug]);
 
   if (loading) {

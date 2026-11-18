@@ -459,6 +459,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(LOCAL_USER_KEY);
       localStorage.removeItem(LOCAL_PROFILE_KEY);
+      localStorage.removeItem('fastrifa_theme');
+      document.documentElement.setAttribute('data-theme', 'blue');
     }
     setUser(null);
     setProfile(null);

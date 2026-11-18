@@ -87,6 +87,7 @@ export default function NewRafflePage() {
         phone_whatsapp: phoneWhatsapp || '',
         brand_name: profile?.brand_name || profile?.full_name || 'FastRifa',
         brand_logo_url: profile?.brand_logo_url || null,
+        brand_color: (profile?.brand_color as 'blue' | 'green') || 'blue',
         status: 'active',
         winner_ticket: null,
         winner_name: null,

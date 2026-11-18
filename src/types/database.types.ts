@@ -45,6 +45,7 @@ export interface Raffle {
   // Marca vinculada à campanha
   brand_name?: string | null;
   brand_logo_url?: string | null;
+  brand_color?: 'blue' | 'green' | string | null;
 
   created_at: string;
   updated_at: string;
