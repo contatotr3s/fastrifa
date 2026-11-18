@@ -19,6 +19,7 @@ import {
   MasterEditUserModal,
   MasterEditRaffleModal,
 } from '@/components/master-modals';
+import ThemeSwitcher from '@/components/theme-switcher';
 import {
   ShieldCheck,
   Users,
@@ -335,6 +336,9 @@ export default function AdminMasterPage() {
           <span className="text-[11px] text-[#526480] mt-1 block">Soma das campanhas</span>
         </div>
       </div>
+
+      {/* Controle de Identidade Visual Global do Sistema */}
+      <ThemeSwitcher variant="full" />
 
       {/* Tabs Switcher */}
       <div className="flex items-center gap-3 border-b border-[#E0E9F7] pb-3">

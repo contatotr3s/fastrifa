@@ -46,9 +46,10 @@ export default function RafflePublicPage({
     }
 
     return () => {
-      // Ao sair da página pública da rifa, restaura o tema azul padrão
+      // Ao sair da página pública da rifa, restaura o tema global do sistema
       if (typeof window !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', 'blue');
+        const globalTheme = localStorage.getItem('fastrifa_global_system_theme') || 'blue';
+        document.documentElement.setAttribute('data-theme', globalTheme);
       }
     };
   }, [slug]);

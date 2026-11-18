@@ -122,13 +122,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(loadedProfile));
               }
             } else {
-              // Documento ainda não existia: cria novo perfil
+              // Documento ainda não existia: cria novo perfil herdando o tema global do Master
+              const globalSystemTheme = (typeof window !== 'undefined' ? localStorage.getItem('fastrifa_global_system_theme') : null) || 'blue';
               const initialProfile: Profile = {
                 id: currentUser.uid,
                 full_name: currentUser.displayName || (isMaster ? 'Danilo' : 'Organizador'),
                 phone_whatsapp: currentUser.phoneNumber || '',
                 brand_name: isMaster ? 'FastRifa' : '',
                 brand_initials: isMaster ? 'FR' : '',
+                brand_color: (globalSystemTheme === 'green' ? 'green' : 'blue'),
                 role: isMaster ? 'master' : 'organizer',
                 onboarding_completed: isMaster ? true : false,
                 created_at: new Date().toISOString(),
@@ -249,12 +251,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+      const globalSystemTheme = (typeof window !== 'undefined' ? localStorage.getItem('fastrifa_global_system_theme') : null) || 'blue';
       const newProfile: Profile = {
         id: cred.user.uid,
         full_name: name.trim(),
         phone_whatsapp: cleanPhone,
         brand_name: isMasterUser ? 'FastRifa' : '', // Novo organizador começa sem marca para configurar no onboarding
         brand_initials: isMasterUser ? 'FR' : '',
+        brand_color: (globalSystemTheme === 'green' ? 'green' : 'blue'),
         role: isMasterUser ? 'master' : 'organizer',
         onboarding_completed: isMasterUser ? true : false,
         created_at: new Date().toISOString(),
@@ -325,6 +329,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // NÃO EXISTE NO BANCO: Tratar obrigatoriamente como NOVO CADASTRO!
           isNewUser = true;
           needsOnboarding = !isMasterUser;
+          const globalSystemTheme = (typeof window !== 'undefined' ? localStorage.getItem('fastrifa_global_system_theme') : null) || 'blue';
 
           userProfile = {
             id: googleUser.uid,
@@ -332,6 +337,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             phone_whatsapp: googleUser.phoneNumber || '',
             brand_name: isMasterUser ? 'FastRifa' : '', // Começa sem marca para forçar o onboarding
             brand_initials: isMasterUser ? 'FR' : '',
+            brand_color: (globalSystemTheme === 'green' ? 'green' : 'blue'),
             role: isMasterUser ? 'master' : 'organizer',
             onboarding_completed: isMasterUser ? true : false,
             created_at: new Date().toISOString(),
@@ -461,7 +467,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(LOCAL_USER_KEY);
       localStorage.removeItem(LOCAL_PROFILE_KEY);
       localStorage.removeItem('fastrifa_theme');
-      document.documentElement.setAttribute('data-theme', 'blue');
+      const globalSystemTheme = localStorage.getItem('fastrifa_global_system_theme') || 'blue';
+      document.documentElement.setAttribute('data-theme', globalSystemTheme);
     }
     setUser(null);
     setProfile(null);
