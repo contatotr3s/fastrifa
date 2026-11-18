@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
-import { getAllRaffles, getAllCreators } from '@/lib/firebase/raffles';
+import {
+  getAllRaffles,
+  getAllCreators,
+  deleteRaffle,
+  deleteCreatorProfile,
+} from '@/lib/firebase/raffles';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { generateBrandInitials } from '@/lib/image-processor';
@@ -41,6 +46,8 @@ export default function AdminMasterPage() {
   const [activeTab, setActiveTab] = useState<'creators' | 'raffles'>('creators');
   const [isCleaning, setIsCleaning] = useState(false);
   const [cleanFeedback, setCleanFeedback] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [deletingRaffleId, setDeletingRaffleId] = useState<string | null>(null);
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
@@ -101,6 +108,53 @@ export default function AdminMasterPage() {
       setCleanFeedback('Ocorreu um erro ao limpar dados de teste.');
     } finally {
       setIsCleaning(false);
+    }
+  }
+
+  async function handleDeleteUser(userId: string, userName: string) {
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir o usuário "${userName}"?\n\nEsta ação apagará o perfil e todas as rifas vinculadas. Ao acessar novamente, ele precisará fazer o cadastro e configuração da marca do zero.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    setCleanFeedback(null);
+    try {
+      await deleteCreatorProfile(userId);
+      setCreators((prev) => prev.filter((c) => c.profile.id !== userId));
+      setRaffles((prev) => prev.filter((r) => r.user_id !== userId));
+      setCleanFeedback(`Usuário "${userName}" e suas rifas foram excluídos com sucesso. Ele agora pode criar a conta do zero.`);
+    } catch (err) {
+      console.error('Erro ao excluir usuário:', err);
+      alert('Ocorreu um erro ao excluir o usuário.');
+    } finally {
+      setDeletingUserId(null);
+    }
+  }
+
+  async function handleDeleteRaffle(raffleId: string, raffleTitle: string) {
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir a rifa "${raffleTitle}" permanentemente?`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingRaffleId(raffleId);
+    setCleanFeedback(null);
+    try {
+      await deleteRaffle(raffleId);
+      setRaffles((prev) => prev.filter((r) => r.id !== raffleId));
+      setCleanFeedback(`Rifa "${raffleTitle}" excluída com sucesso.`);
+    } catch (err) {
+      console.error('Erro ao excluir rifa:', err);
+      alert('Ocorreu um erro ao excluir a rifa.');
+    } finally {
+      setDeletingRaffleId(null);
     }
   }
 
@@ -388,19 +442,38 @@ export default function AdminMasterPage() {
 
                       {/* Actions */}
                       <td className="py-4 px-6 text-right">
-                        {cleanPhone ? (
-                          <a
-                            href={`https://wa.me/55${cleanPhone}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="ora-btn-secondary px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5"
-                          >
-                            <Phone className="w-3.5 h-3.5 text-[#0869F5]" />
-                            <span>Suporte</span>
-                          </a>
-                        ) : (
-                          <span className="text-xs text-[#8A9BB3]">—</span>
-                        )}
+                        <div className="flex items-center justify-end gap-2">
+                          {cleanPhone && (
+                            <a
+                              href={`https://wa.me/55${cleanPhone}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="ora-btn-secondary px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5"
+                            >
+                              <Phone className="w-3.5 h-3.5 text-[#0869F5]" />
+                              <span>Suporte</span>
+                            </a>
+                          )}
+
+                          {p.id !== user?.uid &&
+                            p.role !== 'master' &&
+                            c.email?.toLowerCase().trim() !== MASTER_EMAIL && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(p.id, brandName)}
+                                disabled={deletingUserId === p.id}
+                                className="px-3 py-1.5 rounded-full text-xs font-bold text-[#BE123C] bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#FECDD3] transition inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                title="Excluir Usuário e permitir novo teste do zero"
+                              >
+                                {deletingUserId === p.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                                <span>Excluir Usuário</span>
+                              </button>
+                            )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -480,14 +553,31 @@ export default function AdminMasterPage() {
                     </td>
 
                     <td className="py-4 px-6 text-right">
-                      <Link
-                        href={`/r/${r.slug}`}
-                        target="_blank"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#F2F7FF] text-[#0869F5] text-xs font-bold hover:bg-[#E3EFFF] transition"
-                      >
-                        <span>Abrir Rifa</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/r/${r.slug}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#F2F7FF] text-[#0869F5] text-xs font-bold hover:bg-[#E3EFFF] transition"
+                        >
+                          <span>Abrir Rifa</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRaffle(r.id, r.title)}
+                          disabled={deletingRaffleId === r.id}
+                          className="px-3 py-1.5 rounded-full text-xs font-bold text-[#BE123C] bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#FECDD3] transition inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          title="Excluir Rifa Permanentemente (Master)"
+                        >
+                          {deletingRaffleId === r.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                          <span>Excluir</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

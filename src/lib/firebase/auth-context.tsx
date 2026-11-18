@@ -378,9 +378,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
       if (errObj.code === 'auth/unauthorized-domain') {
+        const hostname = typeof window !== 'undefined' ? window.location.hostname : 'fastrifa.vercel.app';
         return {
-          error:
-            'O domínio fastrifa.vercel.app precisa ser adicionado aos "Domínios Autorizados" no Firebase Console para que o Google libere o OAuth.',
+          error: `O domínio "${hostname}" precisa ser adicionado aos "Domínios Autorizados" no Firebase Console (Authentication > Settings > Authorized domains). Você também pode cadastrar ou entrar preenchendo o formulário de e-mail e senha abaixo.`,
         };
       }
       if (errObj.code === 'auth/cancelled-popup-request') {

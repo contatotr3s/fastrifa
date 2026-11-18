@@ -5,6 +5,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -416,4 +417,65 @@ export async function finishRaffle(raffleId: string, winnerTicket: number, winne
         : r
     )
   );
+}
+
+export async function deleteRaffle(raffleId: string): Promise<boolean> {
+  // 1. Remove local
+  const current = getLocalRaffles();
+  saveLocalRaffles(current.filter((r) => r.id !== raffleId));
+
+  // 2. Remove remote from Firestore
+  try {
+    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
+      await deleteDoc(doc(db, 'raffles', raffleId));
+    }
+  } catch (err) {
+    console.warn('Error deleting remote raffle from Firestore:', err);
+  }
+
+  return true;
+}
+
+export async function deleteCreatorProfile(userId: string): Promise<boolean> {
+  // 1. Remove from local storage accounts
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('fastrifa_auth_accounts');
+      if (raw) {
+        const accounts = JSON.parse(raw);
+        const filtered = accounts.filter((a: { profile?: { id?: string } }) => a?.profile?.id !== userId);
+        localStorage.setItem('fastrifa_auth_accounts', JSON.stringify(filtered));
+      }
+      const curUser = localStorage.getItem('fastrifa_local_user');
+      if (curUser) {
+        const u = JSON.parse(curUser);
+        if (u?.uid === userId) {
+          localStorage.removeItem('fastrifa_local_user');
+          localStorage.removeItem('fastrifa_local_profile');
+        }
+      }
+    } catch (e) {
+      console.warn('Error cleaning local creator storage:', e);
+    }
+  }
+
+  // 2. Remove local raffles owned by this user
+  const currentRaffles = getLocalRaffles();
+  saveLocalRaffles(currentRaffles.filter((r) => r.user_id !== userId));
+
+  // 3. Remove remote profile and its raffles in Firestore
+  try {
+    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
+      const q = query(collection(db, 'raffles'), where('user_id', '==', userId));
+      const snap = await getDocs(q);
+      for (const d of snap.docs) {
+        await deleteDoc(doc(db, 'raffles', d.id));
+      }
+      await deleteDoc(doc(db, 'profiles', userId));
+    }
+  } catch (err) {
+    console.warn('Error deleting remote creator from Firestore:', err);
+  }
+
+  return true;
 }

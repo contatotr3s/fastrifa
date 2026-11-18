@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ExternalLink,
@@ -17,8 +18,11 @@ import {
   Phone,
   Store,
   Sparkles,
+  ShieldCheck,
+  Trash2,
 } from 'lucide-react';
-import { updateOrderStatus, finishRaffle } from '@/lib/firebase/raffles';
+import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
+import { updateOrderStatus, finishRaffle, deleteRaffle } from '@/lib/firebase/raffles';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
 import type { Raffle, Order } from '@/types/database.types';
@@ -29,10 +33,37 @@ interface RaffleManagerProps {
 }
 
 export default function RaffleManager({ raffle, initialOrders }: RaffleManagerProps) {
+  const { user, profile } = useAuth();
+  const router = useRouter();
+
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'cancelled'>('all');
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const email = user?.email?.toLowerCase().trim() || '';
+  const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
+
+  async function handleDeleteRaffle() {
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir permanentemente a rifa "${raffle.title}"?\n\nEsta ação apagará todas as cotas e pedidos desta rifa de forma irreversível.`
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteRaffle(raffle.id);
+      router.push('/admin');
+    } catch (err) {
+      console.error('Erro ao excluir rifa:', err);
+      alert('Ocorreu um erro ao excluir a rifa.');
+      setIsDeleting(false);
+    }
+  }
 
   // Modais
   const [showShareModal, setShowShareModal] = useState(false);
@@ -447,6 +478,38 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
           </div>
         )}
       </div>
+
+      {/* ZONA EXCLUSIVA MASTER: Excluir Rifa */}
+      {isMaster && (
+        <div className="ora-card rounded-[28px] p-6 border border-[#FECDD3] bg-[#FFF8F8] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold text-[#BE123C] uppercase tracking-wider mb-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Painel Master • Ação Restrita</span>
+            </div>
+            <h4 className="font-display font-bold text-base text-[#0D1729]">
+              Excluir Rifa Permanentemente
+            </h4>
+            <p className="text-xs text-[#526480] mt-0.5">
+              Esta ação remove a rifa do banco de dados, da lista de campanhas e libera todas as cotas.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={handleDeleteRaffle}
+            className="px-5 py-2.5 rounded-full bg-[#BE123C] hover:bg-[#9F1239] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 flex-shrink-0"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            <span>Excluir Rifa (Master)</span>
+          </button>
+        </div>
+      )}
 
       {/* MODAL 1: Divulgação nas Redes (Stories / Feed com QR Code) */}
       <SocialShareModal
