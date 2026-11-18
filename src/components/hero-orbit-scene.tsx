@@ -19,7 +19,7 @@ export default function HeroOrbitScene() {
     const sinT = Math.sin(tiltRad);
 
     const settings = {
-      orbitSpeed: 0.00024,
+      orbitSpeed: 0.00022,
       lotteryInterval: 6000,
       lotteryFrames: 25,
       numberSpeed: 58,
@@ -54,8 +54,9 @@ export default function HeroOrbitScene() {
 
       const w = root.clientWidth;
       const isMobile = w < 640;
-      const radiusX = isMobile ? Math.min(w * 0.36, 155) : Math.min(w * 0.34, 240);
-      const radiusY = isMobile ? 90 : 122;
+      // Ampliação da órbita para dar mais respiro e amplitude aos elementos
+      const radiusX = isMobile ? Math.min(w * 0.38, 175) : Math.min(w * 0.40, 310);
+      const radiusY = isMobile ? 100 : 148;
 
       items.forEach((item, index) => {
         const a = angle + index * ((Math.PI * 2) / items.length);
@@ -69,8 +70,9 @@ export default function HeroOrbitScene() {
         const depth = Math.sin(a);
         const norm = (depth + 1) / 2;
 
-        const scale = (isMobile ? 0.72 : 0.78) + norm * (isMobile ? 0.22 : 0.24);
-        const opacity = 0.76 + norm * 0.24;
+        // Escala ampliada para elementos maiores e mais visíveis
+        const scale = (isMobile ? 0.80 : 0.88) + norm * (isMobile ? 0.22 : 0.26);
+        const opacity = 0.78 + norm * 0.22;
 
         item.style.zIndex = depth >= 0 ? '30' : '10';
         item.style.opacity = opacity.toFixed(3);
@@ -87,8 +89,8 @@ export default function HeroOrbitScene() {
             `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale.toFixed(3)})`;
 
           const shadowAlpha = (0.075 + norm * 0.065).toFixed(3);
-          const shadowY = (7 + norm * 11).toFixed(1);
-          const shadowBlur = (14 + norm * 18).toFixed(1);
+          const shadowY = (8 + norm * 12).toFixed(1);
+          const shadowBlur = (16 + norm * 20).toFixed(1);
           item.style.boxShadow =
             `rgba(25, 77, 150, ${shadowAlpha}) 0px ${shadowY}px ${shadowBlur}px, ` +
             `rgb(217, 232, 251) 0px 3px 0px, white 0px 1px 0px inset`;
@@ -151,31 +153,31 @@ export default function HeroOrbitScene() {
     <div
       ref={rootRef}
       id="fastRifaOrbit"
-      className="fr-orbit-root relative w-full max-w-[720px] h-[440px] sm:h-[490px] mx-auto flex items-center justify-center my-6 sm:my-10 select-none overflow-visible"
+      className="fr-orbit-root relative w-full max-w-[860px] h-[480px] sm:h-[540px] mx-auto flex items-center justify-center my-6 sm:my-10 select-none overflow-visible"
       aria-label="FastRifa em órbita tridimensional interativa"
     >
-      {/* Brilho radial de fundo */}
+      {/* Brilho radial de fundo ampliado */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] rounded-full blur-2xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.32)_0%,rgba(225,237,255,0.45)_45%,transparent_72%)]"
+        className="pointer-events-none absolute w-[420px] h-[420px] sm:w-[560px] sm:h-[560px] rounded-full blur-3xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.35)_0%,rgba(225,237,255,0.50)_45%,transparent_72%)]"
       />
 
-      {/* Anéis da órbita inclinados */}
+      {/* Anéis da órbita inclinados com diâmetro ampliado */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/70"
+        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/75"
         style={{
-          width: 460,
-          height: 230,
+          width: 620,
+          height: 300,
           transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/45 shadow-[0_0_30px_rgba(8,105,245,0.06)]"
+        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/50 shadow-[0_0_35px_rgba(8,105,245,0.07)]"
         style={{
-          width: 520,
-          height: 260,
+          width: 700,
+          height: 340,
           transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
@@ -187,10 +189,10 @@ export default function HeroOrbitScene() {
 
       {/* CENTRO: Bilhete 3D em formato real de bilhete */}
       <div className="relative z-20 flex items-center justify-center pointer-events-none">
-        <div className="relative w-[252px] h-[128px] sm:w-[292px] sm:h-[144px] flex items-center justify-center">
+        <div className="relative w-[270px] h-[138px] sm:w-[320px] sm:h-[156px] flex items-center justify-center">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -inset-5 rounded-full blur-2xl animate-pulse bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]"
+            className="pointer-events-none absolute -inset-6 rounded-full blur-2xl animate-pulse bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]"
           />
 
           <div className="fr-ticket-holder">
@@ -224,8 +226,8 @@ export default function HeroOrbitScene() {
 
       {/* 1. Card: Criação em 2 min */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
-          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -236,24 +238,24 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-zap w-4 h-4 text-[#0869F5]"
+              className="lucide lucide-zap w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
               aria-hidden="true"
             >
               <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" />
             </svg>
           </span>
           <div className="text-left select-none">
-            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+            <strong className="block font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#0D1729] leading-tight whitespace-nowrap">
               Criação em 2 min
             </strong>
-            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+            <small className="block text-[11px] sm:text-[12px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
               Sem cadastro longo
             </small>
           </div>
         </div>
       </div>
 
-      {/* 2. Ícone: Ferradura dourada */}
+      {/* 2. Ícone: Ferradura dourada (Atualizado com formato real e 3D) */}
       <div className="fr-orbit-item fr-object" aria-label="Ferradura dourada">
         <svg viewBox="0 0 120 125">
           <defs>
@@ -265,25 +267,73 @@ export default function HeroOrbitScene() {
               <stop offset="1" stopColor="#97580d" />
             </linearGradient>
           </defs>
-          <path d="M25 14V65A35 35 0 0 0 95 65V14" transform="translate(4 6)" fill="none" stroke="#875013" strokeWidth="28" />
-          <path d="M25 14V65A35 35 0 0 0 95 65V14" fill="none" stroke="url(#fr-horse-gold)" strokeWidth="27" />
-          <path d="M25 14V65A35 35 0 0 0 95 65V14" transform="translate(-7 -1)" fill="none" stroke="#fff5c0" strokeWidth="3" opacity=".85" />
-          <g fill="#785019" stroke="#ffeda4" strokeWidth="1.8">
-            <circle cx="25" cy="24" r="4" />
-            <circle cx="25" cy="49" r="4" />
-            <circle cx="35" cy="82" r="4" />
-            <circle cx="60" cy="100" r="4" />
-            <circle cx="85" cy="82" r="4" />
-            <circle cx="95" cy="49" r="4" />
-            <circle cx="95" cy="24" r="4" />
+          {/* Espessura 3D */}
+          <path
+            d="M35 20 C16 40, 16 78, 36 96 C50 108, 70 108, 84 96 C104 78, 104 40, 85 20"
+            transform="translate(4 6)"
+            fill="none"
+            stroke="#875013"
+            strokeWidth="23"
+            strokeLinecap="butt"
+          />
+          {/* Corpo dourado em formato real de ferradura */}
+          <path
+            d="M35 20 C16 40, 16 78, 36 96 C50 108, 70 108, 84 96 C104 78, 104 40, 85 20"
+            fill="none"
+            stroke="url(#fr-horse-gold)"
+            strokeWidth="22"
+            strokeLinecap="butt"
+          />
+          {/* Pontas/calcanhares da ferradura */}
+          <rect
+            x="24"
+            y="13"
+            width="22"
+            height="10"
+            rx="3"
+            transform="rotate(-35 35 18)"
+            fill="url(#fr-horse-gold)"
+            stroke="#ffeda4"
+            strokeWidth="1"
+          />
+          <rect
+            x="74"
+            y="13"
+            width="22"
+            height="10"
+            rx="3"
+            transform="rotate(35 85 18)"
+            fill="url(#fr-horse-gold)"
+            stroke="#ffeda4"
+            strokeWidth="1"
+          />
+          {/* Reflexo metálico */}
+          <path
+            d="M35 22 C18 42, 18 76, 37 94 C50 105, 70 105, 83 94 C102 76, 102 42, 85 22"
+            transform="translate(-4 -2)"
+            fill="none"
+            stroke="#fff5c0"
+            strokeWidth="2.8"
+            opacity=".85"
+          />
+          {/* Furos dos cravos */}
+          <g fill="#785019" stroke="#ffeda4" strokeWidth="1.6">
+            <circle cx="31" cy="34" r="3.4" />
+            <circle cx="24" cy="55" r="3.4" />
+            <circle cx="29" cy="77" r="3.4" />
+            <circle cx="43" cy="95" r="3.4" />
+            <circle cx="77" cy="95" r="3.4" />
+            <circle cx="91" cy="77" r="3.4" />
+            <circle cx="96" cy="55" r="3.4" />
+            <circle cx="89" cy="34" r="3.4" />
           </g>
         </svg>
       </div>
 
       {/* 3. Card: Chave PIX Direta */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
-          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -294,7 +344,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-qr-code w-4 h-4 text-[#0869F5]"
+              className="lucide lucide-qr-code w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
               aria-hidden="true"
             >
               <rect width="5" height="5" x="3" y="3" rx="1" />
@@ -312,19 +362,19 @@ export default function HeroOrbitScene() {
             </svg>
           </span>
           <div className="text-left select-none">
-            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+            <strong className="block font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#0D1729] leading-tight whitespace-nowrap">
               Chave PIX Direta
             </strong>
-            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+            <small className="block text-[11px] sm:text-[12px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
               100% no seu banco
             </small>
           </div>
         </div>
       </div>
 
-      {/* 4. Ícone: Trevo de quatro folhas */}
+      {/* 4. Ícone: Trevo de quatro folhas (Atualizado com novo cabo e proporção) */}
       <div className="fr-orbit-item fr-object" aria-label="Trevo de quatro folhas">
-        <svg viewBox="0 0 120 125">
+        <svg viewBox="0 0 120 144">
           <defs>
             <radialGradient id="fr-leaf-gradient" cx=".32" cy=".25" r=".85">
               <stop offset="0" stopColor="#bbff91" />
@@ -332,10 +382,13 @@ export default function HeroOrbitScene() {
               <stop offset=".7" stopColor="#41bd2c" />
               <stop offset="1" stopColor="#168326" />
             </radialGradient>
-            <path id="fr-heart" d="M0 0 C-11 -11 -35 -13 -34 -34 C-33 -51 -12 -54 0 -37 C12 -54 33 -51 34 -34 C35 -13 11 -11 0 0 Z" />
+            <path
+              id="fr-heart"
+              d="M0 0 C-11 -11 -35 -13 -34 -34 C-33 -51 -12 -54 0 -37 C12 -54 33 -51 34 -34 C35 -13 11 -11 0 0 Z"
+            />
           </defs>
-          <path d="M60 61Q83 87 71 118" stroke="#167a27" strokeWidth="12" strokeLinecap="round" fill="none" />
-          <path d="M58 60Q80 85 69 115" stroke="#65ce3c" strokeWidth="8" strokeLinecap="round" fill="none" />
+          <path d="M60 61Q87 98 66 138" stroke="#167a27" strokeWidth="11" strokeLinecap="round" fill="none" />
+          <path d="M58 60Q84 96 64 135" stroke="#65ce3c" strokeWidth="7.5" strokeLinecap="round" fill="none" />
           <g transform="translate(60 59)">
             <g transform="translate(1 4)" fill="#146b25">
               <use href="#fr-heart" />
@@ -362,8 +415,8 @@ export default function HeroOrbitScene() {
 
       {/* 5. Card: Link pro WhatsApp */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
-          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -374,17 +427,17 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-message-circle w-4 h-4 text-[#0869F5]"
+              className="lucide lucide-message-circle w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
               aria-hidden="true"
             >
               <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
             </svg>
           </span>
           <div className="text-left select-none">
-            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+            <strong className="block font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#0D1729] leading-tight whitespace-nowrap">
               Link pro WhatsApp
             </strong>
-            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+            <small className="block text-[11px] sm:text-[12px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
               Divulgação em 1 clique
             </small>
           </div>
@@ -409,8 +462,8 @@ export default function HeroOrbitScene() {
 
       {/* 7. Card: Grade em Tempo Real */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
-          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -421,7 +474,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-layout-grid w-4 h-4 text-[#0869F5]"
+              className="lucide lucide-layout-grid w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
               aria-hidden="true"
             >
               <rect width="7" height="7" x="3" y="3" rx="1" />
@@ -431,10 +484,10 @@ export default function HeroOrbitScene() {
             </svg>
           </span>
           <div className="text-left select-none">
-            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+            <strong className="block font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#0D1729] leading-tight whitespace-nowrap">
               Grade em Tempo Real
             </strong>
-            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+            <small className="block text-[11px] sm:text-[12px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
               Números livres e pagos
             </small>
           </div>
@@ -461,8 +514,8 @@ export default function HeroOrbitScene() {
 
       {/* 9. Card: Sem Taxa no Saque */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-2.5 sm:gap-3 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[20px] px-3.5 py-2 sm:px-4 sm:py-2.5 hover:border-[#97BAE7] transition-colors">
-          <span className="w-8 h-8 rounded-[12px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -473,7 +526,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-shield-check w-4 h-4 text-[#0869F5]"
+              className="lucide lucide-shield-check w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
               aria-hidden="true"
             >
               <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
@@ -481,10 +534,10 @@ export default function HeroOrbitScene() {
             </svg>
           </span>
           <div className="text-left select-none">
-            <strong className="block font-display font-bold text-[12.5px] sm:text-[13.5px] text-[#0D1729] leading-tight whitespace-nowrap">
+            <strong className="block font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#0D1729] leading-tight whitespace-nowrap">
               Sem Taxa no Saque
             </strong>
-            <small className="block text-[10.5px] sm:text-[11px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
+            <small className="block text-[11px] sm:text-[12px] text-[#475872] leading-tight mt-0.5 whitespace-nowrap">
               Caiu no PIX já é seu
             </small>
           </div>
@@ -520,16 +573,16 @@ export default function HeroOrbitScene() {
           position: absolute;
           top: 50%;
           left: 50%;
-          width: 68px;
-          height: 68px;
+          width: 80px;
+          height: 80px;
           pointer-events: none;
           will-change: transform, opacity;
-          filter: drop-shadow(0 9px 10px rgba(8, 52, 118, 0.22));
+          filter: drop-shadow(0 10px 14px rgba(8, 52, 118, 0.22));
         }
 
         .fr-orbit-root .fr-object.fr-money {
-          width: 80px;
-          height: 68px;
+          width: 94px;
+          height: 80px;
         }
 
         .fr-orbit-root .fr-object svg {
@@ -541,7 +594,7 @@ export default function HeroOrbitScene() {
         }
 
         .fr-orbit-root .fr-orbit-card {
-          border-radius: 20px;
+          border-radius: 22px;
           will-change: transform, opacity;
         }
 
@@ -550,22 +603,22 @@ export default function HeroOrbitScene() {
           width: 100%;
           height: 100%;
           animation: fr-ticket-float 4s ease-in-out infinite;
-          filter: drop-shadow(0 18px 26px rgba(8, 52, 118, 0.24));
+          filter: drop-shadow(0 20px 30px rgba(8, 52, 118, 0.26));
         }
 
         .fr-orbit-root .fr-ticket-depth {
           position: absolute;
           inset: 0;
-          transform: translate(7px, 9px);
-          border-radius: 14px;
+          transform: translate(8px, 10px);
+          border-radius: 16px;
           background: linear-gradient(145deg, #b88632 0%, #815821 100%);
           -webkit-mask-image:
-            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
-            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+            radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px),
+            radial-gradient(circle at 100% 50%, transparent 12px, #000 12.5px);
           -webkit-mask-composite: source-in;
           mask-image:
-            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
-            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+            radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px),
+            radial-gradient(circle at 100% 50%, transparent 12px, #000 12.5px);
           mask-composite: intersect;
         }
 
@@ -573,7 +626,7 @@ export default function HeroOrbitScene() {
           position: relative;
           width: 100%;
           height: 100%;
-          border-radius: 14px;
+          border-radius: 16px;
           display: flex;
           overflow: hidden;
           background: linear-gradient(
@@ -584,21 +637,21 @@ export default function HeroOrbitScene() {
             #ab7525 100%
           );
           box-shadow:
-            inset 0 2px 6px rgba(255, 255, 255, 0.85),
+            inset 0 2px 7px rgba(255, 255, 255, 0.9),
             inset 0 0 0 2px #fff0ac;
           -webkit-mask-image:
-            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
-            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+            radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px),
+            radial-gradient(circle at 100% 50%, transparent 12px, #000 12.5px);
           -webkit-mask-composite: source-in;
           mask-image:
-            radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px),
-            radial-gradient(circle at 100% 50%, transparent 11px, #000 11.5px);
+            radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px),
+            radial-gradient(circle at 100% 50%, transparent 12px, #000 12.5px);
           mask-composite: intersect;
         }
 
         .fr-orbit-root .fr-ticket-stub {
           position: relative;
-          width: 48px;
+          width: 52px;
           flex-shrink: 0;
           display: flex;
           align-items: center;
@@ -610,17 +663,17 @@ export default function HeroOrbitScene() {
         .fr-orbit-root .fr-stub-brand {
           writing-mode: vertical-rl;
           transform: rotate(180deg);
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.22em;
           color: #7a5018;
-          opacity: 0.85;
+          opacity: 0.88;
         }
 
         .fr-orbit-root .fr-ticket-main {
           position: relative;
           flex: 1;
-          padding: 12px 16px 12px 12px;
+          padding: 13px 18px 13px 14px;
           display: flex;
         }
 
@@ -628,21 +681,21 @@ export default function HeroOrbitScene() {
           position: relative;
           width: 100%;
           border: 1.5px dashed #b28543;
-          border-radius: 9px;
+          border-radius: 10px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 3px;
-          padding: 6px 10px;
+          gap: 4px;
+          padding: 6px 12px;
         }
 
         .fr-orbit-root .fr-ticket-label {
           position: relative;
           z-index: 2;
-          font-size: 10.5px;
+          font-size: 11px;
           font-weight: 700;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
           text-transform: uppercase;
           color: #724b16;
           text-shadow: 0 1px 0 rgba(255, 250, 220, 0.8);
@@ -652,9 +705,9 @@ export default function HeroOrbitScene() {
           position: relative;
           z-index: 2;
           color: #165b3b;
-          font-size: clamp(24px, 4.5vw, 34px);
+          font-size: clamp(26px, 4.8vw, 36px);
           font-weight: 950;
-          letter-spacing: 1.5px;
+          letter-spacing: 1.8px;
           font-variant-numeric: tabular-nums;
           white-space: nowrap;
           line-height: 1;
@@ -678,10 +731,10 @@ export default function HeroOrbitScene() {
 
         .fr-orbit-root .fr-speed {
           position: absolute;
-          left: -105px;
-          top: 12px;
-          width: 150px;
-          height: 110px;
+          left: -115px;
+          top: 14px;
+          width: 165px;
+          height: 120px;
           transform: rotate(-8deg);
           z-index: -1;
         }
@@ -697,24 +750,24 @@ export default function HeroOrbitScene() {
           animation: fr-speed-motion 1s ease-in-out infinite;
         }
 
-        .fr-orbit-root .fr-speed i:nth-child(1) { top: 12px; width: 110px; }
-        .fr-orbit-root .fr-speed i:nth-child(2) { top: 32px; width: 140px; animation-delay: -0.2s; }
-        .fr-orbit-root .fr-speed i:nth-child(3) { top: 53px; width: 85px; animation-delay: -0.4s; }
-        .fr-orbit-root .fr-speed i:nth-child(4) { top: 75px; width: 130px; animation-delay: -0.6s; }
-        .fr-orbit-root .fr-speed i:nth-child(5) { top: 95px; width: 80px; animation-delay: -0.8s; }
+        .fr-orbit-root .fr-speed i:nth-child(1) { top: 12px; width: 120px; }
+        .fr-orbit-root .fr-speed i:nth-child(2) { top: 34px; width: 155px; animation-delay: -0.2s; }
+        .fr-orbit-root .fr-speed i:nth-child(3) { top: 58px; width: 95px; animation-delay: -0.4s; }
+        .fr-orbit-root .fr-speed i:nth-child(4) { top: 82px; width: 140px; animation-delay: -0.6s; }
+        .fr-orbit-root .fr-speed i:nth-child(5) { top: 104px; width: 90px; animation-delay: -0.8s; }
 
         .fr-orbit-root .fr-star {
           position: absolute;
           z-index: 25;
           color: #f8bf35;
           pointer-events: none;
-          font-size: 20px;
+          font-size: 22px;
           animation: fr-sparkle 2.4s ease-in-out infinite;
         }
 
-        .fr-orbit-root .fr-star-1 { top: 20%; left: 38%; }
-        .fr-orbit-root .fr-star-2 { top: 32%; right: 15%; animation-delay: -0.8s; }
-        .fr-orbit-root .fr-star-3 { bottom: 20%; left: 22%; animation-delay: -1.5s; }
+        .fr-orbit-root .fr-star-1 { top: 18%; left: 36%; }
+        .fr-orbit-root .fr-star-2 { top: 30%; right: 14%; animation-delay: -0.8s; }
+        .fr-orbit-root .fr-star-3 { bottom: 18%; left: 20%; animation-delay: -1.5s; }
 
         @keyframes fr-ticket-float {
           0%, 100% {
@@ -748,22 +801,22 @@ export default function HeroOrbitScene() {
 
         @media (max-width: 640px) {
           .fr-orbit-root .fr-object {
-            width: 54px;
-            height: 54px;
+            width: 64px;
+            height: 64px;
           }
           .fr-orbit-root .fr-object.fr-money {
-            width: 64px;
-            height: 54px;
+            width: 76px;
+            height: 64px;
           }
           .fr-orbit-root .fr-speed {
-            left: -65px;
+            left: -70px;
             transform: rotate(-8deg) scale(0.75);
           }
           .fr-orbit-root .fr-ticket-stub {
-            width: 40px;
+            width: 44px;
           }
           .fr-orbit-root .fr-ticket-label {
-            font-size: 9.5px;
+            font-size: 10px;
           }
         }
 
