@@ -39,31 +39,33 @@ export default function AdminHeader() {
               className="ora-glass-pill rounded-full pl-2.5 pr-4 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
               title={isMaster ? 'FastRifa — Owner do Sistema' : `Painel do Organizador — ${brandName}`}
             >
-              <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)] flex-shrink-0">
-                {isMaster ? (
-                  <img
-                    src="/icone-isolado.png"
-                    alt="Ícone Fast Rifa"
-                    className="w-16 h-16 object-contain brightness-0 invert"
-                  />
-                ) : brandLogo ? (
+              {isMaster ? (
+                <img
+                  src="/icone-isolado.png"
+                  alt="Ícone Fast Rifa"
+                  className="w-8 h-8 object-contain flex-shrink-0"
+                />
+              ) : brandLogo ? (
+                <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-[#D9E5F7] flex-shrink-0">
                   <img
                     src={brandLogo}
                     alt={brandName}
                     className="w-full h-full object-cover"
                   />
-                ) : profile?.brand_name ? (
+                </div>
+              ) : profile?.brand_name ? (
+                <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white flex-shrink-0 shadow-sm">
                   <span className="font-display font-bold text-xs text-white">
                     {brandInitials}
                   </span>
-                ) : (
-                  <img
-                    src="/icone-isolado.png"
-                    alt="Ícone Fast Rifa"
-                    className="w-16 h-16 object-contain brightness-0 invert"
-                  />
-                )}
-              </div>
+                </div>
+              ) : (
+                <img
+                  src="/icone-isolado.png"
+                  alt="Ícone Fast Rifa"
+                  className="w-8 h-8 object-contain flex-shrink-0"
+                />
+              )}
               <div className="flex flex-col text-left">
                 <span className="font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight">
                   {isMaster ? (

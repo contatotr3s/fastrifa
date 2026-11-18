@@ -66,13 +66,11 @@ export default function HomePage() {
             href="/"
             className="ora-glass-pill rounded-full pl-3 pr-5 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
           >
-            <div className="relative w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
-              <img
-                src="/icone-isolado.png"
-                alt="Ícone Fast Rifa"
-                className="w-16 h-16 object-contain brightness-0 invert"
-              />
-            </div>
+            <img
+              src="/icone-isolado.png"
+              alt="Ícone Fast Rifa"
+              className="w-8 h-8 object-contain"
+            />
             <span className="font-display font-bold text-xl tracking-[-0.04em] text-[#0D1729]">
               Fast<span className="text-[#0869F5]">Rifa</span>
             </span>
@@ -468,13 +466,11 @@ export default function HomePage() {
       <footer className="border-t border-[#E0E9F7] bg-white py-10 px-4 sm:px-8">
         <div className="max-w-[1340px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#526480]">
           <div className="flex items-center gap-2.5">
-            <div className="relative w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] via-[#0869F5] to-[#052498] shadow-[0_4px_14px_rgba(8,105,245,0.35)]">
-              <img
-                src="/icone-isolado.png"
-                alt="Ícone Fast Rifa"
-                className="w-5 h-5 object-contain brightness-0 invert"
-              />
-            </div>
+            <img
+              src="/icone-isolado.png"
+              alt="Ícone Fast Rifa"
+              className="w-6 h-6 object-contain"
+            />
             <span className="font-display font-bold text-[#0D1729] tracking-[-0.03em]">
               Fast<span className="text-[#0869F5]">Rifa</span>
             </span>
