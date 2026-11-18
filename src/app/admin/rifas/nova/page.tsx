@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
 import PrizeImageUploader from '@/components/prize-image-uploader';
+import { numeroPorExtensoBRL } from '@/lib/currency';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { PixKeyType } from '@/types/database.types';
 
@@ -19,12 +20,29 @@ export default function NewRafflePage() {
   const [description, setDescription] = useState('');
   const [prizeImageUrl, setPrizeImageUrl] = useState('');
   const [totalTickets, setTotalTickets] = useState<number>(100);
-  const [ticketPrice, setTicketPrice] = useState<number>(1.0);
+  const [ticketPrice, setTicketPrice] = useState<string>('1.00');
   const [pixKeyType, setPixKeyType] = useState<PixKeyType>(profile?.pix_key_type || 'cpf');
   const [pixKey, setPixKey] = useState(profile?.pix_key || '');
   const [phoneWhatsapp, setPhoneWhatsapp] = useState(profile?.phone_whatsapp || '');
 
   const presets = [50, 100, 200, 500, 1000];
+
+  const pricePresets = [
+    { label: 'R$ 0,01', value: '0.01' },
+    { label: 'R$ 0,05', value: '0.05' },
+    { label: 'R$ 0,10', value: '0.10' },
+    { label: 'R$ 0,25', value: '0.25' },
+    { label: 'R$ 0,50', value: '0.50' },
+    { label: 'R$ 1,00', value: '1.00' },
+    { label: 'R$ 2,50', value: '2.50' },
+    { label: 'R$ 5,00', value: '5.00' },
+    { label: 'R$ 10,00', value: '10.00' },
+  ];
+
+  const numericPrice = parseFloat(ticketPrice.toString().replace(',', '.')) || 0;
+  const priceInWords = numeroPorExtensoBRL(numericPrice);
+  const potentialRevenue = (totalTickets * numericPrice).toFixed(2);
+  const potentialRevenueInWords = numeroPorExtensoBRL(totalTickets * numericPrice);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,8 +51,13 @@ export default function NewRafflePage() {
       return;
     }
 
-    if (!title || !pixKey || isNaN(ticketPrice) || isNaN(totalTickets)) {
+    if (!title || !pixKey || isNaN(numericPrice) || isNaN(totalTickets)) {
       setError('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (numericPrice < 0.01) {
+      setError('O valor da cota deve ser no mínimo R$ 0,01 (um centavo de real).');
       return;
     }
 
@@ -49,7 +72,7 @@ export default function NewRafflePage() {
         slug,
         description,
         prize_image_url: prizeImageUrl || null,
-        ticket_price: ticketPrice,
+        ticket_price: numericPrice,
         total_tickets: totalTickets,
         pix_key: pixKey,
         pix_key_type: pixKeyType,
@@ -69,8 +92,6 @@ export default function NewRafflePage() {
       setLoading(false);
     }
   }
-
-  const potentialRevenue = (totalTickets * (ticketPrice || 0)).toFixed(2);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -194,32 +215,81 @@ export default function NewRafflePage() {
           </div>
 
           <div>
-            <label
-              className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
-              htmlFor="ticketPrice"
-            >
-              Valor por Cota (R$) *
-            </label>
-            <input
-              id="ticketPrice"
-              type="number"
-              step="0.01"
-              min="0.01"
-              required
-              value={ticketPrice}
-              onChange={(e) => setTicketPrice(parseFloat(e.target.value) || 0)}
-              className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] tabular-nums transition"
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className="block text-[13px] font-semibold text-[#14213A]"
+                htmlFor="ticketPrice"
+              >
+                Valor por Cota (R$) *
+              </label>
+              <span className="text-xs text-[#526480] font-medium">
+                De R$ 0,01 até o valor desejado
+              </span>
+            </div>
+
+            {/* Sugestões Rápidas de Valores (Micro-cotas e Valores Padrão) */}
+            <div className="flex flex-wrap gap-1.5 mb-2.5">
+              {pricePresets.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setTicketPrice(preset.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer tabular-nums ${
+                    numericPrice === parseFloat(preset.value)
+                      ? 'bg-[#0869F5] text-white shadow-[0_4px_12px_rgba(8,105,245,0.25)]'
+                      : 'bg-[#F2F7FF] text-[#475872] hover:bg-[#E3EFFF] hover:text-[#0D1729] border border-[#D9E5F7]'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-[#526480]">
+                R$
+              </span>
+              <input
+                id="ticketPrice"
+                type="number"
+                step="0.01"
+                min="0.01"
+                required
+                value={ticketPrice}
+                onChange={(e) => setTicketPrice(e.target.value)}
+                placeholder="0.01"
+                className="w-full pl-11 pr-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[16px] font-bold tabular-nums transition"
+              />
+            </div>
+
+            {/* Valor Por Extenso em Destaque */}
+            {priceInWords && (
+              <div className="mt-2.5 px-3.5 py-2.5 bg-[#F0F6FF] border border-[#CDE0FC] rounded-[14px] flex items-center gap-2.5 animate-fadeIn">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0869F5] bg-[#D8E8FE] px-2 py-0.5 rounded-md flex-shrink-0">
+                  Por extenso
+                </span>
+                <span className="text-sm font-bold text-[#0D1729]">
+                  {priceInWords}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Revenue preview box */}
-          <div className="p-5 bg-[#F2F7FF] border border-[#CDE0FC] rounded-[20px] flex items-center justify-between tabular-nums">
-            <span className="text-sm font-semibold text-[#14213A]">
-              Arrecadação Potencial (100% vendido):
-            </span>
-            <span className="font-display font-bold text-xl text-[#0869F5]">
-              R$ {potentialRevenue}
-            </span>
+          <div className="p-5 bg-[#F2F7FF] border border-[#CDE0FC] rounded-[20px] space-y-1.5 tabular-nums">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-[#14213A]">
+                Arrecadação Potencial (100% vendido):
+              </span>
+              <span className="font-display font-bold text-xl text-[#0869F5]">
+                R$ {Number(potentialRevenue).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            {potentialRevenueInWords && (
+              <p className="text-xs text-[#526480] font-medium">
+                Equivalente a: <strong className="text-[#0D1729] font-bold">{potentialRevenueInWords}</strong>
+              </p>
+            )}
           </div>
         </div>
 
