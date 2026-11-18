@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { getUserRaffles } from '@/lib/firebase/raffles';
 import ThemeSwitcher from '@/components/theme-switcher';
 import BrandOnboardingModal from '@/components/brand-onboarding-modal';
@@ -17,6 +17,7 @@ import {
   Tag,
   Store,
   Loader2,
+  ShieldCheck,
 } from 'lucide-react';
 import type { Raffle } from '@/types/database.types';
 
@@ -28,12 +29,8 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
 
-  // Exibe onboarding automaticamente no primeiro acesso se não tiver configurado marca
-  const shouldAutoOnboard =
-    !authLoading &&
-    profile &&
-    profile.onboarding_completed !== true &&
-    !profile.brand_name;
+  const email = user?.email?.toLowerCase().trim() || '';
+  const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -63,32 +60,75 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-10">
+      {/* Master Owner Banner */}
+      {isMaster && (
+        <div className="p-4 sm:p-5 rounded-[24px] bg-gradient-to-r from-[#FFF8EB] via-[#FEF3D6] to-[#FFF8EB] border border-[#F5D08A] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <div className="w-11 h-11 rounded-2xl bg-[#D97706]/15 text-[#9A6700] flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <h3 className="font-display font-bold text-base text-[#78350F]">
+                  Acesso Owner FastRifa
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#D97706] text-white">
+                  Master
+                </span>
+              </div>
+              <p className="text-xs text-[#92400E] mt-0.5">
+                Você é o proprietário geral da plataforma. Para gerenciar todos os organizadores cadastrados e todas as rifas, acesse o painel master.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/admin/master"
+            className="px-5 py-2.5 rounded-full bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold transition flex items-center gap-2 whitespace-nowrap shadow-sm"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Abrir Painel Master</span>
+          </Link>
+        </div>
+      )}
+
       {/* Page Title & Primary Action */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-[#0869F5]">
-              {profile?.brand_name ? profile.brand_name : 'FastRifa'}
+              {isMaster ? 'FastRifa' : profile?.brand_name || 'FastRifa'}
             </span>
             <span className="text-[#B9D3F8]">•</span>
-            <span className="text-xs text-[#526480] font-medium">Painel do Organizador</span>
+            <span className="text-xs text-[#526480] font-medium">
+              {isMaster ? 'Visão Geral do Proprietário' : 'Painel do Organizador'}
+            </span>
           </div>
           <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
-            Painel de Controle
+            {isMaster ? 'Minhas Campanhas Pessoais' : 'Painel de Controle'}
           </h1>
           <p className="text-[#475872] text-[15px] mt-1.5">
             Acompanhe suas rifas rápidas, aprove comprovantes e confirme cotas com agilidade no PIX.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsBrandModalOpen(true)}
-            className="ora-btn-secondary rounded-[18px] px-5 py-3.5 text-sm font-bold inline-flex items-center gap-2 cursor-pointer"
-          >
-            <Store className="w-4 h-4 text-[#0869F5]" />
-            <span>Minha Marca</span>
-          </button>
+          {isMaster ? (
+            <Link
+              href="/admin/master"
+              className="ora-btn-secondary rounded-[18px] px-5 py-3.5 text-sm font-bold inline-flex items-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#D97706]" />
+              <span>Painel Master</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsBrandModalOpen(true)}
+              className="ora-btn-secondary rounded-[18px] px-5 py-3.5 text-sm font-bold inline-flex items-center gap-2 cursor-pointer"
+            >
+              <Store className="w-4 h-4 text-[#0869F5]" />
+              <span>Minha Marca</span>
+            </button>
+          )}
           <Link
             href="/admin/rifas/nova"
             className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-[15px] font-bold inline-flex items-center justify-center gap-2"
@@ -99,48 +139,48 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Brand Identity Banner */}
-      <div className="ora-card-soft rounded-[25px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4 text-center sm:text-left">
-          <div className="w-14 h-14 rounded-[18px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
-            {profile?.brand_logo_url ? (
-              <img
-                src={profile.brand_logo_url}
-                alt={profile.brand_name || 'Logo'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-xl">
-                {profile?.brand_initials || generateBrandInitials(profile?.brand_name || profile?.full_name || 'FR')}
-              </div>
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <strong className="font-display font-bold text-lg text-[#0D1729]">
-                {profile?.brand_name || 'Configure sua marca'}
-              </strong>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EDF5FF] text-[#0869F5] border border-[#CDE0FC]">
-                Oficial
-              </span>
+      {/* Brand Identity Banner (apenas para organizadores) */}
+      {!isMaster && (
+        <div className="ora-card-soft rounded-[25px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-center sm:text-left">
+            <div className="w-14 h-14 rounded-[18px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
+              {profile?.brand_logo_url ? (
+                <img
+                  src={profile.brand_logo_url}
+                  alt={profile.brand_name || 'Logo'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-xl">
+                  {profile?.brand_initials || generateBrandInitials(profile?.brand_name || 'FR')}
+                </div>
+              )}
             </div>
-            <p className="text-xs text-[#526480] mt-0.5">
-              {profile?.brand_name
-                ? 'Sua marca e logo são exibidas no topo de todas as suas campanhas públicas.'
-                : 'Defina o nome do seu negócio e carregue sua logo para personalizar suas páginas.'}
-            </p>
+            <div>
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <strong className="font-display font-bold text-lg text-[#0D1729]">
+                  {profile?.brand_name || 'Sua Marca'}
+                </strong>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EDF5FF] text-[#0869F5] border border-[#CDE0FC]">
+                  Marca Ativa
+                </span>
+              </div>
+              <p className="text-xs text-[#526480] mt-0.5">
+                Sua marca e logotipo aparecem no topo de todas as suas campanhas públicas para os seus clientes.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <button
-          type="button"
-          onClick={() => setIsBrandModalOpen(true)}
-          className="ora-btn-secondary rounded-full px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-        >
-          <Store className="w-3.5 h-3.5 text-[#0869F5]" />
-          <span>{profile?.brand_name ? 'Editar Identidade' : 'Configurar Minha Marca'}</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setIsBrandModalOpen(true)}
+            className="ora-btn-secondary rounded-full px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+          >
+            <Store className="w-3.5 h-3.5 text-[#0869F5]" />
+            <span>Editar Identidade</span>
+          </button>
+        </div>
+      )}
 
       {/* Overview Summary Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 tabular-nums">
@@ -279,12 +319,14 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Brand Setup / Onboarding Modal */}
-      <BrandOnboardingModal
-        isOpen={Boolean(shouldAutoOnboard || isBrandModalOpen)}
-        onClose={() => setIsBrandModalOpen(false)}
-        isEditMode={!shouldAutoOnboard}
-      />
+      {/* Brand Setup Modal */}
+      {!isMaster && (
+        <BrandOnboardingModal
+          isOpen={isBrandModalOpen}
+          onClose={() => setIsBrandModalOpen(false)}
+          isEditMode={true}
+        />
+      )}
     </div>
   );
 }

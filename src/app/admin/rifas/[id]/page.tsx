@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { getRaffleById, getRaffleOrders } from '@/lib/firebase/raffles';
 import RaffleManager from './raffle-manager';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -15,13 +15,17 @@ export default function AdminRaffleDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isMaster =
+    user?.email?.toLowerCase().trim() === MASTER_EMAIL ||
+    profile?.role === 'master';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -34,7 +38,7 @@ export default function AdminRaffleDetailsPage({
         .then(([raffleData, ordersData]) => {
           if (!raffleData) {
             setError('Campanha não encontrada.');
-          } else if (raffleData.user_id !== user.uid && user.uid !== 'demo-organizer-uid') {
+          } else if (raffleData.user_id !== user.uid && !isMaster) {
             setError('Você não tem permissão para gerenciar esta campanha.');
           } else {
             setRaffle(raffleData);
@@ -47,7 +51,7 @@ export default function AdminRaffleDetailsPage({
         })
         .finally(() => setLoading(false));
     }
-  }, [user, authLoading, id, router]);
+  }, [user, profile, authLoading, id, router, isMaster]);
 
   if (authLoading || loading) {
     return (

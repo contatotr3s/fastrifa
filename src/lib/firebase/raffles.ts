@@ -85,20 +85,16 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   let remoteList: Raffle[] = [];
 
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const q = userId === 'demo-organizer-uid'
-        ? query(collection(db, 'raffles'), orderBy('created_at', 'desc'))
-        : query(
-            collection(db, 'raffles'),
-            where('user_id', '==', userId),
-            orderBy('created_at', 'desc')
-          );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        remoteList = snap.docs
-          .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
-          .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
-      }
+    const q = query(
+      collection(db, 'raffles'),
+      where('user_id', '==', userId),
+      orderBy('created_at', 'desc')
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      remoteList = snap.docs
+        .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
+        .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
     }
   } catch (err) {
     console.warn('Firebase query failed or index missing, using local raffles:', err);
@@ -114,7 +110,7 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
     }
   }
 
-  // 2. Add local raffles (local takes precedence for immediate UI reflection)
+  // 2. Add local raffles
   for (const r of localList) {
     if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
       map.set(r.id, r);
@@ -130,32 +126,64 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
     return timeB - timeA;
   });
 
-  // If logged in as admin/demo organizer, show all raffles in the system
-  if (userId === 'demo-organizer-uid') {
-    return allMerged;
-  }
-
-  // For regular user accounts, show their raffles or allMerged fallback
-  const filtered = allMerged.filter((r) => r.user_id === userId);
-  return filtered.length > 0 ? filtered : allMerged;
+  // Retorna apenas as rifas pertencentes ao usuário logado
+  return allMerged.filter((r) => r.user_id === userId);
 }
 
 export async function getAllRaffles(): Promise<Raffle[]> {
-  return getUserRaffles('demo-organizer-uid');
+  try {
+    const q = query(collection(db, 'raffles'), orderBy('created_at', 'desc'));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      return snap.docs
+        .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
+        .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
+    }
+  } catch (err) {
+    console.warn('Error fetching all raffles:', err);
+  }
+  return getLocalRaffles().filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
 }
 
 export async function getAllCreators(): Promise<Array<{ email?: string; profile: Profile }>> {
   const creators: Array<{ email?: string; profile: Profile }> = [];
   const seenIds = new Set<string>();
 
-  // 1. Contas salvas localmente
+  // 1. Firestore remoto oficial
+  try {
+    const snap = await getDocs(collection(db, 'profiles'));
+    snap.forEach((d) => {
+      const data = d.data() as Profile;
+      if (
+        data &&
+        data.id &&
+        data.id !== 'demo-organizer-uid' &&
+        !seenIds.has(data.id)
+      ) {
+        seenIds.add(data.id);
+        creators.push({
+          email: (data as { email?: string }).email,
+          profile: data,
+        });
+      }
+    });
+  } catch (err) {
+    console.warn('Error reading remote creators from firestore:', err);
+  }
+
+  // 2. Contas salvas localmente
   if (typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem('fastrifa_auth_accounts');
       if (raw) {
         const accounts: Array<{ email: string; profile: Profile }> = JSON.parse(raw);
         for (const a of accounts) {
-          if (a.profile && !seenIds.has(a.profile.id)) {
+          if (
+            a.profile &&
+            a.profile.id !== 'demo-organizer-uid' &&
+            a.email !== 'admin@fastrifa.com' &&
+            !seenIds.has(a.profile.id)
+          ) {
             creators.push(a);
             seenIds.add(a.profile.id);
           }
@@ -164,24 +192,6 @@ export async function getAllCreators(): Promise<Array<{ email?: string; profile:
     } catch (e) {
       console.warn('Error reading local creators:', e);
     }
-  }
-
-  // 2. Conta Mestre / Teste oficial
-  if (!seenIds.has('demo-organizer-uid')) {
-    creators.unshift({
-      email: 'admin@fastrifa.com',
-      profile: {
-        id: 'demo-organizer-uid',
-        full_name: 'Organizador FastRifa',
-        phone_whatsapp: '11999999999',
-        brand_name: 'FastRifa Matriz',
-        brand_initials: 'FR',
-        onboarding_completed: true,
-        role: 'master',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    });
   }
 
   return creators;

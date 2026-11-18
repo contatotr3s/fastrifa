@@ -1,24 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isMaster() {
+      return request.auth != null && request.auth.token.email == 'dancos3@gmail.com';
+    }
+
     // Profiles
     match /profiles/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && (request.auth.uid == userId || isMaster());
+      allow delete: if isMaster();
     }
 
     // Raffles
     match /raffles/{raffleId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.user_id;
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.user_id || isMaster());
     }
 
     // Orders
     match /orders/{orderId} {
       allow read: if true;
       allow create: if true;
-      allow update: if request.auth != null;
+      allow update, delete: if request.auth != null;
     }
   }
 }

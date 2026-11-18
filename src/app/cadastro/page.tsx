@@ -88,7 +88,8 @@ export default function SignupPage() {
         setError(result.error);
         setLoading(false);
       } else {
-        router.push('/admin');
+        // Redirecionamento obrigatório para configuração da marca
+        router.push('/admin/onboarding');
       }
     } catch (err) {
       console.error('Signup error:', err);
@@ -108,6 +109,9 @@ export default function SignupPage() {
       if (result.error) {
         setError(result.error);
         setGoogleLoading(false);
+      } else if (result.needsOnboarding) {
+        // Redirecionamento obrigatório para novo cadastro via Google
+        router.push('/admin/onboarding');
       } else {
         router.push('/admin');
       }

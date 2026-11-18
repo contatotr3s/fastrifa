@@ -15,13 +15,21 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from './config';
 import type { Profile } from '@/types/database.types';
 
+export const MASTER_EMAIL = 'dancos3@gmail.com';
+
+export interface AuthResult {
+  error?: string;
+  isNewUser?: boolean;
+  needsOnboarding?: boolean;
+}
+
 interface AuthContextType {
   user: User | { uid: string; email: string | null; displayName?: string | null } | null;
   profile: Profile | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<{ error?: string }>;
-  signup: (name: string, phone: string, email: string, pass: string) => Promise<{ error?: string }>;
-  loginWithGoogle: () => Promise<{ error?: string }>;
+  login: (email: string, pass: string) => Promise<AuthResult>;
+  signup: (name: string, phone: string, email: string, pass: string) => Promise<AuthResult>;
+  loginWithGoogle: () => Promise<AuthResult>;
   resetPassword: (email: string) => Promise<{ error?: string; success?: boolean; message?: string }>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   logout: () => Promise<void>;
@@ -48,20 +56,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Limpa qualquer sessão mock/falsa antiga que possa ter ficado no navegador do usuário
+    // 1. Limpa resquícios de sessões mock antigas ou dados de teste indesejados
     let hasLocalUser = false;
     if (typeof window !== 'undefined') {
       try {
         const savedUser = localStorage.getItem(LOCAL_USER_KEY);
         const savedProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
         if (savedUser && savedProfile) {
-          const parsed = JSON.parse(savedUser);
-          if (parsed?.uid?.startsWith('usr_google')) {
+          const parsedUser = JSON.parse(savedUser);
+          const parsedProfile = JSON.parse(savedProfile);
+          
+          // Se for conta de teste antiga (admin@fastrifa.com / demo-organizer-uid) ou mock usr_google, purga
+          if (
+            parsedUser?.email === 'admin@fastrifa.com' ||
+            parsedUser?.uid === 'demo-organizer-uid' ||
+            parsedUser?.uid?.startsWith('usr_google')
+          ) {
             localStorage.removeItem(LOCAL_USER_KEY);
             localStorage.removeItem(LOCAL_PROFILE_KEY);
           } else {
-            setUser(parsed);
-            setProfile(JSON.parse(savedProfile));
+            // Se for dancos3@gmail.com, assegura que é master sem marca
+            if (parsedUser?.email?.toLowerCase() === MASTER_EMAIL) {
+              parsedProfile.role = 'master';
+              parsedProfile.brand_name = 'FastRifa';
+              parsedProfile.onboarding_completed = true;
+            }
+            setUser(parsedUser);
+            setProfile(parsedProfile);
             hasLocalUser = true;
             setLoading(false);
           }
@@ -75,14 +96,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
+          const isMaster = currentUser.email?.toLowerCase().trim() === MASTER_EMAIL;
           setUser(currentUser);
+
           try {
-            const profileDoc = await getDoc(doc(db, 'profiles', currentUser.uid));
+            const profileRef = doc(db, 'profiles', currentUser.uid);
+            const profileDoc = await getDoc(profileRef);
+
             if (profileDoc.exists()) {
-              setProfile(profileDoc.data() as Profile);
+              const loadedProfile = profileDoc.data() as Profile;
+              if (isMaster) {
+                loadedProfile.role = 'master';
+                loadedProfile.brand_name = 'FastRifa';
+                loadedProfile.brand_initials = 'FR';
+                loadedProfile.onboarding_completed = true;
+                setProfile(loadedProfile);
+                await setDoc(profileRef, { role: 'master', brand_name: 'FastRifa', onboarding_completed: true }, { merge: true });
+              } else {
+                setProfile(loadedProfile);
+              }
+
+              if (typeof window !== 'undefined') {
+                localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(currentUser));
+                localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(loadedProfile));
+              }
+            } else {
+              // Documento ainda não existia: cria novo perfil
+              const initialProfile: Profile = {
+                id: currentUser.uid,
+                full_name: currentUser.displayName || (isMaster ? 'Danilo (Owner FastRifa)' : 'Organizador'),
+                phone_whatsapp: currentUser.phoneNumber || '',
+                brand_name: isMaster ? 'FastRifa' : '',
+                brand_initials: isMaster ? 'FR' : '',
+                role: isMaster ? 'master' : 'organizer',
+                onboarding_completed: isMaster ? true : false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              };
+
+              try {
+                await setDoc(profileRef, initialProfile);
+              } catch (e) {
+                console.warn('Could not set initial profile in firestore:', e);
+              }
+
+              setProfile(initialProfile);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(currentUser));
+                localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(initialProfile));
+              }
             }
-          } catch {
-            // Profile fallback
+          } catch (err) {
+            console.warn('Error reading/syncing profile:', err);
+            if (isMaster) {
+              const fallbackMaster: Profile = {
+                id: currentUser.uid,
+                full_name: 'Danilo (Owner FastRifa)',
+                phone_whatsapp: '11999999999',
+                role: 'master',
+                brand_name: 'FastRifa',
+                brand_initials: 'FR',
+                onboarding_completed: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              };
+              setProfile(fallbackMaster);
+            }
           }
           setLoading(false);
         } else if (!hasLocalUser) {
@@ -100,55 +179,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  async function login(email: string, pass: string) {
+  async function login(email: string, pass: string): Promise<AuthResult> {
     const normalizedEmail = email.trim().toLowerCase();
+    const isMasterUser = normalizedEmail === MASTER_EMAIL;
 
-    // 1. Conta oficial de testes e demonstração imediata
-    if (normalizedEmail === 'admin@fastrifa.com' && pass === '123456') {
-      const demoUser = { uid: 'demo-organizer-uid', email: 'admin@fastrifa.com' };
-      const demoProfile: Profile = {
-        id: 'demo-organizer-uid',
-        full_name: 'Organizador FastRifa',
-        phone_whatsapp: '11999999999',
-        brand_name: 'FastRifa Matriz',
-        brand_initials: 'FR',
-        onboarding_completed: true,
-        role: 'master',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(demoUser));
-        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(demoProfile));
-      }
-      setUser(demoUser);
-      setProfile(demoProfile);
-      return {};
-    }
-
-    // 2. Autenticação direta no Firebase Auth
     try {
       const cred = await signInWithEmailAndPassword(auth, normalizedEmail, pass);
       let userProfile: Profile | null = null;
+
       try {
         const profileDoc = await getDoc(doc(db, 'profiles', cred.user.uid));
         if (profileDoc.exists()) {
           userProfile = profileDoc.data() as Profile;
+          if (isMasterUser) {
+            userProfile.role = 'master';
+            userProfile.brand_name = 'FastRifa';
+            userProfile.brand_initials = 'FR';
+            userProfile.onboarding_completed = true;
+          }
         }
       } catch {
         // ignore
       }
 
+      const activeProfile: Profile = userProfile || {
+        id: cred.user.uid,
+        full_name: isMasterUser ? 'Danilo (Owner FastRifa)' : 'Organizador',
+        phone_whatsapp: isMasterUser ? '11999999999' : '',
+        brand_name: isMasterUser ? 'FastRifa' : '',
+        brand_initials: isMasterUser ? 'FR' : '',
+        role: isMasterUser ? 'master' : 'organizer',
+        onboarding_completed: isMasterUser ? true : false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(cred.user));
-        if (userProfile) {
-          localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(userProfile));
-        }
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(activeProfile));
       }
 
       setUser(cred.user);
-      setProfile(userProfile);
-      return {};
+      setProfile(activeProfile);
+
+      const needsOnboarding = !isMasterUser && (!activeProfile.onboarding_completed || !activeProfile.brand_name);
+      return { needsOnboarding };
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.warn('Firebase login error:', err);
@@ -166,19 +241,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signup(name: string, phone: string, email: string, pass: string) {
+  async function signup(name: string, phone: string, email: string, pass: string): Promise<AuthResult> {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone.replace(/\D/g, '');
+    const isMasterUser = cleanEmail === MASTER_EMAIL;
 
-    // Autenticação direta no Firebase Auth
     try {
       const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
       const newProfile: Profile = {
         id: cred.user.uid,
         full_name: name.trim(),
         phone_whatsapp: cleanPhone,
-        role: 'organizer',
-        onboarding_completed: false,
+        brand_name: isMasterUser ? 'FastRifa' : '', // Novo organizador começa sem marca para configurar no onboarding
+        brand_initials: isMasterUser ? 'FR' : '',
+        role: isMasterUser ? 'master' : 'organizer',
+        onboarding_completed: isMasterUser ? true : false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -196,7 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(cred.user);
       setProfile(newProfile);
-      return {};
+      return { isNewUser: true, needsOnboarding: !isMasterUser };
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.error('Firebase signup error:', err);
@@ -213,7 +290,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function loginWithGoogle(): Promise<{ error?: string }> {
+  async function loginWithGoogle(): Promise<AuthResult> {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
@@ -221,33 +298,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Autenticação Real com Firebase OAuth
       const cred = await signInWithPopup(auth, provider);
       const googleUser = cred.user;
+      const email = (googleUser.email || '').toLowerCase().trim();
+      const isMasterUser = email === MASTER_EMAIL;
 
       let userProfile: Profile;
+      let isNewUser = false;
+      let needsOnboarding = false;
+
       try {
         const docSnap = await getDoc(doc(db, 'profiles', googleUser.uid));
         if (docSnap.exists()) {
           userProfile = docSnap.data() as Profile;
+          if (isMasterUser) {
+            userProfile.role = 'master';
+            userProfile.brand_name = 'FastRifa';
+            userProfile.brand_initials = 'FR';
+            userProfile.onboarding_completed = true;
+            await setDoc(doc(db, 'profiles', googleUser.uid), userProfile, { merge: true });
+            needsOnboarding = false;
+          } else {
+            // Se já tem cadastro, verifica se já configurou os dados da marca
+            needsOnboarding = !userProfile.onboarding_completed || !userProfile.brand_name;
+          }
         } else {
+          // NÃO EXISTE NO BANCO: Tratar obrigatoriamente como NOVO CADASTRO!
+          isNewUser = true;
+          needsOnboarding = !isMasterUser;
+
           userProfile = {
             id: googleUser.uid,
-            full_name: googleUser.displayName || 'Organizador',
+            full_name: googleUser.displayName || (isMasterUser ? 'Danilo (Owner FastRifa)' : 'Organizador'),
             phone_whatsapp: googleUser.phoneNumber || '',
-            brand_name: googleUser.displayName || '',
-            role: 'organizer',
-            onboarding_completed: false,
+            brand_name: isMasterUser ? 'FastRifa' : '', // Começa sem marca para forçar o onboarding
+            brand_initials: isMasterUser ? 'FR' : '',
+            role: isMasterUser ? 'master' : 'organizer',
+            onboarding_completed: isMasterUser ? true : false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
+
           await setDoc(doc(db, 'profiles', googleUser.uid), userProfile);
         }
       } catch (err) {
         console.warn('Could not read/write firestore profile:', err);
+        isNewUser = true;
+        needsOnboarding = !isMasterUser;
         userProfile = {
           id: googleUser.uid,
-          full_name: googleUser.displayName || 'Organizador',
+          full_name: googleUser.displayName || (isMasterUser ? 'Danilo (Owner FastRifa)' : 'Organizador'),
           phone_whatsapp: '',
-          role: 'organizer',
-          onboarding_completed: false,
+          brand_name: isMasterUser ? 'FastRifa' : '',
+          brand_initials: isMasterUser ? 'FR' : '',
+          role: isMasterUser ? 'master' : 'organizer',
+          onboarding_completed: isMasterUser ? true : false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -260,7 +363,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(googleUser);
       setProfile(userProfile);
-      return {};
+      return { isNewUser, needsOnboarding };
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.error('Firebase Google Login error:', err);
@@ -294,62 +397,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      if (
-        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
-      ) {
-        await sendPasswordResetEmail(auth, normalizedEmail);
-        return {
-          success: true,
-          message: 'Um link oficial de recuperação foi enviado para o seu e-mail. Verifique sua caixa de entrada e spam.',
-        };
-      }
+      await sendPasswordResetEmail(auth, normalizedEmail);
+      return {
+        success: true,
+        message: 'Um link oficial de recuperação foi enviado para o seu e-mail. Verifique sua caixa de entrada e spam.',
+      };
     } catch (err: unknown) {
       const errObj = err as { code?: string };
       console.warn('Firebase password reset error:', err);
       if (errObj.code === 'auth/user-not-found') {
-        return { error: 'Nenhuma conta encontrada com este e-mail.' };
+        return {
+          success: true,
+          message: 'Se o e-mail estiver cadastrado, o link oficial de redefinição de senha foi enviado.',
+        };
       }
-      if (errObj.code === 'auth/invalid-email') {
-        return { error: 'Endereço de e-mail inválido.' };
-      }
+      return { error: 'Erro ao enviar o link de redefinição de senha. Verifique o e-mail digitado.' };
     }
-
-    return {
-      success: true,
-      message: 'Se este e-mail estiver cadastrado, as instruções para redefinição foram enviadas com sucesso!',
-    };
   }
 
   async function updateProfile(updates: Partial<Profile>) {
-    if (!profile) return;
-    const updated: Profile = {
-      ...profile,
-      ...updates,
+    if (!user) return;
+    const isMasterUser = user.email?.toLowerCase().trim() === MASTER_EMAIL;
+
+    const current = profile || {
+      id: user.uid,
+      full_name: (user as { displayName?: string }).displayName || 'Organizador',
+      phone_whatsapp: '',
+      role: isMasterUser ? 'master' : 'organizer',
+      onboarding_completed: false,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    try {
-      if (
-        user?.uid &&
-        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
-      ) {
-        await setDoc(doc(db, 'profiles', user.uid), updated, { merge: true });
-      }
-    } catch (e) {
-      console.warn('Firebase profile update failed:', e);
+    const updatedProfile: Profile = {
+      ...current,
+      ...updates,
+      role: isMasterUser ? 'master' : (updates.role || current.role || 'organizer'),
+      updated_at: new Date().toISOString(),
+    };
+
+    setProfile(updatedProfile);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(updatedProfile));
     }
 
-    setProfile(updated);
+    try {
+      await setDoc(doc(db, 'profiles', user.uid), updatedProfile, { merge: true });
+    } catch (err) {
+      console.warn('Could not save profile in firestore:', err);
+    }
   }
 
   async function logout() {
     try {
       await signOut(auth);
-    } catch {
-      // Ignored
+    } catch (e) {
+      console.warn('SignOut error:', e);
     }
+
     if (typeof window !== 'undefined') {
       localStorage.removeItem(LOCAL_USER_KEY);
       localStorage.removeItem(LOCAL_PROFILE_KEY);
@@ -378,5 +484,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

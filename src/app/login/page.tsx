@@ -83,6 +83,8 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error);
         setLoading(false);
+      } else if (result.needsOnboarding) {
+        router.push('/admin/onboarding');
       } else {
         router.push('/admin');
       }
@@ -103,6 +105,8 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error);
         setGoogleLoading(false);
+      } else if (result.needsOnboarding) {
+        router.push('/admin/onboarding');
       } else {
         router.push('/admin');
       }
@@ -349,20 +353,6 @@ export default function LoginPage() {
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@fastrifa.com');
-                    setPassword('123456');
-                    setFieldErrors({});
-                    setError(null);
-                  }}
-                  className="w-full py-3 px-4 text-xs font-bold text-[#0755DE] bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] rounded-[16px] transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#0869F5]" />
-                  <span>Preencher dados de teste (admin@fastrifa.com)</span>
                 </button>
               </form>
             </div>

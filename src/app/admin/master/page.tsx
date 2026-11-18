@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { getAllRaffles, getAllCreators } from '@/lib/firebase/raffles';
+import { db } from '@/lib/firebase/config';
+import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
   ShieldCheck,
@@ -19,6 +21,8 @@ import {
   ArrowLeft,
   Loader2,
   CheckCircle2,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import type { Raffle, Profile } from '@/types/database.types';
 
@@ -35,11 +39,11 @@ export default function AdminMasterPage() {
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'creators' | 'raffles'>('creators');
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [cleanFeedback, setCleanFeedback] = useState<string | null>(null);
 
-  const isMaster =
-    profile?.role === 'master' ||
-    user?.email === 'admin@fastrifa.com' ||
-    user?.uid === 'demo-organizer-uid';
+  const email = user?.email?.toLowerCase().trim() || '';
+  const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,6 +61,48 @@ export default function AdminMasterPage() {
         .finally(() => setLoading(false));
     }
   }, [user, authLoading, router]);
+
+  async function handleCleanTestData() {
+    if (
+      !confirm(
+        'Deseja realmente limpar todos os perfis e dados de teste, mantendo apenas a conta master dancos3@gmail.com?'
+      )
+    ) {
+      return;
+    }
+
+    setIsCleaning(true);
+    setCleanFeedback(null);
+
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('fastrifa_auth_accounts');
+      }
+
+      try {
+        const snap = await getDocs(collection(db, 'profiles'));
+        for (const d of snap.docs) {
+          const data = d.data();
+          const pEmail = (data.email || '').toLowerCase().trim();
+          if (pEmail !== MASTER_EMAIL && d.id !== user?.uid) {
+            await deleteDoc(doc(db, 'profiles', d.id));
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao deletar perfis remotos:', err);
+      }
+
+      const [creatorsData, rafflesData] = await Promise.all([getAllCreators(), getAllRaffles()]);
+      setCreators(creatorsData.filter((c) => c.email === MASTER_EMAIL || c.profile.role === 'master'));
+      setRaffles(rafflesData);
+      setCleanFeedback('Base limpa com sucesso! Somente a conta master dancos3@gmail.com foi mantida.');
+    } catch (e) {
+      console.error(e);
+      setCleanFeedback('Ocorreu um erro ao limpar dados de teste.');
+    } finally {
+      setIsCleaning(false);
+    }
+  }
 
   if (authLoading || loading) {
     return (
@@ -107,7 +153,7 @@ export default function AdminMasterPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] text-xs font-bold uppercase tracking-wider mb-2">
             <ShieldCheck className="w-4 h-4" />
-            <span>Painel Master • Visão Global do FastRifa</span>
+            <span>Painel Master • Owner do FastRifa</span>
           </div>
           <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
             Monitoramento de Criadores
@@ -117,14 +163,38 @@ export default function AdminMasterPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin"
-          className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs font-bold inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Voltar ao Painel Regular</span>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            disabled={isCleaning}
+            onClick={handleCleanTestData}
+            className="px-4 py-2.5 text-xs font-bold text-[#BE123C] bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#FECDD3] rounded-full transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Remove usuários e rifas de teste, mantendo apenas a conta do owner"
+          >
+            {isCleaning ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            <span>Limpar Dados de Teste</span>
+          </button>
+
+          <Link
+            href="/admin"
+            className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs font-bold inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Voltar ao Painel</span>
+          </Link>
+        </div>
       </div>
+
+      {cleanFeedback && (
+        <div className="p-4 rounded-[18px] bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] text-xs font-bold flex items-center gap-2.5 animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          <span>{cleanFeedback}</span>
+        </div>
+      )}
 
       {/* Global Metrics Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 tabular-nums">

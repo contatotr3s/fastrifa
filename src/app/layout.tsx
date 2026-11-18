@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import { AuthProvider } from "@/lib/firebase/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
-import TestEnvBanner from "@/components/test-env-banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,7 +48,6 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-[#FFFFFF] text-[#0D1729]">
         <ThemeProvider>
-          <TestEnvBanner />
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
