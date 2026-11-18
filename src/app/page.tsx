@@ -114,63 +114,70 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-8 pb-20 sm:pt-14 sm:pb-28 px-4 sm:px-8 relative overflow-hidden">
-          <div className="max-w-[1180px] mx-auto text-center">
-            {/* Top Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
-              <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
-            </div>
+        <section className="ora-hero-stage pt-8 pb-16 sm:pt-12 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
+          <div className="max-w-[1360px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4 items-center">
+              {/* Left Column: Text & CTAs (Upper layer) */}
+              <div className="lg:col-span-7 xl:col-span-7 text-left space-y-6 relative z-20">
+                {/* Top Pill Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide">
+                  <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
+                  <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
+                </div>
 
-            <h1 className="font-display font-bold text-[clamp(2.5rem,5.2vw,4.65rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729] max-w-4xl mx-auto">
-              Crie. Divulgue. Venda.
-              <br />
-              <span className="text-[#0869F5]">Tudo vapt-vupt no seu PIX.</span>
-            </h1>
+                <h1 className="font-display font-bold text-[clamp(2.4rem,4.4vw,4.2rem)] leading-[1.08] tracking-[-0.04em] text-[#0D1729]">
+                  Crie. Divulgue. Venda.
+                  <br />
+                  <span className="text-[#0869F5]">Tudo vapt-vupt no seu PIX.</span>
+                </h1>
 
-            <p className="mt-6 text-[clamp(1.05rem,1.45vw,1.25rem)] text-[#475872] max-w-[65ch] mx-auto leading-[1.6] font-normal">
-              Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
-            </p>
+                <p className="text-[17px] sm:text-[19px] text-[#475872] leading-[1.6] max-w-[50ch]">
+                  Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
+                </p>
 
-            {/* 3D Orbital Scene (Oratry Style with 5 Orbiting Feature Cards) */}
-            <HeroOrbitScene />
+                {/* Primary CTA Buttons */}
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/cadastro"
+                    className="ora-btn-primary rounded-[18px] px-8 py-4 text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)] hover:scale-[1.02] transition-transform"
+                  >
+                    <span>Criar Minha Rifa Rápida</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <a
+                    href="#campanha-ao-vivo"
+                    className="ora-btn-secondary rounded-[18px] px-6 py-4 text-[16px] font-semibold inline-flex items-center justify-center gap-2 hover:border-[#97BAE7] transition-colors"
+                  >
+                    <span>Ver Demonstração ao Vivo</span>
+                    <ArrowUpRight className="w-5 h-5 text-[#475872]" />
+                  </a>
+                </div>
 
-            {/* Primary CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/cadastro"
-                className="ora-btn-primary rounded-[18px] px-8 py-4 text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)]"
-              >
-                <span>Criar Minha Rifa Rápida</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <a
-                href="#campanha-ao-vivo"
-                className="ora-btn-secondary rounded-[18px] px-8 py-4 text-[17px] font-semibold inline-flex items-center justify-center gap-2"
-              >
-                <span>Ver Demonstração ao Vivo</span>
-                <ArrowUpRight className="w-5 h-5 text-[#475872]" />
-              </a>
-            </div>
+                {/* Social Proof Line */}
+                <div className="pt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-[#526480] font-medium">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                    100% no seu PIX
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                    Sem taxa de saque
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                    Criação em menos de 2 min
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
+                    Sem cadastro pro cliente
+                  </span>
+                </div>
+              </div>
 
-            {/* Social Proof Line */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-[#526480] font-medium">
-              <span className="inline-flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
-                100% no seu PIX
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
-                Sem taxa de saque
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
-                Criação em menos de 2 min
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0869F5]" />
-                Comprador não precisa de cadastro
-              </span>
+              {/* Right Column: 3D Orbital Scene side-by-side (Layer positioned beside text) */}
+              <div className="lg:col-span-5 xl:col-span-5 flex items-center justify-center relative z-10 lg:-ml-6 xl:-ml-12 overflow-visible">
+                <HeroOrbitScene />
+              </div>
             </div>
           </div>
         </section>

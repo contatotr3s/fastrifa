@@ -28,16 +28,6 @@ export default function HeroOrbitScene() {
     let angle = -2.15;
     let lastTime = 0;
     let drawing = false;
-    let paused = false;
-
-    const cards = root.querySelectorAll<HTMLElement>('.fr-orbit-card');
-    const onEnter = () => { paused = true; };
-    const onLeave = () => { paused = false; };
-
-    cards.forEach((card) => {
-      card.addEventListener('mouseenter', onEnter);
-      card.addEventListener('mouseleave', onLeave);
-    });
 
     let animationFrameId: number;
 
@@ -48,15 +38,15 @@ export default function HeroOrbitScene() {
       const dt = Math.min(timestamp - lastTime, 60);
       lastTime = timestamp;
 
-      if (!reduceMotion.matches && !paused) {
+      if (!reduceMotion.matches) {
         angle += dt * settings.orbitSpeed;
       }
 
       const w = root.clientWidth;
       const isMobile = w < 640;
-      // Ampliação da órbita para dar mais respiro e amplitude aos elementos
-      const radiusX = isMobile ? Math.min(w * 0.38, 175) : Math.min(w * 0.40, 310);
-      const radiusY = isMobile ? 100 : 148;
+      // Órbita ampla e proporcional para encaixar perfeitamente ao lado do texto
+      const radiusX = isMobile ? Math.min(w * 0.38, 160) : Math.min(w * 0.42, 275);
+      const radiusY = isMobile ? 95 : 132;
 
       items.forEach((item, index) => {
         const a = angle + index * ((Math.PI * 2) / items.length);
@@ -70,8 +60,8 @@ export default function HeroOrbitScene() {
         const depth = Math.sin(a);
         const norm = (depth + 1) / 2;
 
-        // Escala ampliada para elementos maiores e mais visíveis
-        const scale = (isMobile ? 0.80 : 0.88) + norm * (isMobile ? 0.22 : 0.26);
+        // Escala ampliada para elementos legíveis e destacados
+        const scale = (isMobile ? 0.78 : 0.86) + norm * (isMobile ? 0.22 : 0.26);
         const opacity = 0.78 + norm * 0.22;
 
         item.style.zIndex = depth >= 0 ? '30' : '10';
@@ -142,10 +132,6 @@ export default function HeroOrbitScene() {
     return () => {
       cancelAnimationFrame(animationFrameId);
       if (intervalId) clearInterval(intervalId);
-      cards.forEach((card) => {
-        card.removeEventListener('mouseenter', onEnter);
-        card.removeEventListener('mouseleave', onLeave);
-      });
     };
   }, []);
 
@@ -153,22 +139,22 @@ export default function HeroOrbitScene() {
     <div
       ref={rootRef}
       id="fastRifaOrbit"
-      className="fr-orbit-root relative w-full max-w-[860px] h-[480px] sm:h-[540px] mx-auto flex items-center justify-center my-6 sm:my-10 select-none overflow-visible"
+      className="fr-orbit-root relative w-full max-w-[760px] h-[460px] sm:h-[500px] mx-auto flex items-center justify-center select-none overflow-visible pointer-events-none"
       aria-label="FastRifa em órbita tridimensional interativa"
     >
-      {/* Brilho radial de fundo ampliado */}
+      {/* Brilho radial de fundo */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute w-[420px] h-[420px] sm:w-[560px] sm:h-[560px] rounded-full blur-3xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.35)_0%,rgba(225,237,255,0.50)_45%,transparent_72%)]"
+        className="pointer-events-none absolute w-[380px] h-[380px] sm:w-[500px] sm:h-[500px] rounded-full blur-3xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.35)_0%,rgba(225,237,255,0.50)_45%,transparent_72%)]"
       />
 
-      {/* Anéis da órbita inclinados com diâmetro ampliado */}
+      {/* Anéis da órbita inclinados */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/75"
         style={{
-          width: 620,
-          height: 300,
+          width: 560,
+          height: 275,
           transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
@@ -176,8 +162,8 @@ export default function HeroOrbitScene() {
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/50 shadow-[0_0_35px_rgba(8,105,245,0.07)]"
         style={{
-          width: 700,
-          height: 340,
+          width: 630,
+          height: 310,
           transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
@@ -189,7 +175,7 @@ export default function HeroOrbitScene() {
 
       {/* CENTRO: Bilhete 3D em formato real de bilhete */}
       <div className="relative z-20 flex items-center justify-center pointer-events-none">
-        <div className="relative w-[270px] h-[138px] sm:w-[320px] sm:h-[156px] flex items-center justify-center">
+        <div className="relative w-[260px] h-[132px] sm:w-[305px] sm:h-[150px] flex items-center justify-center">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -inset-6 rounded-full blur-2xl animate-pulse bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]"
@@ -225,8 +211,8 @@ export default function HeroOrbitScene() {
       </div>
 
       {/* 1. Card: Criação em 2 min */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
           <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -331,8 +317,8 @@ export default function HeroOrbitScene() {
       </div>
 
       {/* 3. Card: Chave PIX Direta */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
           <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -414,8 +400,8 @@ export default function HeroOrbitScene() {
       </div>
 
       {/* 5. Card: Link pro WhatsApp */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
           <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -461,8 +447,8 @@ export default function HeroOrbitScene() {
       </div>
 
       {/* 7. Card: Grade em Tempo Real */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
           <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -513,8 +499,8 @@ export default function HeroOrbitScene() {
       </div>
 
       {/* 9. Card: Sem Taxa no Saque */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 cursor-pointer transition-[box-shadow,border-color] duration-200">
-        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 hover:border-[#97BAE7] transition-colors">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+        <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
           <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
