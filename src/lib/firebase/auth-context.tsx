@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, pass: string) {
     const normalizedEmail = email.trim().toLowerCase();
 
-    // 1. Conta oficial de testes e demonstração
+    // 1. Conta oficial de testes e demonstração imediata
     if (normalizedEmail === 'admin@fastrifa.com' && pass === '123456') {
       const demoUser = { uid: 'demo-organizer-uid', email: 'admin@fastrifa.com' };
       const demoProfile: Profile = {
@@ -126,26 +126,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return {};
     }
 
-    // 2. Autenticação Real no Firebase Auth
+    // 2. Autenticação direta no Firebase Auth
     try {
-      if (
-        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
-      ) {
-        const cred = await signInWithEmailAndPassword(auth, normalizedEmail, pass);
-        let userProfile: Profile | null = null;
-        try {
-          const profileDoc = await getDoc(doc(db, 'profiles', cred.user.uid));
-          if (profileDoc.exists()) {
-            userProfile = profileDoc.data() as Profile;
-          }
-        } catch {
-          // ignore
+      const cred = await signInWithEmailAndPassword(auth, normalizedEmail, pass);
+      let userProfile: Profile | null = null;
+      try {
+        const profileDoc = await getDoc(doc(db, 'profiles', cred.user.uid));
+        if (profileDoc.exists()) {
+          userProfile = profileDoc.data() as Profile;
         }
-        setUser(cred.user);
-        setProfile(userProfile);
-        return {};
+      } catch {
+        // ignore
       }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(cred.user));
+        if (userProfile) {
+          localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(userProfile));
+        }
+      }
+
+      setUser(cred.user);
+      setProfile(userProfile);
+      return {};
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.warn('Firebase login error:', err);
@@ -161,40 +164,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return { error: errObj.message || 'Falha ao autenticar.' };
     }
-
-    return { error: 'Ambiente de autenticação indisponível.' };
   }
 
   async function signup(name: string, phone: string, email: string, pass: string) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone.replace(/\D/g, '');
 
-    // Autenticação Real no Firebase Auth
+    // Autenticação direta no Firebase Auth
     try {
-      if (
-        process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-        !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')
-      ) {
-        const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
-        const newProfile: Profile = {
-          id: cred.user.uid,
-          full_name: name.trim(),
-          phone_whatsapp: cleanPhone,
-          role: 'organizer',
-          onboarding_completed: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        try {
-          await setDoc(doc(db, 'profiles', cred.user.uid), newProfile);
-        } catch (e) {
-          console.warn('Could not write profile to firestore:', e);
-        }
+      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+      const newProfile: Profile = {
+        id: cred.user.uid,
+        full_name: name.trim(),
+        phone_whatsapp: cleanPhone,
+        role: 'organizer',
+        onboarding_completed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-        setUser(cred.user);
-        setProfile(newProfile);
-        return {};
+      try {
+        await setDoc(doc(db, 'profiles', cred.user.uid), newProfile);
+      } catch (e) {
+        console.warn('Could not write profile to firestore:', e);
       }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(cred.user));
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(newProfile));
+      }
+
+      setUser(cred.user);
+      setProfile(newProfile);
+      return {};
     } catch (err: unknown) {
       const errObj = err as { code?: string; message?: string };
       console.error('Firebase signup error:', err);
@@ -209,8 +211,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return { error: errObj.message || 'Erro ao criar conta no Firebase.' };
     }
-
-    return { error: 'Configuração de autenticação não encontrada.' };
   }
 
   async function loginWithGoogle(): Promise<{ error?: string }> {
@@ -218,7 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      // Autenticação Real e Segura com Firebase OAuth
+      // Autenticação Real com Firebase OAuth
       const cred = await signInWithPopup(auth, provider);
       const googleUser = cred.user;
 
@@ -253,6 +253,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(googleUser));
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(userProfile));
+      }
+
       setUser(googleUser);
       setProfile(userProfile);
       return {};
@@ -266,13 +271,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (errObj.code === 'auth/popup-blocked') {
         return {
           error:
-            'O pop-up de login foi bloqueado pelo seu navegador. Por favor, permita pop-ups para fazer login com o Google.',
+            'O pop-up de login foi bloqueado pelo seu navegador móvel. Por favor, permita pop-ups para fazer login com o Google.',
         };
       }
       if (errObj.code === 'auth/unauthorized-domain') {
         return {
           error:
-            'Este endereço/domínio não está autorizado para login com Google no Firebase Console. Para testar o login com Google, acesse pelo link oficial em produção na Vercel ou adicione este domínio no Firebase Console.',
+            'O domínio fastrifa.vercel.app precisa ser adicionado aos "Domínios Autorizados" no Firebase Console para que o Google libere o OAuth.',
         };
       }
       if (errObj.code === 'auth/cancelled-popup-request') {
