@@ -4,12 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
+import { PlatformTermsModal } from '@/components/terms-modals';
 import {
   ArrowRight,
   Loader2,
   Eye,
   EyeOff,
   AlertCircle,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface FormErrors {
@@ -17,6 +19,7 @@ interface FormErrors {
   phone?: string;
   email?: string;
   password?: string;
+  terms?: string;
 }
 
 export default function SignupPage() {
@@ -25,6 +28,8 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,6 +73,10 @@ export default function SignupPage() {
       errors.password = 'A senha deve conter pelo menos 6 caracteres.';
     }
 
+    if (!acceptedTerms) {
+      errors.terms = 'Você deve aceitar os Termos de Uso e Privacidade para prosseguir.';
+    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -101,6 +110,14 @@ export default function SignupPage() {
   async function handleGoogleSignup() {
     setError(null);
     setFieldErrors({});
+
+    if (!acceptedTerms) {
+      setFieldErrors({
+        terms: 'Por favor, marque a caixa confirmando que leu e concorda com os Termos de Uso antes de continuar com o Google.',
+      });
+      return;
+    }
+
     setGoogleLoading(true);
 
     try {
@@ -355,6 +372,58 @@ export default function SignupPage() {
                 </p>
               )}
             </div>
+
+            {/* Termos de Uso e Privacidade Obrigatórios */}
+            <div
+              className={`p-3.5 rounded-[18px] transition border ${
+                fieldErrors.terms
+                  ? 'bg-[#FFF5F6] border-[#BE123C] ring-2 ring-[#BE123C]/20'
+                  : 'bg-[#F5F9FF] border-[#D9E5F7]'
+              }`}
+            >
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => {
+                    setAcceptedTerms(e.target.checked);
+                    if (fieldErrors.terms) {
+                      setFieldErrors((prev) => ({ ...prev, terms: undefined }));
+                    }
+                  }}
+                  className="mt-0.5 w-4 h-4 rounded-[5px] text-[#0869F5] border-[#D9E5F7] focus:ring-[#0869F5] cursor-pointer flex-shrink-0"
+                />
+                <div className="text-xs text-[#334661] leading-relaxed">
+                  <span>Li e concordo com os </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsTermsModalOpen(true)}
+                    className="font-bold text-[#0869F5] underline underline-offset-2 hover:text-[#052498] inline-block transition cursor-pointer"
+                  >
+                    Termos de Uso e Privacidade
+                  </button>
+                  <span> do FastRifa.</span>
+                </div>
+              </label>
+              {fieldErrors.terms && (
+                <p className="mt-2 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.terms}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Modal de Leitura dos Termos */}
+            <PlatformTermsModal
+              isOpen={isTermsModalOpen}
+              onClose={() => setIsTermsModalOpen(false)}
+              onAccept={() => {
+                setAcceptedTerms(true);
+                if (fieldErrors.terms) {
+                  setFieldErrors((prev) => ({ ...prev, terms: undefined }));
+                }
+              }}
+            />
 
             <button
               type="submit"

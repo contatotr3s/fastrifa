@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/firebase/auth-context';
 import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
 import PrizeImageUploader from '@/components/prize-image-uploader';
 import { numeroPorExtensoBRL } from '@/lib/currency';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { RaffleCreationTermsModal } from '@/components/terms-modals';
+import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
 import type { PixKeyType } from '@/types/database.types';
 
 export default function NewRafflePage() {
@@ -16,6 +17,8 @@ export default function NewRafflePage() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [prizeImageUrl, setPrizeImageUrl] = useState('');
@@ -58,6 +61,11 @@ export default function NewRafflePage() {
 
     if (numericPrice < 0.01) {
       setError('O valor da cota deve ser no mínimo R$ 0,01 (um centavo de real).');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError('É obrigatório ler e concordar com os Termos de Criação e Responsabilidade da Campanha para continuar.');
       return;
     }
 
@@ -358,6 +366,50 @@ export default function NewRafflePage() {
             />
           </div>
         </div>
+
+        {/* Termo de Uso e Responsabilidade da Campanha */}
+        <div
+          className={`p-4 rounded-[20px] transition border ${
+            error && !acceptedTerms
+              ? 'bg-[#FFF5F6] border-[#BE123C] ring-2 ring-[#BE123C]/20'
+              : 'bg-[#F5F9FF] border-[#D9E5F7]'
+          }`}
+        >
+          <label className="flex items-start gap-3.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => {
+                setAcceptedTerms(e.target.checked);
+                if (error) setError(null);
+              }}
+              className="mt-0.5 w-5 h-5 rounded-[6px] text-[#0869F5] border-[#D9E5F7] focus:ring-[#0869F5] cursor-pointer flex-shrink-0"
+            />
+            <div className="text-xs text-[#334661] leading-relaxed">
+              <span>Declaro sob as penas da lei que li e concordo com os </span>
+              <button
+                type="button"
+                onClick={() => setIsTermsModalOpen(true)}
+                className="font-bold text-[#0869F5] underline underline-offset-2 hover:text-[#052498] inline-block transition cursor-pointer"
+              >
+                Termos de Criação e Responsabilidade da Campanha
+              </button>
+              <span>
+                , assumindo responsabilidade legal e irrevogável pela posse legítima, idoneidade e entrega do prêmio ao ganhador.
+              </span>
+            </div>
+          </label>
+        </div>
+
+        {/* Modal de Leitura Completa dos Termos */}
+        <RaffleCreationTermsModal
+          isOpen={isTermsModalOpen}
+          onClose={() => setIsTermsModalOpen(false)}
+          onAccept={() => {
+            setAcceptedTerms(true);
+            if (error) setError(null);
+          }}
+        />
 
         {/* Submit */}
         <div className="pt-2">

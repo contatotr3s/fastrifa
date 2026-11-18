@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { getUserRaffles } from '@/lib/firebase/raffles';
-import ThemeSwitcher from '@/components/theme-switcher';
 import BrandOnboardingModal from '@/components/brand-onboarding-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
@@ -215,9 +214,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Theme Customizer Switcher */}
-      <ThemeSwitcher variant="full" />
-
       {/* Raffles List */}
       <div className="space-y-5">
         <h2 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
@@ -248,33 +244,55 @@ export default function AdminDashboardPage() {
             {raffles.map((raffle) => (
               <div
                 key={raffle.id}
-                className="ora-card rounded-[25px] p-6 sm:p-7 flex flex-col justify-between hover:border-[#97BAE7] transition"
+                className="ora-card rounded-[25px] p-5 sm:p-6 flex flex-col justify-between hover:border-[#97BAE7] transition shadow-sm"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-3 ${
-                          raffle.status === 'active'
-                            ? 'bg-[#0869F5] text-white'
+                  <div className="flex items-start gap-4 mb-3">
+                    {/* Miniatura da Imagem da Rifa */}
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-[18px] overflow-hidden bg-[#F2F7FF] border border-[#D9E5F7] flex-shrink-0 flex items-center justify-center">
+                      {raffle.prize_image_url ? (
+                        <img
+                          src={raffle.prize_image_url}
+                          alt={raffle.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-[#0869F5]/70 gap-1 p-2 text-center">
+                          <Tag className="w-6 h-6 text-[#0869F5]" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#526480]">Sem foto</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Título e Status */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            raffle.status === 'active'
+                              ? 'bg-[#0869F5] text-white'
+                              : raffle.status === 'completed'
+                              ? 'bg-[#FFF8EB] text-[#9A6700] border border-[#F5D08A]'
+                              : 'bg-[#F5F9FF] text-[#475872] border border-[#D9E5F7]'
+                          }`}
+                        >
+                          {raffle.status === 'active'
+                            ? 'Ativa'
                             : raffle.status === 'completed'
-                            ? 'bg-[#FFF8EB] text-[#9A6700] border border-[#F5D08A]'
-                            : 'bg-[#F5F9FF] text-[#475872] border border-[#D9E5F7]'
-                        }`}
-                      >
-                        {raffle.status === 'active'
-                          ? 'Ativa'
-                          : raffle.status === 'completed'
-                          ? 'Concluída'
-                          : 'Pausada'}
-                      </span>
-                      <h3 className="font-display font-bold text-xl text-[#0D1729] tracking-[-0.03em] line-clamp-1">
+                            ? 'Concluída'
+                            : 'Pausada'}
+                        </span>
+                        <span className="text-[11px] text-[#526480] truncate font-mono">
+                          /{raffle.slug}
+                        </span>
+                      </div>
+                      <h3 className="font-display font-bold text-lg sm:text-xl text-[#0D1729] tracking-[-0.03em] line-clamp-2 leading-tight">
                         {raffle.title}
                       </h3>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#475872] mt-3 mb-6 tabular-nums bg-[#F5F9FF] p-3.5 rounded-[16px] border border-[#E0E9F7]">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#475872] mt-3 mb-5 tabular-nums bg-[#F5F9FF] p-3 rounded-[16px] border border-[#E0E9F7]">
                     <span>
                       <strong className="text-[#0D1729] font-bold">{raffle.total_tickets}</strong> cotas
                     </span>
