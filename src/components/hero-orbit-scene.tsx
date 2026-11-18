@@ -44,9 +44,9 @@ export default function HeroOrbitScene() {
 
       const w = root.clientWidth;
       const isMobile = w < 640;
-      // Órbita ampla e proporcional para encaixar perfeitamente ao lado do texto
-      const radiusX = isMobile ? Math.min(w * 0.38, 160) : Math.min(w * 0.42, 275);
-      const radiusY = isMobile ? 95 : 132;
+      // Órbita ampliada e grandiosa que se expande sob a camada do texto da esquerda
+      const radiusX = isMobile ? Math.min(w * 0.40, 190) : Math.min(w * 0.46, 360);
+      const radiusY = isMobile ? 105 : 165;
 
       items.forEach((item, index) => {
         const a = angle + index * ((Math.PI * 2) / items.length);
@@ -60,8 +60,8 @@ export default function HeroOrbitScene() {
         const depth = Math.sin(a);
         const norm = (depth + 1) / 2;
 
-        // Escala ampliada para elementos legíveis e destacados
-        const scale = (isMobile ? 0.78 : 0.86) + norm * (isMobile ? 0.22 : 0.26);
+        // Escala ampliada com elementos imersivos e de destaque
+        const scale = (isMobile ? 0.82 : 0.92) + norm * (isMobile ? 0.22 : 0.26);
         const opacity = 0.78 + norm * 0.22;
 
         item.style.zIndex = depth >= 0 ? '30' : '10';
@@ -139,22 +139,22 @@ export default function HeroOrbitScene() {
     <div
       ref={rootRef}
       id="fastRifaOrbit"
-      className="fr-orbit-root relative w-full max-w-[760px] h-[460px] sm:h-[500px] mx-auto flex items-center justify-center select-none overflow-visible pointer-events-none"
+      className="fr-orbit-root relative w-full max-w-[920px] sm:max-w-[1040px] lg:max-w-[1140px] h-[520px] sm:h-[580px] lg:h-[620px] mx-auto flex items-center justify-center select-none overflow-visible pointer-events-none"
       aria-label="FastRifa em órbita tridimensional interativa"
     >
-      {/* Brilho radial de fundo */}
+      {/* Brilho radial de fundo ampliado */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute w-[380px] h-[380px] sm:w-[500px] sm:h-[500px] rounded-full blur-3xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.35)_0%,rgba(225,237,255,0.50)_45%,transparent_72%)]"
+        className="pointer-events-none absolute w-[480px] h-[480px] sm:w-[680px] sm:h-[680px] rounded-full blur-3xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.38)_0%,rgba(225,237,255,0.55)_45%,transparent_72%)]"
       />
 
-      {/* Anéis da órbita inclinados */}
+      {/* Anéis da órbita inclinados com diâmetro generoso */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/75"
         style={{
-          width: 560,
-          height: 275,
+          width: 710,
+          height: 345,
           transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
@@ -162,8 +162,8 @@ export default function HeroOrbitScene() {
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/50 shadow-[0_0_35px_rgba(8,105,245,0.07)]"
         style={{
-          width: 630,
-          height: 310,
+          width: 795,
+          height: 390,
           transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
         }}
       />
@@ -175,7 +175,7 @@ export default function HeroOrbitScene() {
 
       {/* CENTRO: Bilhete 3D em formato real de bilhete */}
       <div className="relative z-20 flex items-center justify-center pointer-events-none">
-        <div className="relative w-[260px] h-[132px] sm:w-[305px] sm:h-[150px] flex items-center justify-center">
+        <div className="relative w-[295px] h-[148px] sm:w-[350px] sm:h-[170px] flex items-center justify-center">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -inset-6 rounded-full blur-2xl animate-pulse bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]"
@@ -559,16 +559,16 @@ export default function HeroOrbitScene() {
           position: absolute;
           top: 50%;
           left: 50%;
-          width: 80px;
-          height: 80px;
+          width: 86px;
+          height: 86px;
           pointer-events: none;
           will-change: transform, opacity;
           filter: drop-shadow(0 10px 14px rgba(8, 52, 118, 0.22));
         }
 
         .fr-orbit-root .fr-object.fr-money {
-          width: 94px;
-          height: 80px;
+          width: 102px;
+          height: 86px;
         }
 
         .fr-orbit-root .fr-object svg {
@@ -637,7 +637,7 @@ export default function HeroOrbitScene() {
 
         .fr-orbit-root .fr-ticket-stub {
           position: relative;
-          width: 52px;
+          width: 54px;
           flex-shrink: 0;
           display: flex;
           align-items: center;
@@ -649,7 +649,7 @@ export default function HeroOrbitScene() {
         .fr-orbit-root .fr-stub-brand {
           writing-mode: vertical-rl;
           transform: rotate(180deg);
-          font-size: 10px;
+          font-size: 10.5px;
           font-weight: 800;
           letter-spacing: 0.22em;
           color: #7a5018;
@@ -679,7 +679,7 @@ export default function HeroOrbitScene() {
         .fr-orbit-root .fr-ticket-label {
           position: relative;
           z-index: 2;
-          font-size: 11px;
+          font-size: 11.5px;
           font-weight: 700;
           letter-spacing: 0.05em;
           text-transform: uppercase;
@@ -691,7 +691,7 @@ export default function HeroOrbitScene() {
           position: relative;
           z-index: 2;
           color: #165b3b;
-          font-size: clamp(26px, 4.8vw, 36px);
+          font-size: clamp(28px, 5vw, 38px);
           font-weight: 950;
           letter-spacing: 1.8px;
           font-variant-numeric: tabular-nums;

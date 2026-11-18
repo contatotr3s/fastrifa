@@ -115,27 +115,36 @@ export default function HomePage() {
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
         <section className="ora-hero-stage pt-8 pb-16 sm:pt-12 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
-          <div className="max-w-[1360px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4 items-center">
-              {/* Left Column: Text & CTAs (Upper layer) */}
-              <div className="lg:col-span-7 xl:col-span-7 text-left space-y-6 relative z-20">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center relative">
+              {/* Left Column: Text & CTAs (Upper layer - z-20) */}
+              <div className="lg:col-span-6 xl:col-span-6 text-left space-y-6 relative z-20 pointer-events-auto">
                 {/* Top Pill Badge */}
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide">
                   <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
                   <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
                 </div>
 
-                <h1 className="font-display font-bold text-[clamp(2.4rem,4.4vw,4.2rem)] leading-[1.08] tracking-[-0.04em] text-[#0D1729]">
-                  Crie. Divulgue. Venda.
-                  <br />
-                  <span className="text-[#0869F5]">Tudo vapt-vupt no seu PIX.</span>
+                <h1 className="font-display tracking-[-0.04em]">
+                  <span className="block text-xl sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1.5 tracking-[-0.03em]">
+                    Crie, divulgue e venda.
+                  </span>
+                  <span className="block text-[clamp(2.6rem,4.6vw,4.4rem)] font-bold text-[#0869F5] leading-[1.06]">
+                    Tudo vapt-vupt
+                    <br />
+                    no seu PIX.
+                  </span>
                 </h1>
 
-                <p className="text-[17px] sm:text-[19px] text-[#475872] leading-[1.6] max-w-[50ch]">
-                  Pra você criar em 2 minutos, pra você divulgar no WhatsApp, pro seu cliente escolher, pagar no PIX e pra você receber na hora. Sem taxa no saque, sem intermediário e sem complicação.
+                <p className="text-[17px] sm:text-[19px] text-[#475872] leading-[1.6] max-w-[54ch]">
+                  Pra você criar em 2 minutos e divulgar no WhatsApp,
+                  <br className="hidden sm:inline" />
+                  pro seu cliente escolher, pagar no PIX e você receber na hora.
+                  <br className="hidden sm:inline" />
+                  Sem taxa no saque, sem intermediário e sem complicação.
                 </p>
 
-                {/* Primary CTA Buttons */}
+                {/* Primary CTA Button (Only one) */}
                 <div className="pt-2 flex flex-wrap items-center gap-3">
                   <Link
                     href="/cadastro"
@@ -144,13 +153,6 @@ export default function HomePage() {
                     <span>Criar Minha Rifa Rápida</span>
                     <ArrowRight className="w-5 h-5" />
                   </Link>
-                  <a
-                    href="#campanha-ao-vivo"
-                    className="ora-btn-secondary rounded-[18px] px-6 py-4 text-[16px] font-semibold inline-flex items-center justify-center gap-2 hover:border-[#97BAE7] transition-colors"
-                  >
-                    <span>Ver Demonstração ao Vivo</span>
-                    <ArrowUpRight className="w-5 h-5 text-[#475872]" />
-                  </a>
                 </div>
 
                 {/* Social Proof Line */}
@@ -174,8 +176,8 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right Column: 3D Orbital Scene side-by-side (Layer positioned beside text) */}
-              <div className="lg:col-span-5 xl:col-span-5 flex items-center justify-center relative z-10 lg:-ml-6 xl:-ml-12 overflow-visible">
+              {/* Right Column: 3D Orbital Scene side-by-side on lower layer (z-10), expanded to spread behind text */}
+              <div className="lg:col-span-6 xl:col-span-6 flex items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible pointer-events-none">
                 <HeroOrbitScene />
               </div>
             </div>
