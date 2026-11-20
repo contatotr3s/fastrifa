@@ -20,11 +20,13 @@ import {
   Sparkles,
   ShieldCheck,
   Trash2,
+  Printer,
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { updateOrderStatus, finishRaffle, deleteRaffle } from '@/lib/firebase/raffles';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
+import PhysicalCardModal from '@/components/physical-card-modal';
 import type { Raffle, Order } from '@/types/database.types';
 
 interface RaffleManagerProps {
@@ -68,6 +70,7 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
   // Modais
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDrawModal, setShowDrawModal] = useState(false);
+  const [showPhysicalCardModal, setShowPhysicalCardModal] = useState(false);
   const [approvalNotification, setApprovalNotification] = useState<Order | null>(null);
 
   const publicUrl =
@@ -85,7 +88,8 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
   const paidOrders = orders.filter((o) => o.status === 'paid');
   const pendingOrders = orders.filter((o) => o.status === 'pending');
 
-  const paidTicketsCount = paidOrders.reduce((acc, o) => acc + o.ticket_numbers.length, 0);
+  const paidTicketNumbers = paidOrders.flatMap((o) => o.ticket_numbers);
+  const paidTicketsCount = paidTicketNumbers.length;
   const pendingTicketsCount = pendingOrders.reduce((acc, o) => acc + o.ticket_numbers.length, 0);
   const availableTicketsCount = Math.max(
     0,
@@ -214,6 +218,19 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Gerar Cartela Física (Disponível para rifas de até 200 números) */}
+          {raffle.total_tickets <= 200 && (
+            <button
+              type="button"
+              onClick={() => setShowPhysicalCardModal(true)}
+              className="ora-btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-full cursor-pointer border-[#0869F5]/40 hover:border-[#0869F5]"
+              title="Vai gerar cartela física em PDF (2 páginas A4), pronta para impressão"
+            >
+              <Printer className="w-4 h-4 text-[#0869F5]" />
+              <span>Gerar Cartela</span>
+            </button>
+          )}
+
           {/* Divulgar nas Redes */}
           <button
             type="button"
@@ -259,6 +276,39 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
           )}
         </div>
       </div>
+
+      {/* Banner de Cartela Física Pronta para Impressão (Rifas até 200 números) */}
+      {raffle.total_tickets <= 200 && (
+        <div className="ora-card rounded-[24px] p-4 sm:p-5 bg-gradient-to-r from-[#EDF5FF] via-[#F5F9FF] to-white border border-[#CDE0FC] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <span className="w-11 h-11 rounded-2xl bg-white border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Printer className="w-5 h-5" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <strong className="font-display font-bold text-sm sm:text-base text-[#0D1729]">
+                  Cartela Física Pronta para Impressão (PDF A4 — 2 Páginas)
+                </strong>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#0869F5] text-white text-[10px] font-bold uppercase tracking-wider">
+                  Físico + Virtual
+                </span>
+              </div>
+              <p className="text-xs text-[#475872] mt-0.5">
+                Como sua rifa possui até 200 números ({raffle.total_tickets} cotas), você pode gerar a cartela física estilizada com QR Code da rifa e folha de controle presencial com calculadora PIX automática.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowPhysicalCardModal(true)}
+            className="ora-btn-primary px-5 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer shadow-sm"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Gerar Cartela</span>
+          </button>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 tabular-nums">
@@ -525,6 +575,14 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
         isOpen={showDrawModal}
         onClose={() => setShowDrawModal(false)}
         onFinish={handleFinishDraw}
+      />
+
+      {/* MODAL 2.5: Gerador de Cartela Física em PDF (2 Páginas A4) */}
+      <PhysicalCardModal
+        raffle={raffle}
+        paidTicketNumbers={paidTicketNumbers}
+        isOpen={showPhysicalCardModal}
+        onClose={() => setShowPhysicalCardModal(false)}
       />
 
       {/* MODAL 3: Confirmação Imediata de Aprovação de PIX */}
