@@ -143,6 +143,7 @@ export default function RafflePublicView({
     100,
     Math.round((paidCount / raffle.total_tickets) * 100)
   );
+  const primaryBrandColor = raffle.brand_color === 'green' ? '#00A868' : '#0869F5';
   const totalPrice = (selectedTickets.length * raffle.ticket_price).toFixed(2);
 
   function fireCelebrationConfetti(mode: 'order' | 'quick' | 'copy' = 'order') {
@@ -371,7 +372,7 @@ export default function RafflePublicView({
   }, [raffle.total_tickets, searchQuery]);
 
   return (
-    <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-32 relative overflow-hidden">
+    <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-8 sm:pb-12 relative overflow-hidden">
       {/* Elementos de Sorte Sutis com Baixa Opacidade ao redor da página */}
       <div
         aria-hidden="true"
@@ -474,18 +475,6 @@ export default function RafflePublicView({
           )}
 
           <div className="flex items-center gap-2">
-            {raffle.total_tickets <= 200 && (
-              <button
-                type="button"
-                onClick={() => setShowPhysicalCardModal(true)}
-                title="Vai gerar cartela física em PDF (2 páginas), pronta para impressão"
-                className="ora-btn-secondary rounded-full px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 cursor-pointer border-[#0869F5]/40 hover:border-[#0869F5] active:scale-95 transition"
-              >
-                <Printer className="w-4 h-4 text-[#0869F5]" />
-                <span>Gerar Cartela</span>
-              </button>
-            )}
-
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
@@ -516,9 +505,9 @@ export default function RafflePublicView({
       </header>
 
       {/* Main Container */}
-      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-8">
-        {/* Banner Incisivo de Modo Criador Oficial vs Comprador Visitante */}
-        {isCreator ? (
+      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-7">
+        {/* Banner Incisivo de Modo Criador Oficial (exibido apenas para o criador autenticado) */}
+        {isCreator && (
           <div className="bg-gradient-to-r from-[#0869F5] to-[#0755DE] text-white p-4 sm:p-5 rounded-[24px] shadow-[0_12px_32px_rgba(8,105,245,0.20)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-white/20 animate-in fade-in">
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0 text-xl font-bold shadow-xs">
@@ -554,28 +543,6 @@ export default function RafflePublicView({
                 <Sliders className="w-3.5 h-3.5" />
                 <span>Gerenciar Pedidos</span>
               </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-[#F5F9FF] border border-[#CDE0FC] p-4 sm:p-5 rounded-[24px] shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in fade-in">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-white border border-[#CDE0FC] flex items-center justify-center flex-shrink-0 text-[#0869F5] shadow-xs">
-                <ShieldCheck className="w-5 h-5 text-[#0869F5]" />
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <strong className="text-xs sm:text-sm font-display font-bold text-[#0D1729]">
-                    Página Pública Oficial • Comprador Visitante
-                  </strong>
-                  <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                    PIX Direto sem Intermediários
-                  </span>
-                </div>
-                <p className="text-xs text-[#526480] leading-snug mt-0.5">
-                  Selecione suas cotas abaixo. O pagamento é realizado diretamente ao organizador <strong>{raffle.brand_name || 'Oficial'}</strong>. Não exige cadastro prévio!
-                </p>
-              </div>
             </div>
           </div>
         )}
@@ -744,12 +711,15 @@ export default function RafflePublicView({
                 <div className="w-full sm:w-56 space-y-2">
                   <div className="flex justify-between text-xs font-bold text-[#14213A]">
                     <span>Cotas confirmadas</span>
-                    <span className="text-[#0869F5]">{progressPercent}%</span>
+                    <span style={{ color: primaryBrandColor }} className="font-extrabold">{progressPercent}%</span>
                   </div>
-                  <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-[#D9E5F7]">
+                  <div className="w-full h-3.5 bg-[#E2E8F0] rounded-full overflow-hidden p-0.5 border border-[#CBD5E1]">
                     <div
-                      className="h-full bg-gradient-to-r from-[#3888FF] to-[#0869F5] transition-all duration-500 rounded-full"
-                      style={{ width: `${progressPercent}%` }}
+                      className="h-full rounded-full transition-all duration-500 shadow-xs"
+                      style={{
+                        width: `${Math.max(progressPercent, 0)}%`,
+                        backgroundColor: primaryBrandColor,
+                      }}
                     />
                   </div>
                 </div>
@@ -760,55 +730,14 @@ export default function RafflePublicView({
 
         {/* Ticket Selector Section */}
         {raffle.status === 'active' && (
-          <section className="ora-card rounded-[32px] p-6 sm:p-10 space-y-7 relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
-                  Escolha suas cotas
-                </h2>
-                <p className="text-sm sm:text-[15px] text-[#475872] mt-1">
-                  Toque nos números desejados na grade abaixo ou adicione pacotes aleatórios com 1 clique.
-                </p>
-              </div>
-
-              {raffle.total_tickets <= 200 && (
-                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-                  <Link
-                    href={`/r/${raffle.slug}/pix`}
-                    className="px-3.5 py-2.5 rounded-2xl bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[#CDE0FC] hover:border-[#0869F5] text-left flex items-center gap-2.5 transition active:scale-95"
-                  >
-                    <span className="w-8 h-8 rounded-xl bg-white border border-[#CDE0FC] flex items-center justify-center text-[#0869F5] flex-shrink-0 shadow-sm">
-                      <Search className="w-4 h-4" />
-                    </span>
-                    <div>
-                      <strong className="block text-xs font-display font-bold text-[#0D1729] leading-tight">
-                        Checador de Números
-                      </strong>
-                      <span className="block text-[10px] font-semibold text-[#526480] leading-tight">
-                        Verificador p/ venda física
-                      </span>
-                    </div>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPhysicalCardModal(true)}
-                    className="px-3.5 py-2.5 rounded-2xl bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[#CDE0FC] hover:border-[#0869F5] text-left flex items-center gap-2.5 transition active:scale-95 cursor-pointer"
-                  >
-                    <span className="w-8 h-8 rounded-xl bg-white border border-[#CDE0FC] flex items-center justify-center text-[#0869F5] flex-shrink-0 shadow-sm">
-                      <Printer className="w-4 h-4" />
-                    </span>
-                    <div>
-                      <strong className="block text-xs font-display font-bold text-[#0D1729] leading-tight">
-                        Gerar Cartela
-                      </strong>
-                      <span className="block text-[10px] font-semibold text-[#526480] leading-tight">
-                        Cartela física pronta p/ impressão
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              )}
+          <section className="ora-card rounded-[32px] p-5 sm:p-8 space-y-6 relative z-10">
+            <div>
+              <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
+                Escolha suas cotas
+              </h2>
+              <p className="text-sm sm:text-[15px] text-[#475872] mt-1">
+                Toque nos números desejados na grade abaixo ou adicione pacotes aleatórios com 1 clique.
+              </p>
             </div>
 
             {/* Quick Pick Buttons */}
@@ -917,7 +846,7 @@ export default function RafflePublicView({
         )}
 
         {/* Footer Brand & Security Attribution */}
-        <footer className="pt-6 pb-2 text-center text-xs text-[#526480] space-y-1 relative z-10">
+        <footer className="pt-2 pb-2 text-center text-xs text-[#526480] space-y-1 relative z-10">
           <p className="font-semibold text-[#0D1729]">
             Campanha gerenciada por <strong>{raffle.brand_name || 'Organizador Oficial'}</strong>
           </p>
