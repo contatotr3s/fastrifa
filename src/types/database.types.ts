@@ -42,6 +42,9 @@ export interface Raffle {
   winner_name?: string | null;
   draw_date?: string | null;
 
+  // Fotos do prêmio (suporte a múltiplas fotos / carrossel)
+  prize_images?: string[];
+
   // Marca vinculada à campanha
   brand_name?: string | null;
   brand_logo_url?: string | null;
@@ -49,6 +52,21 @@ export interface Raffle {
 
   created_at: string;
   updated_at: string;
+}
+
+export interface AuditLog {
+  id: string; // Document ID
+  raffle_id: string;
+  raffle_title?: string;
+  user_id: string;
+  user_email?: string;
+  user_name?: string;
+  action: 'raffle_update' | 'ticket_price_change' | 'draw_date_change' | 'status_change';
+  previous_values: Record<string, any>;
+  new_values: Record<string, any>;
+  change_summary: string;
+  ip_address?: string;
+  created_at: string;
 }
 
 export interface Order {

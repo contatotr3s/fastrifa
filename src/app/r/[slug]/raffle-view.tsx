@@ -18,12 +18,19 @@ import {
   Printer,
   Sparkles,
   QrCode as QrIcon,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Sliders,
+  Pencil,
+  Eye,
 } from 'lucide-react';
 import { createOrder } from '@/lib/firebase/raffles';
 import { generateBrandInitials } from '@/lib/image-processor';
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { generatePixBrCode } from '@/lib/pix-brcode';
 import PhysicalCardModal from '@/components/physical-card-modal';
+import EditRaffleModal from '@/components/edit-raffle-modal';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
 
 interface RafflePublicViewProps {
@@ -32,15 +39,45 @@ interface RafflePublicViewProps {
 }
 
 export default function RafflePublicView({
-  raffle,
+  raffle: initialRaffle,
   initialOccupiedTickets,
 }: RafflePublicViewProps) {
   const { user, profile } = useAuth();
+  const [raffle, setCurrentRaffle] = useState<Raffle>(initialRaffle);
   const [selectedTickets, setSelectedTickets] = useState<number[]>([]);
   const [occupiedTickets, setOccupiedTickets] = useState<OccupiedTicket[]>(
     initialOccupiedTickets
   );
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Identificação do Perfil (Criador Oficial vs Comprador Visitante)
+  const userEmail = user?.email?.toLowerCase().trim() || '';
+  const isMaster = userEmail === MASTER_EMAIL || profile?.role === 'master';
+  const isCreator = Boolean(user && (user.uid === raffle.user_id || isMaster));
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Múltiplas Fotos do Prêmio & Carrossel Interativo
+  const allPrizeImages: string[] = useMemo(() => {
+    if (raffle.prize_images && raffle.prize_images.length > 0) {
+      return raffle.prize_images;
+    }
+    if (raffle.prize_image_url) {
+      return [raffle.prize_image_url];
+    }
+    return [];
+  }, [raffle.prize_images, raffle.prize_image_url]);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
+
+  // Auto-slide suave a cada 4.5s quando há mais de 1 foto
+  useEffect(() => {
+    if (allPrizeImages.length <= 1 || isHoveringImage) return;
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % allPrizeImages.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [allPrizeImages.length, isHoveringImage]);
 
   // Checkout modal states
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -98,6 +135,7 @@ export default function RafflePublicView({
     [occupiedTickets]
   );
   const paidCount = paidTicketNumbers.length;
+  const pendingCount = pendingTicketNumbers.length;
   const progressPercent = Math.min(
     100,
     Math.round((paidCount / raffle.total_tickets) * 100)
@@ -413,6 +451,69 @@ export default function RafflePublicView({
 
       {/* Main Container */}
       <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-8">
+        {/* Banner Incisivo de Modo Criador Oficial vs Comprador Visitante */}
+        {isCreator ? (
+          <div className="bg-gradient-to-r from-[#0869F5] to-[#0755DE] text-white p-4 sm:p-5 rounded-[24px] shadow-[0_12px_32px_rgba(8,105,245,0.20)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-white/20 animate-in fade-in">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0 text-xl font-bold shadow-xs">
+                👑
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <strong className="text-sm sm:text-base font-display font-bold">
+                    Você é o Criador Oficial desta Campanha
+                  </strong>
+                  <span className="bg-white/25 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    {isMaster ? 'Master / Administrador' : 'Organizador'}
+                  </span>
+                </div>
+                <p className="text-xs text-white/85 leading-snug mt-0.5">
+                  Esta é a visão pública que seus compradores veem. Você tem acesso rápido à gestão de cotas, pagamentos e edição da rifa.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-display font-bold text-xs transition inline-flex items-center gap-1.5 cursor-pointer backdrop-blur-xs"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Editar Rifa</span>
+              </button>
+              <Link
+                href={`/admin/rifas/${raffle.id}`}
+                className="px-4 py-2 rounded-full bg-white text-[#0869F5] hover:bg-[#F5F9FF] font-display font-bold text-xs transition shadow-sm inline-flex items-center gap-1.5"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Gerenciar Pedidos</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-[#F5F9FF] border border-[#CDE0FC] p-4 sm:p-5 rounded-[24px] shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-white border border-[#CDE0FC] flex items-center justify-center flex-shrink-0 text-[#0869F5] shadow-xs">
+                <ShieldCheck className="w-5 h-5 text-[#0869F5]" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <strong className="text-xs sm:text-sm font-display font-bold text-[#0D1729]">
+                    Página Pública Oficial • Comprador Visitante
+                  </strong>
+                  <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                    PIX Direto sem Intermediários
+                  </span>
+                </div>
+                <p className="text-xs text-[#526480] leading-snug mt-0.5">
+                  Selecione suas cotas abaixo. O pagamento é realizado diretamente ao organizador <strong>{raffle.brand_name || 'Oficial'}</strong>. Não exige cadastro prévio!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Prize Showcase Card */}
         <section className="ora-card rounded-[32px] p-6 sm:p-10 relative overflow-hidden">
           {raffle.status === 'completed' && (
@@ -436,13 +537,100 @@ export default function RafflePublicView({
           )}
 
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            {raffle.prize_image_url && (
-              <div className="w-full md:w-72 h-64 rounded-[24px] overflow-hidden bg-[#F5F9FF] flex-shrink-0 border border-[#E0E9F7] shadow-[0_12px_30px_rgba(32,75,134,0.08)]">
-                <img
-                  src={raffle.prize_image_url}
-                  alt={raffle.title}
-                  className="w-full h-full object-cover"
-                />
+            {/* Carrossel / Slider de Fotos do Prêmio */}
+            {allPrizeImages.length > 0 && (
+              <div
+                className="w-full md:w-80 flex flex-col gap-2.5 flex-shrink-0"
+                onMouseEnter={() => setIsHoveringImage(true)}
+                onMouseLeave={() => setIsHoveringImage(false)}
+              >
+                {/* Frame Principal do Slider */}
+                <div className="relative w-full h-64 sm:h-72 rounded-[26px] overflow-hidden bg-[#F5F9FF] border border-[#E0E9F7] shadow-[0_12px_30px_rgba(32,75,134,0.08)] group">
+                  <img
+                    src={allPrizeImages[activeImageIndex] || allPrizeImages[0]}
+                    alt={`${raffle.title} - Foto ${activeImageIndex + 1}`}
+                    className="w-full h-full object-cover transition-all duration-500 ease-out"
+                  />
+
+                  {/* Controles de Navegação Anterior / Próximo quando houver mais de 1 foto */}
+                  {allPrizeImages.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveImageIndex((prev) =>
+                            prev === 0 ? allPrizeImages.length - 1 : prev - 1
+                          );
+                        }}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md cursor-pointer"
+                        aria-label="Foto anterior"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveImageIndex((prev) =>
+                            (prev + 1) % allPrizeImages.length
+                          );
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md cursor-pointer"
+                        aria-label="Próxima foto"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+
+                      {/* Badge de Contagem no Topo */}
+                      <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold tabular-nums">
+                        📸 {activeImageIndex + 1} / {allPrizeImages.length}
+                      </span>
+
+                      {/* Dots Indicadores na Base */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full">
+                        {allPrizeImages.map((_, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActiveImageIndex(idx)}
+                            className={`transition-all rounded-full ${
+                              idx === activeImageIndex
+                                ? 'w-4 h-1.5 bg-white'
+                                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
+                            }`}
+                            aria-label={`Ir para foto ${idx + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Miniaturas Clicáveis abaixo do frame quando há mais de 1 foto */}
+                {allPrizeImages.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    {allPrizeImages.map((imgUrl, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveImageIndex(idx)}
+                        className={`relative w-14 h-12 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
+                          idx === activeImageIndex
+                            ? 'border-[#0869F5] ring-2 ring-[#0869F5]/25 scale-105'
+                            : 'border-[#E0E9F7] opacity-65 hover:opacity-100'
+                        }`}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`Miniatura ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -600,7 +788,7 @@ export default function RafflePublicView({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF8EB] border border-[#F5D08A]" />
-                  <span>Reservada</span>
+                  <span className="text-[#D97706] font-semibold">Reservada ({pendingCount})</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF0F0] border border-[#FCA5A5]" />
@@ -973,6 +1161,19 @@ export default function RafflePublicView({
         isOpen={showPhysicalCardModal}
         onClose={() => setShowPhysicalCardModal(false)}
       />
+
+      {/* Modal de Edição de Rifa (Criador Oficial / Master) */}
+      {showEditModal && (
+        <EditRaffleModal
+          raffle={raffle}
+          hasPaidOrders={paidCount > 0}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={(updated) => {
+            setCurrentRaffle(updated);
+          }}
+        />
+      )}
     </div>
   );
 }

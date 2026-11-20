@@ -21,12 +21,14 @@ import {
   ShieldCheck,
   Trash2,
   Printer,
+  Pencil,
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { updateOrderStatus, finishRaffle, deleteRaffle } from '@/lib/firebase/raffles';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
 import PhysicalCardModal from '@/components/physical-card-modal';
+import EditRaffleModal from '@/components/edit-raffle-modal';
 import type { Raffle, Order } from '@/types/database.types';
 
 interface RaffleManagerProps {
@@ -34,15 +36,17 @@ interface RaffleManagerProps {
   initialOrders: Order[];
 }
 
-export default function RaffleManager({ raffle, initialOrders }: RaffleManagerProps) {
+export default function RaffleManager({ raffle: initialRaffle, initialOrders }: RaffleManagerProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
 
+  const [raffle, setCurrentRaffle] = useState<Raffle>(initialRaffle);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'cancelled'>('all');
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
@@ -233,6 +237,17 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
               <span>Gerar Cartela</span>
             </button>
           )}
+
+          {/* Editar Campanha com Auditoria */}
+          <button
+            type="button"
+            onClick={() => setShowEditModal(true)}
+            className="ora-btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-full cursor-pointer hover:border-[#0869F5]"
+            title="Editar título, fotos, descrição e valor com registro de auditoria"
+          >
+            <Pencil className="w-4 h-4 text-[#0869F5]" />
+            <span>Editar Rifa</span>
+          </button>
 
           {/* Divulgar nas Redes */}
           <button
@@ -573,6 +588,19 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
             <span>Excluir Rifa (Master)</span>
           </button>
         </div>
+      )}
+
+      {/* MODAL 0: Edição de Rifa com Registro de Auditoria */}
+      {showEditModal && (
+        <EditRaffleModal
+          raffle={raffle}
+          hasPaidOrders={paidOrders.length > 0}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={(updated) => {
+            setCurrentRaffle(updated);
+          }}
+        />
       )}
 
       {/* MODAL 1: Divulgação nas Redes (Stories / Feed com QR Code) */}

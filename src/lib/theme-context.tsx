@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from './firebase/auth-context';
 import { db, getPublicFirestore } from './firebase/config';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { syncCreatorBrandColorToRaffles } from './firebase/raffles';
 
 export type SystemTheme = 'blue' | 'green';
 
@@ -167,9 +168,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         console.warn('Erro ao salvar tema global no firestore:', err);
       }
 
-      // Atualiza também o perfil do master
+      // Atualiza também o perfil do master e suas rifas
       if (user) {
         updateProfile({ brand_color: newTheme }).catch(() => {});
+        syncCreatorBrandColorToRaffles(user.uid, newTheme).catch(() => {});
       }
     } else {
       // USUÁRIO COMUM: Altera apenas do seu painel em diante e suas próprias rifas
@@ -187,10 +189,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Persiste a escolha na marca do usuário
+      // Persiste a escolha na marca do usuário e sincroniza em todas as suas rifas
       if (user) {
         updateProfile({ brand_color: newTheme }).catch((err) =>
           console.warn('Could not persist brand_color in profile:', err)
+        );
+        syncCreatorBrandColorToRaffles(user.uid, newTheme).catch((err) =>
+          console.warn('Could not sync brand_color to user raffles:', err)
         );
       }
     }

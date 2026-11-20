@@ -22,6 +22,7 @@ export default function NewRafflePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [prizeImageUrl, setPrizeImageUrl] = useState('');
+  const [prizeImages, setPrizeImages] = useState<string[]>([]);
   const [totalTickets, setTotalTickets] = useState<number>(100);
   const [ticketPrice, setTicketPrice] = useState<string>('1.00');
   const [pixKeyType, setPixKeyType] = useState<PixKeyType>(profile?.pix_key_type || 'cpf');
@@ -79,7 +80,8 @@ export default function NewRafflePage() {
         title,
         slug,
         description,
-        prize_image_url: prizeImageUrl || null,
+        prize_image_url: prizeImageUrl || (prizeImages[0] ?? null),
+        prize_images: prizeImages.length > 0 ? prizeImages : (prizeImageUrl ? [prizeImageUrl] : []),
         ticket_price: numericPrice,
         total_tickets: totalTickets,
         pix_key: pixKey,
@@ -175,10 +177,14 @@ export default function NewRafflePage() {
             />
           </div>
 
-          {/* Foto do Prêmio com Uploader inteligente */}
+          {/* Foto do Prêmio com Uploader inteligente (Múltiplas Fotos) */}
           <PrizeImageUploader
             value={prizeImageUrl}
-            onChange={(val) => setPrizeImageUrl(val)}
+            values={prizeImages}
+            onChange={(primary, all) => {
+              setPrizeImageUrl(primary);
+              setPrizeImages(all);
+            }}
           />
         </div>
 

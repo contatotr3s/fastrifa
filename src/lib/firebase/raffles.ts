@@ -11,10 +11,29 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db, getPublicFirestore } from './config';
-import type { Raffle, Order, OccupiedTicket, Profile } from '@/types/database.types';
+import type { Raffle, Order, OccupiedTicket, Profile, AuditLog } from '@/types/database.types';
 
 const LOCAL_RAFFLES_KEY = 'fastrifa_local_raffles';
 const LOCAL_ORDERS_KEY = 'fastrifa_local_orders';
+const LOCAL_AUDIT_LOGS_KEY = 'fastrifa_local_audit_logs';
+
+function getLocalAuditLogs(): AuditLog[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_AUDIT_LOGS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalAuditLogs(logs: AuditLog[]) {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(LOCAL_AUDIT_LOGS_KEY, JSON.stringify(logs));
+    } catch {}
+  }
+}
 
 export function generateSlug(title: string): string {
   const base = title
@@ -252,6 +271,8 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
 export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
   if (slug === 'iphone-16-pro-max') return null;
 
+  let raffleData: Raffle | null = null;
+
   // 1. Remote Firestore first (via public bridge so unauthenticated buyers ALWAYS load the raffle)
   try {
     const activeDb = await getPublicFirestore();
@@ -260,21 +281,58 @@ export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
     if (!snap.empty) {
       const d = snap.docs[0];
       const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
-      if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max')
-        return null;
-      return data;
+      if (data.id !== 'demo-raffle-01' && data.slug !== 'iphone-16-pro-max') {
+        raffleData = data;
+      }
     }
   } catch (err) {
     console.warn('Error fetching raffle by slug from Firestore:', err);
   }
 
-  // 2. Local fallback
-  const local = getLocalRaffles().find(
-    (r) => r.slug === slug && r.slug !== 'iphone-16-pro-max'
-  );
-  if (local) return local;
+  // 2. Local fallback if not in Firestore
+  if (!raffleData) {
+    const local = getLocalRaffles().find(
+      (r) => r.slug === slug && r.slug !== 'iphone-16-pro-max'
+    );
+    if (local) raffleData = local;
+  }
 
-  return null;
+  if (!raffleData) return null;
+
+  // 3. Sincroniza sempre os dados de marca mais recentes do perfil do criador (cor, logo, nome)
+  try {
+    const activeDb = await getPublicFirestore();
+    const profileSnap = await getDoc(doc(activeDb, 'profiles', raffleData.user_id));
+    if (profileSnap.exists()) {
+      const prof = profileSnap.data() as Profile;
+      if (prof.brand_color) {
+        raffleData.brand_color = prof.brand_color;
+      }
+      if (prof.brand_logo_url) {
+        raffleData.brand_logo_url = prof.brand_logo_url;
+      }
+      if (prof.brand_name) {
+        raffleData.brand_name = prof.brand_name;
+      }
+    }
+  } catch {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('fastrifa_auth_accounts');
+        if (raw) {
+          const accounts: Array<{ profile?: Profile }> = JSON.parse(raw);
+          const matched = accounts.find((a) => a.profile?.id === raffleData?.user_id);
+          if (matched?.profile) {
+            if (matched.profile.brand_color) raffleData.brand_color = matched.profile.brand_color;
+            if (matched.profile.brand_logo_url) raffleData.brand_logo_url = matched.profile.brand_logo_url;
+            if (matched.profile.brand_name) raffleData.brand_name = matched.profile.brand_name;
+          }
+        }
+      } catch {}
+    }
+  }
+
+  return raffleData;
 }
 
 export async function createRaffle(
@@ -595,4 +653,222 @@ export async function updateProfileByMaster(
   }
 
   return true;
+}
+
+/**
+ * Sincroniza a cor da marca do criador imediatamente em todas as suas rifas
+ * para que qualquer alteração de cor (azul / verde) seja efetiva imediatamente.
+ */
+export async function syncCreatorBrandColorToRaffles(
+  userId: string,
+  color: 'blue' | 'green'
+): Promise<void> {
+  const now = new Date().toISOString();
+
+  // 1. Atualiza no Firestore
+  try {
+    const activeDb = await getPublicFirestore();
+    const q = query(collection(activeDb, 'raffles'), where('user_id', '==', userId));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      await updateDoc(doc(activeDb, 'raffles', d.id), {
+        brand_color: color,
+        updated_at: now,
+      });
+    }
+  } catch (err) {
+    console.warn('Error syncing brand color to remote raffles:', err);
+  }
+
+  // 2. Atualiza no LocalStorage
+  const current = getLocalRaffles();
+  saveLocalRaffles(
+    current.map((r) =>
+      r.user_id === userId
+        ? { ...r, brand_color: color, updated_at: now }
+        : r
+    )
+  );
+}
+
+/**
+ * Atualiza os dados de uma rifa (título, descrição, fotos, valor da cota, etc)
+ * e grava um registro auditável ligado ao usuário que realizou a alteração.
+ */
+export async function updateRaffleWithAudit({
+  raffleId,
+  updates,
+  user,
+}: {
+  raffleId: string;
+  updates: Partial<Raffle>;
+  user: {
+    uid: string;
+    email?: string | null;
+    displayName?: string | null;
+  };
+}): Promise<{ success: boolean; auditLog?: AuditLog; error?: string }> {
+  try {
+    // 1. Obter estado atual da rifa para auditoria
+    const currentRaffle = await getRaffleById(raffleId);
+    if (!currentRaffle) {
+      return { success: false, error: 'Rifa não encontrada.' };
+    }
+
+    const now = new Date().toISOString();
+    const previousValues: Record<string, any> = {};
+    const newValues: Record<string, any> = {};
+    const changeSummaryParts: string[] = [];
+
+    // Compara campos alterados
+    const checkedFields: Array<keyof Raffle> = [
+      'title',
+      'description',
+      'ticket_price',
+      'prize_image_url',
+      'prize_images',
+      'draw_date',
+      'status',
+      'pix_key',
+      'pix_key_type',
+      'phone_whatsapp',
+    ];
+
+    for (const field of checkedFields) {
+      if (field in updates) {
+        const oldVal = (currentRaffle as any)[field];
+        const newVal = (updates as any)[field];
+
+        // Comparação para arrays e primitivos
+        const isDiff =
+          Array.isArray(oldVal) && Array.isArray(newVal)
+            ? JSON.stringify(oldVal) !== JSON.stringify(newVal)
+            : oldVal !== newVal;
+
+        if (isDiff) {
+          previousValues[field] = oldVal ?? null;
+          newValues[field] = newVal ?? null;
+
+          if (field === 'title') {
+            changeSummaryParts.push(`Título alterado para "${newVal}"`);
+          } else if (field === 'description') {
+            changeSummaryParts.push(`Texto descritivo atualizado`);
+          } else if (field === 'ticket_price') {
+            changeSummaryParts.push(
+              `Valor da cota alterado de R$ ${Number(oldVal).toFixed(2)} para R$ ${Number(newVal).toFixed(2)}`
+            );
+          } else if (field === 'prize_images' || field === 'prize_image_url') {
+            changeSummaryParts.push(`Fotos do prêmio atualizadas`);
+          } else if (field === 'draw_date') {
+            changeSummaryParts.push(`Data do sorteio alterada para ${newVal}`);
+          } else {
+            changeSummaryParts.push(`Campo "${String(field)}" alterado`);
+          }
+        }
+      }
+    }
+
+    if (changeSummaryParts.length === 0) {
+      return { success: true };
+    }
+
+    const changeSummary = changeSummaryParts.join(' • ');
+
+    // 2. Salva a atualização da rifa
+    const rafflePayload: Partial<Raffle> = {
+      ...updates,
+      updated_at: now,
+    };
+
+    try {
+      const activeDb = await getPublicFirestore();
+      await updateDoc(doc(activeDb, 'raffles', raffleId), rafflePayload);
+    } catch (err) {
+      console.warn('Error updating raffle document in Firestore:', err);
+    }
+
+    // Atualiza localmente
+    const currentList = getLocalRaffles();
+    saveLocalRaffles(
+      currentList.map((r) =>
+        r.id === raffleId ? { ...r, ...rafflePayload } : r
+      )
+    );
+
+    // 3. Grava o registro auditável
+    const logId = 'log_' + Math.random().toString(36).substring(2, 10);
+    const auditLog: AuditLog = {
+      id: logId,
+      raffle_id: raffleId,
+      raffle_title: updates.title || currentRaffle.title,
+      user_id: user.uid,
+      user_email: user.email || '',
+      user_name: user.displayName || user.email || 'Usuário',
+      action: updates.ticket_price !== undefined ? 'ticket_price_change' : 'raffle_update',
+      previous_values: previousValues,
+      new_values: newValues,
+      change_summary: changeSummary,
+      created_at: now,
+    };
+
+    // Grava no Firestore na coleção audit_logs
+    try {
+      const activeDb = await getPublicFirestore();
+      const docRef = await addDoc(collection(activeDb, 'audit_logs'), auditLog);
+      auditLog.id = docRef.id;
+    } catch (err) {
+      console.warn('Error saving audit log to Firestore:', err);
+    }
+
+    // Salva localmente
+    const localLogs = getLocalAuditLogs();
+    saveLocalAuditLogs([auditLog, ...localLogs]);
+
+    return { success: true, auditLog };
+  } catch (err) {
+    console.error('updateRaffleWithAudit failed:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Falha ao salvar alterações da rifa.',
+    };
+  }
+}
+
+/**
+ * Recupera os registros de auditoria para o painel Master e suporte
+ */
+export async function getAuditLogs(raffleId?: string): Promise<AuditLog[]> {
+  const mergedMap = new Map<string, AuditLog>();
+
+  // 1. Logs locais
+  for (const log of getLocalAuditLogs()) {
+    if (!raffleId || log.raffle_id === raffleId) {
+      mergedMap.set(log.id, log);
+    }
+  }
+
+  // 2. Logs remotos do Firestore
+  try {
+    const activeDb = await getPublicFirestore();
+    let q = query(collection(activeDb, 'audit_logs'));
+    if (raffleId) {
+      q = query(collection(activeDb, 'audit_logs'), where('raffle_id', '==', raffleId));
+    }
+    const snap = await getDocs(q);
+    snap.forEach((d) => {
+      const data = { id: d.id, ...(d.data() as Omit<AuditLog, 'id'>) };
+      mergedMap.set(data.id, data);
+    });
+  } catch (err) {
+    console.warn('Error fetching audit logs from Firestore:', err);
+  }
+
+  const list = Array.from(mergedMap.values());
+  list.sort((a, b) => {
+    const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return tB - tA;
+  });
+
+  return list;
 }

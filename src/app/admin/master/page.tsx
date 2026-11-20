@@ -11,6 +11,7 @@ import {
   deleteCreatorProfile,
   updateRaffleByMaster,
   updateProfileByMaster,
+  getAuditLogs,
 } from '@/lib/firebase/raffles';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
@@ -36,8 +37,10 @@ import {
   Trash2,
   AlertTriangle,
   Edit3,
+  FileText,
+  Search,
 } from 'lucide-react';
-import type { Raffle, Profile } from '@/types/database.types';
+import type { Raffle, Profile, AuditLog } from '@/types/database.types';
 
 interface CreatorItem {
   email?: string;
@@ -50,8 +53,10 @@ export default function AdminMasterPage() {
 
   const [creators, setCreators] = useState<CreatorItem[]>([]);
   const [raffles, setRaffles] = useState<Raffle[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'creators' | 'raffles'>('creators');
+  const [activeTab, setActiveTab] = useState<'creators' | 'raffles' | 'audits'>('creators');
+  const [auditSearch, setAuditSearch] = useState('');
   const [isCleaning, setIsCleaning] = useState(false);
   const [cleanFeedback, setCleanFeedback] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
@@ -71,10 +76,11 @@ export default function AdminMasterPage() {
     }
 
     if (user) {
-      Promise.all([getAllCreators(), getAllRaffles()])
-        .then(([creatorsData, rafflesData]) => {
+      Promise.all([getAllCreators(), getAllRaffles(), getAuditLogs()])
+        .then(([creatorsData, rafflesData, auditsData]) => {
           setCreators(creatorsData);
           setRaffles(rafflesData);
+          setAuditLogs(auditsData);
         })
         .catch((err) => console.error('Erro ao carregar dados do master:', err))
         .finally(() => setLoading(false));
@@ -363,6 +369,22 @@ export default function AdminMasterPage() {
         >
           <Ticket className="w-4 h-4" />
           <span>Todas as Campanhas ({raffles.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('audits');
+            getAuditLogs().then(setAuditLogs).catch(() => {});
+          }}
+          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'audits'
+              ? 'bg-[#0869F5] text-white shadow-sm'
+              : 'text-[#475872] hover:text-[#0D1729] hover:bg-[#F2F7FF]'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Logs de Auditoria ({auditLogs.length})</span>
         </button>
       </div>
 
@@ -658,6 +680,153 @@ export default function AdminMasterPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Audit Logs Table (Demanda de Suporte & Auditoria) */}
+      {activeTab === 'audits' && (
+        <div className="ora-card rounded-[28px] overflow-hidden space-y-4">
+          <div className="p-6 border-b border-[#E0E9F7] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-display font-bold text-xl text-[#0D1729]">
+                  Registro Auditável de Alterações
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-[11px] font-bold">
+                  Segurança Ativa
+                </span>
+              </div>
+              <p className="text-xs text-[#526480] mt-0.5">
+                Histórico imutável de alterações de preço, título, descrição e fotos com identificação do autor para suporte.
+              </p>
+            </div>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#526480]" />
+              <input
+                type="text"
+                placeholder="Buscar por rifa, autor ou email..."
+                value={auditSearch}
+                onChange={(e) => setAuditSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-[#F5F9FF] border border-[#D9E5F7] rounded-full text-xs font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            {auditLogs.length === 0 ? (
+              <div className="p-12 text-center text-[#526480] text-sm">
+                Nenhum registro de auditoria gerado até o momento.
+              </div>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-[#F5F9FF] text-[#475872] text-[11px] font-bold uppercase tracking-wider border-b border-[#E0E9F7]">
+                  <tr>
+                    <th className="py-3.5 px-6">Data / Horário</th>
+                    <th className="py-3.5 px-6">Rifa</th>
+                    <th className="py-3.5 px-6">Usuário Responsável</th>
+                    <th className="py-3.5 px-6">Resumo da Alteração</th>
+                    <th className="py-3.5 px-6">Valores Anteriores vs Novos</th>
+                    <th className="py-3.5 px-6 text-right">Ação Suporte</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E0E9F7]">
+                  {auditLogs
+                    .filter((log) => {
+                      if (!auditSearch.trim()) return true;
+                      const term = auditSearch.toLowerCase();
+                      return (
+                        log.raffle_title?.toLowerCase().includes(term) ||
+                        log.user_email?.toLowerCase().includes(term) ||
+                        log.user_name?.toLowerCase().includes(term) ||
+                        log.change_summary.toLowerCase().includes(term) ||
+                        log.raffle_id.toLowerCase().includes(term)
+                      );
+                    })
+                    .map((log) => (
+                      <tr key={log.id} className="hover:bg-[#F8FAFC] transition">
+                        <td className="py-4 px-6 text-xs text-[#526480] whitespace-nowrap tabular-nums">
+                          <div className="font-semibold text-[#0D1729]">
+                            {new Date(log.created_at).toLocaleDateString('pt-BR')}
+                          </div>
+                          <div>
+                            {new Date(log.created_at).toLocaleTimeString('pt-BR')}
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <strong className="block text-xs font-bold text-[#0D1729]">
+                            {log.raffle_title || 'Rifa'}
+                          </strong>
+                          <span className="text-[10px] text-[#526480] font-mono">
+                            ID: {log.raffle_id}
+                          </span>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-full bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                              {(log.user_name || log.user_email || 'U')[0].toUpperCase()}
+                            </span>
+                            <div>
+                              <div className="text-xs font-bold text-[#0D1729]">
+                                {log.user_name}
+                              </div>
+                              <div className="text-[11px] text-[#526480]">
+                                {log.user_email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <span className="inline-block px-2.5 py-1 rounded-xl bg-[#FFF8EB] border border-[#F5D08A] text-[#92400E] text-xs font-semibold">
+                            {log.change_summary}
+                          </span>
+                        </td>
+
+                        <td className="py-4 px-6 text-xs">
+                          <div className="space-y-1 font-mono text-[11px] max-w-xs">
+                            {Object.keys(log.new_values || {}).map((key) => {
+                              const oldV = log.previous_values?.[key];
+                              const newV = log.new_values?.[key];
+                              return (
+                                <div key={key} className="bg-[#F5F9FF] p-1.5 rounded border border-[#E0E9F7]">
+                                  <span className="font-bold text-[#0869F5]">{key}: </span>
+                                  <span className="text-[#DC2626] line-through">
+                                    {typeof oldV === 'object' ? JSON.stringify(oldV) : String(oldV ?? 'vazio')}
+                                  </span>
+                                  <span className="text-[#475872]"> ➔ </span>
+                                  <span className="text-[#059669] font-bold">
+                                    {typeof newV === 'object' ? JSON.stringify(newV) : String(newV ?? 'vazio')}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const formatted = JSON.stringify(log, null, 2);
+                              navigator.clipboard.writeText(formatted);
+                              alert('Log auditável copiado em formato JSON para chamado de suporte.');
+                            }}
+                            className="ora-btn-secondary px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer hover:border-[#0869F5]"
+                            title="Copiar relatório completo para chamado de suporte"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-[#0869F5]" />
+                            <span>Copiar Log</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
