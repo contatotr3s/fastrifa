@@ -434,7 +434,7 @@ export async function getOccupiedTickets(
 
 export async function createOrder(
   data: Omit<Order, 'id' | 'created_at' | 'paid_at'>
-): Promise<{ success: boolean; orderId?: string; error?: string }> {
+): Promise<{ success: boolean; orderId?: string; error?: string; conflictingTicket?: number }> {
   const occupied = await getOccupiedTickets(data.raffle_id);
   const occupiedSet = new Set(occupied.map((o) => o.ticket_number));
 
@@ -442,6 +442,7 @@ export async function createOrder(
   if (conflict !== undefined) {
     return {
       success: false,
+      conflictingTicket: conflict,
       error: `A cota #${conflict.toString().padStart(3, '0')} já foi reservada. Por favor, escolha outro número.`,
     };
   }

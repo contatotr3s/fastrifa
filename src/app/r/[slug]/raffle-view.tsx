@@ -24,6 +24,7 @@ import {
   Sliders,
   Pencil,
   Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import { createOrder } from '@/lib/firebase/raffles';
 import { generateBrandInitials } from '@/lib/image-processor';
@@ -85,6 +86,8 @@ export default function RafflePublicView({
   const [buyerPhone, setBuyerPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [conflictingTicket, setConflictingTicket] = useState<number | null>(null);
+  const [manualReplacementInput, setManualReplacementInput] = useState('');
 
   // Success / Payment screen state
   const [confirmedOrder, setConfirmedOrder] = useState<{
@@ -253,6 +256,60 @@ export default function RafflePublicView({
     setTimeout(() => setCopiedBrCode(false), 3000);
   }
 
+  // Substituição de cota em conflito diretamente no modal
+  function handleReplaceConflictingWithRandom(conflictNumber: number) {
+    const freeCandidates = allAvailableNumbers.filter(
+      (n) => n !== conflictNumber && !selectedTickets.includes(n)
+    );
+    if (freeCandidates.length === 0) {
+      setOrderError('Não há mais cotas disponíveis para substituição nesta rifa.');
+      return;
+    }
+    const chosen = freeCandidates[Math.floor(Math.random() * freeCandidates.length)];
+    setSelectedTickets((prev) =>
+      [...prev.filter((n) => n !== conflictNumber), chosen].sort((a, b) => a - b)
+    );
+    setConflictingTicket(null);
+    setOrderError(null);
+  }
+
+  function handleReplaceConflictingWithManual(conflictNumber: number, targetNum: number) {
+    if (targetNum < 1 || targetNum > raffle.total_tickets) {
+      setOrderError(`Número inválido. Escolha um número de 1 a ${raffle.total_tickets}.`);
+      return;
+    }
+    if (occupiedMap.has(targetNum)) {
+      setOrderError(`A cota #${targetNum.toString().padStart(3, '0')} já está reservada ou paga.`);
+      return;
+    }
+    if (selectedTickets.includes(targetNum)) {
+      setOrderError(`A cota #${targetNum.toString().padStart(3, '0')} já está na sua lista.`);
+      return;
+    }
+    setSelectedTickets((prev) =>
+      [...prev.filter((n) => n !== conflictNumber), targetNum].sort((a, b) => a - b)
+    );
+    setConflictingTicket(null);
+    setOrderError(null);
+    setManualReplacementInput('');
+  }
+
+  function removeTicketFromSelection(num: number) {
+    const updated = selectedTickets.filter((n) => n !== num);
+    if (updated.length === 0) {
+      setSelectedTickets([]);
+      setIsCheckoutOpen(false);
+      setConflictingTicket(null);
+      setOrderError(null);
+      return;
+    }
+    setSelectedTickets(updated);
+    if (conflictingTicket === num) {
+      setConflictingTicket(null);
+      setOrderError(null);
+    }
+  }
+
   // Submit order
   async function handleOrderSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -272,6 +329,14 @@ export default function RafflePublicView({
 
     if (result.error || !result.orderId) {
       setOrderError(result.error || 'Erro ao registrar pedido.');
+      if (result.conflictingTicket !== undefined) {
+        setConflictingTicket(result.conflictingTicket);
+        // Atualiza occupiedTickets local para que o sistema saiba que este número está ocupado
+        setOccupiedTickets((prev) => [
+          ...prev.filter((t) => t.ticket_number !== result.conflictingTicket),
+          { ticket_number: result.conflictingTicket!, status: 'pending' },
+        ]);
+      }
       setIsSubmitting(false);
       return;
     }
@@ -289,6 +354,7 @@ export default function RafflePublicView({
       total: amount,
     });
     setSelectedTickets([]);
+    setConflictingTicket(null);
     setIsSubmitting(false);
     fireCelebrationConfetti('order');
   }
@@ -926,6 +992,62 @@ export default function RafflePublicView({
               </div>
             )}
 
+            {/* Resolução de Conflito de Cota já Reservada (Sem fechar o modal) */}
+            {conflictingTicket && (
+              <div className="p-3.5 bg-[#FFF1F2] border border-[#FECDD3] rounded-[18px] space-y-3 animate-in fade-in">
+                <div className="flex items-center gap-2 text-[#BE123C] font-bold text-xs">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>A cota #{conflictingTicket.toString().padStart(3, '0')} acabou de ser reservada por outra pessoa.</span>
+                </div>
+                <p className="text-[11px] text-[#9F1239] leading-snug">
+                  Não precisa fechar o modal! Escolha como deseja substituir para concluir seu pedido:
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleReplaceConflictingWithRandom(conflictingTicket)}
+                    className="flex-1 py-2 px-3 bg-[#BE123C] hover:bg-[#9F1239] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    <Dices className="w-3.5 h-3.5" />
+                    <span>Trocar por outro número aleatório livre</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => removeTicketFromSelection(conflictingTicket)}
+                    className="py-2 px-3 bg-white hover:bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-xs font-bold rounded-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
+                  >
+                    Remover cota
+                  </button>
+                </div>
+
+                {/* Ou digitar um número específico para substituir */}
+                <div className="flex gap-2 pt-1 border-t border-[#FECDD3]">
+                  <input
+                    type="text"
+                    placeholder="Ou digite o número substituto..."
+                    value={manualReplacementInput}
+                    onChange={(e) => setManualReplacementInput(e.target.value.replace(/\D/g, ''))}
+                    className="flex-1 px-3 py-1.5 bg-white border border-[#FECDD3] rounded-xl text-xs font-medium text-[#0D1729] focus:outline-none focus:border-[#BE123C] tabular-nums"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const num = parseInt(manualReplacementInput, 10);
+                      if (!isNaN(num)) {
+                        handleReplaceConflictingWithManual(conflictingTicket, num);
+                      }
+                    }}
+                    disabled={!manualReplacementInput}
+                    className="px-3 py-1.5 bg-[#BE123C] hover:bg-[#9F1239] text-white text-xs font-bold rounded-xl disabled:opacity-50 cursor-pointer"
+                  >
+                    Substituir
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Summary Box */}
             <div className="p-4 bg-[#F5F9FF] rounded-[20px] border border-[#E0E9F7] space-y-2.5 tabular-nums">
               <div className="flex justify-between text-xs font-semibold text-[#475872]">
@@ -935,14 +1057,30 @@ export default function RafflePublicView({
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                {selectedTickets.map((n) => (
-                  <span
-                    key={n}
-                    className="px-2.5 py-0.5 bg-white border border-[#D9E5F7] text-[#0869F5] text-xs font-display font-bold rounded-[8px]"
-                  >
-                    #{n.toString().padStart(3, '0')}
-                  </span>
-                ))}
+                {selectedTickets.map((n) => {
+                  const isConflict = n === conflictingTicket;
+                  return (
+                    <span
+                      key={n}
+                      className={`px-2.5 py-0.5 border text-xs font-display font-bold rounded-[8px] inline-flex items-center gap-1.5 ${
+                        isConflict
+                          ? 'bg-[#FFF1F2] border-[#FECDD3] text-[#BE123C] ring-2 ring-[#BE123C]/30 animate-pulse'
+                          : 'bg-white border-[#D9E5F7] text-[#0869F5]'
+                      }`}
+                    >
+                      <span>#{n.toString().padStart(3, '0')}</span>
+                      {isConflict && <span className="text-[10px] uppercase font-bold">(Ocupada)</span>}
+                      <button
+                        type="button"
+                        onClick={() => removeTicketFromSelection(n)}
+                        className="hover:opacity-75 cursor-pointer text-[10px] text-[#526480] hover:text-[#DC2626] font-bold"
+                        title="Remover cota"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  );
+                })}
               </div>
               <div className="pt-2.5 border-t border-[#E0E9F7] flex justify-between items-baseline">
                 <span className="text-xs font-bold text-[#14213A]">Total a pagar:</span>
@@ -1076,38 +1214,6 @@ export default function RafflePublicView({
                 )}
               </button>
             )}
-
-            {/* PIX Key Box (Fallback chave direta) */}
-            <div className="p-4 bg-[#F5F9FF] rounded-[20px] border border-[#E0E9F7] space-y-2 text-left tabular-nums">
-              <div className="flex justify-between items-center text-xs font-bold text-[#475872]">
-                <span>Ou copie a Chave PIX ({raffle.pix_key_type.toUpperCase()}):</span>
-                <span className="text-[#0869F5] text-sm">
-                  R$ {confirmedOrder.total.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="p-3 bg-white border border-[#D9E5F7] rounded-[14px] font-mono text-xs sm:text-sm font-bold text-[#0D1729] break-all flex items-center justify-between gap-2">
-                <span>{raffle.pix_key}</span>
-                <button
-                  type="button"
-                  onClick={copyPixKey}
-                  className="px-3 py-1.5 bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] text-[#0755DE] text-xs font-sans font-bold rounded-[10px] flex-shrink-0 inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                  title="Copiar Chave PIX"
-                >
-                  {copiedPix ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-[#0869F5]" />
-                      <span>Copiada</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copiar Chave</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
 
             {/* WhatsApp Receipt Button */}
             {(() => {
