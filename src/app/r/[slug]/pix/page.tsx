@@ -472,7 +472,7 @@ export default function PhysicalCartelaPixPage({
       : '';
   const whatsappMessage = `Olá! Reservei *${quantity} cota(s)*${formattedVerifiedNums} na rifa *"${raffle.title}"* no valor total de *R$ ${totalAmount.toFixed(2)}*.${
     buyerName ? ` Comprador: ${buyerName}.` : ''
-  } Segue o comprovante do PIX!`;
+  } Notifico que o pagamento via PIX foi realizado!`;
   const whatsappUrl = `https://wa.me/55${organizerCleanPhone}?text=${encodeURIComponent(
     whatsappMessage
   )}`;
@@ -1087,34 +1087,6 @@ export default function PhysicalCartelaPixPage({
                   </>
                 )}
               </button>
-
-              <div className="p-3.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] flex items-center justify-between gap-2 text-xs">
-                <div className="truncate">
-                  <span className="text-[#526480] font-semibold block">
-                    Chave PIX direta ({raffle.pix_key_type.toUpperCase()}):
-                  </span>
-                  <strong className="font-mono text-[#0D1729]">
-                    {raffle.pix_key}
-                  </strong>
-                </div>
-                <button
-                  type="button"
-                  onClick={copyRawPixKey}
-                  className="px-3 py-1.5 bg-white border border-[#CDE0FC] hover:border-[#0869F5] rounded-lg font-bold text-[#0755DE] flex-shrink-0 inline-flex items-center gap-1 cursor-pointer active:scale-95 transition"
-                >
-                  {copiedRawKey ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Copiada</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copiar Chave</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
 
             <div className="pt-2 space-y-3 border-t border-[#E0E9F7]">
@@ -1125,7 +1097,7 @@ export default function PhysicalCartelaPixPage({
                 className="w-full py-3.5 px-5 rounded-[18px] bg-[#10B981] hover:bg-[#059669] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98]"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span>Enviar Comprovante no WhatsApp</span>
+                <span>Enviar Notificação de Pagamento via WhatsApp</span>
               </a>
 
               <button

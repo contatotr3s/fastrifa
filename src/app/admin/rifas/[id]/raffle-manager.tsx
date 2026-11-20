@@ -499,7 +499,7 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
                         title="Enviar comprovante de cotas no WhatsApp"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Enviar Comprovante</span>
+                        <span className="hidden sm:inline">Confirmar no WhatsApp</span>
                       </a>
                     ) : order.status === 'pending' ? (
                       <a
@@ -661,7 +661,7 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
                 className="w-full py-3.5 rounded-[16px] bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Enviar Comprovante no WhatsApp</span>
+                <span>Enviar Confirmação de Cotas no WhatsApp</span>
               </a>
 
               <button

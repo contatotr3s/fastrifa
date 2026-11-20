@@ -1225,7 +1225,7 @@ export default function RafflePublicView({
                 .map((n) => `#${n.toString().padStart(3, '0')}`)
                 .join(', ');
 
-              const message = `Olá! Meu nome é ${buyerName} e acabei de reservar as cotas (${formattedTickets}) na rifa "${raffle.title}". Segue em anexo o comprovante do PIX no valor de R$ ${confirmedOrder.total.toFixed(2)}.`;
+              const message = `Olá! Meu nome é ${buyerName} e acabei de reservar as cotas (${formattedTickets}) na rifa "${raffle.title}". Notifico o pagamento no valor de R$ ${confirmedOrder.total.toFixed(2)}. Por favor, confirme minhas cotas assim que constar no seu extrato!`;
               const whatsappUrl = `https://wa.me/55${organizerCleanPhone}?text=${encodeURIComponent(
                 message
               )}`;
@@ -1239,7 +1239,7 @@ export default function RafflePublicView({
                     className="w-full py-3.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-[18px] flex items-center justify-center gap-2 text-sm shadow-sm transition active:scale-[0.98]"
                   >
                     <MessageCircle className="w-5 h-5" />
-                    <span>Enviar Comprovante no WhatsApp</span>
+                    <span>Enviar Notificação de Pagamento via WhatsApp</span>
                   </a>
 
                   <button
