@@ -90,6 +90,13 @@ export default function RafflePublicView({
         .map((t) => t.ticket_number),
     [occupiedTickets]
   );
+  const pendingTicketNumbers = useMemo(
+    () =>
+      occupiedTickets
+        .filter((t) => t.status === 'pending')
+        .map((t) => t.ticket_number),
+    [occupiedTickets]
+  );
   const paidCount = paidTicketNumbers.length;
   const progressPercent = Math.min(
     100,
@@ -943,6 +950,7 @@ export default function RafflePublicView({
       <PhysicalCardModal
         raffle={raffle}
         paidTicketNumbers={paidTicketNumbers}
+        pendingTicketNumbers={pendingTicketNumbers}
         isOpen={showPhysicalCardModal}
         onClose={() => setShowPhysicalCardModal(false)}
       />

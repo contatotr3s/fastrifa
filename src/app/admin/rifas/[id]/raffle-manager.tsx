@@ -74,9 +74,11 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
   const [approvalNotification, setApprovalNotification] = useState<Order | null>(null);
 
   const publicUrl =
-    typeof window !== 'undefined'
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
       ? `${window.location.origin}/r/${raffle.slug}`
-      : `/r/${raffle.slug}`;
+      : `https://fastrifa.vercel.app/r/${raffle.slug}`;
 
   function copyPublicLink() {
     navigator.clipboard.writeText(publicUrl);
@@ -89,8 +91,9 @@ export default function RaffleManager({ raffle, initialOrders }: RaffleManagerPr
   const pendingOrders = orders.filter((o) => o.status === 'pending');
 
   const paidTicketNumbers = paidOrders.flatMap((o) => o.ticket_numbers);
+  const pendingTicketNumbers = pendingOrders.flatMap((o) => o.ticket_numbers);
   const paidTicketsCount = paidTicketNumbers.length;
-  const pendingTicketsCount = pendingOrders.reduce((acc, o) => acc + o.ticket_numbers.length, 0);
+  const pendingTicketsCount = pendingTicketNumbers.length;
   const availableTicketsCount = Math.max(
     0,
     raffle.total_tickets - (paidTicketsCount + pendingTicketsCount)
@@ -581,6 +584,7 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
       <PhysicalCardModal
         raffle={raffle}
         paidTicketNumbers={paidTicketNumbers}
+        pendingTicketNumbers={pendingTicketNumbers}
         isOpen={showPhysicalCardModal}
         onClose={() => setShowPhysicalCardModal(false)}
       />

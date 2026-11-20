@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from './firebase/auth-context';
-import { db } from './firebase/config';
+import { db, getPublicFirestore } from './firebase/config';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
 export type SystemTheme = 'blue' | 'green';
@@ -54,32 +54,38 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // 1. Escuta em tempo real o tema global do sistema configurado pelo Master no Firestore
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
 
-    try {
-      const systemDocRef = doc(db, 'settings', 'system');
-      const unsubscribe = onSnapshot(
-        systemDocRef,
-        (snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.data();
-            if (data?.global_theme === 'blue' || data?.global_theme === 'green') {
-              const newGlobal = data.global_theme as SystemTheme;
-              setGlobalThemeState(newGlobal);
-              try {
-                localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, newGlobal);
-              } catch {}
+    getPublicFirestore()
+      .then((activeDb) => {
+        if (cancelled) return;
+        const systemDocRef = doc(activeDb, 'settings', 'system');
+        unsubscribe = onSnapshot(
+          systemDocRef,
+          (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.data();
+              if (data?.global_theme === 'blue' || data?.global_theme === 'green') {
+                const newGlobal = data.global_theme as SystemTheme;
+                setGlobalThemeState(newGlobal);
+                try {
+                  localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, newGlobal);
+                } catch {}
+              }
             }
+          },
+          () => {
+            // Silently ignore if settings doc doesn't exist yet
           }
-        },
-        (err) => {
-          console.warn('Could not subscribe to global system theme:', err);
-        }
-      );
+        );
+      })
+      .catch(() => {});
 
-      return () => unsubscribe();
-    } catch (e) {
-      console.warn('System settings listener error:', e);
-    }
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // 2. Sincroniza a preferência individual do usuário logado

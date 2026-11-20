@@ -10,7 +10,7 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore';
-import { db } from './config';
+import { db, getPublicFirestore } from './config';
 import type { Raffle, Order, OccupiedTicket, Profile } from '@/types/database.types';
 
 const LOCAL_RAFFLES_KEY = 'fastrifa_local_raffles';
@@ -25,10 +25,6 @@ export function generateSlug(title: string): string {
     .replace(/(^-|-$)+/g, '');
   const randomSuffix = Math.random().toString(36).substring(2, 6);
   return `${base}-${randomSuffix}`;
-}
-
-function getInitialLocalRaffles(): Raffle[] {
-  return [];
 }
 
 function getLocalRaffles(): Raffle[] {
@@ -86,11 +82,9 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   let remoteList: Raffle[] = [];
 
   try {
-    const q = query(
-      collection(db, 'raffles'),
-      where('user_id', '==', userId),
-      orderBy('created_at', 'desc')
-    );
+    const activeDb = await getPublicFirestore();
+    // Sem orderBy composto para não exigir índice composto manual no Firestore
+    const q = query(collection(activeDb, 'raffles'), where('user_id', '==', userId));
     const snap = await getDocs(q);
     if (!snap.empty) {
       remoteList = snap.docs
@@ -98,42 +92,66 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
         .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
     }
   } catch (err) {
-    console.warn('Firebase query failed or index missing, using local raffles:', err);
+    console.warn('Firebase query failed, using local raffles:', err);
+  }
+
+  const remoteSlugs = new Set(remoteList.map((r) => r.slug));
+
+  // Auto-sincroniza para o Firestore caso exista alguma rifa criada localmente (raf_) que ainda não subiu
+  for (const loc of localList) {
+    if (
+      loc.user_id === userId &&
+      loc.id.startsWith('raf_') &&
+      !remoteSlugs.has(loc.slug)
+    ) {
+      try {
+        const activeDb = await getPublicFirestore();
+        const { id: oldLocalId, ...payload } = loc;
+        const docRef = await addDoc(collection(activeDb, 'raffles'), payload);
+        const synced = { ...loc, id: docRef.id };
+        remoteList.push(synced);
+        remoteSlugs.add(loc.slug);
+        const updatedLocal = getLocalRaffles().map((r) =>
+          r.id === oldLocalId ? synced : r
+        );
+        saveLocalRaffles(updatedLocal);
+      } catch {}
+    }
   }
 
   // Merge remote and local without duplicate IDs or slugs
-  const map = new Map<string, Raffle>();
+  const mapBySlug = new Map<string, Raffle>();
 
-  // 1. First add remote raffles
-  for (const r of remoteList) {
-    if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
-      map.set(r.id, r);
-    }
-  }
-
-  // 2. Add local raffles
   for (const r of localList) {
     if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
-      map.set(r.id, r);
+      mapBySlug.set(r.slug, r);
     }
   }
 
-  const allMerged = Array.from(map.values());
+  // Remote takes precedence over local so official Firestore IDs are always used
+  for (const r of remoteList) {
+    if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
+      mapBySlug.set(r.slug, r);
+    }
+  }
 
-  // Sort newest first
+  const allMerged = Array.from(mapBySlug.values()).filter(
+    (r) => r.user_id === userId
+  );
+
   allMerged.sort((a, b) => {
     const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
     const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
     return timeB - timeA;
   });
 
-  // Retorna apenas as rifas pertencentes ao usuário logado
-  return allMerged.filter((r) => r.user_id === userId);
+  return allMerged;
 }
 
 export async function getAllRaffles(): Promise<Raffle[]> {
   try {
-    const q = query(collection(db, 'raffles'), orderBy('created_at', 'desc'));
+    const activeDb = await getPublicFirestore();
+    const q = query(collection(activeDb, 'raffles'), orderBy('created_at', 'desc'));
     const snap = await getDocs(q);
     if (!snap.empty) {
       return snap.docs
@@ -143,27 +161,33 @@ export async function getAllRaffles(): Promise<Raffle[]> {
   } catch (err) {
     console.warn('Error fetching all raffles:', err);
   }
-  return getLocalRaffles().filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
+  return getLocalRaffles().filter(
+    (r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max'
+  );
 }
 
-export async function getAllCreators(): Promise<Array<{ email?: string; profile: Profile }>> {
+export async function getAllCreators(): Promise<
+  Array<{ email?: string; profile: Profile }>
+> {
   const creators: Array<{ email?: string; profile: Profile }> = [];
   const seenIds = new Set<string>();
 
-  // 1. Firestore remoto oficial
   try {
-    const snap = await getDocs(collection(db, 'profiles'));
+    const activeDb = await getPublicFirestore();
+    const snap = await getDocs(collection(activeDb, 'profiles'));
     snap.forEach((d) => {
       const data = d.data() as Profile;
+      const email = (data as { email?: string }).email;
       if (
         data &&
         data.id &&
         data.id !== 'demo-organizer-uid' &&
+        email !== 'leitor.publico@fastrifa.com' &&
         !seenIds.has(data.id)
       ) {
         seenIds.add(data.id);
         creators.push({
-          email: (data as { email?: string }).email,
+          email,
           profile: data,
         });
       }
@@ -172,17 +196,18 @@ export async function getAllCreators(): Promise<Array<{ email?: string; profile:
     console.warn('Error reading remote creators from firestore:', err);
   }
 
-  // 2. Contas salvas localmente
   if (typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem('fastrifa_auth_accounts');
       if (raw) {
-        const accounts: Array<{ email: string; profile: Profile }> = JSON.parse(raw);
+        const accounts: Array<{ email: string; profile: Profile }> =
+          JSON.parse(raw);
         for (const a of accounts) {
           if (
             a.profile &&
             a.profile.id !== 'demo-organizer-uid' &&
             a.email !== 'admin@fastrifa.com' &&
+            a.email !== 'leitor.publico@fastrifa.com' &&
             !seenIds.has(a.profile.id)
           ) {
             creators.push(a);
@@ -201,23 +226,25 @@ export async function getAllCreators(): Promise<Array<{ email?: string; profile:
 export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
   if (raffleId === 'demo-raffle-01') return null;
 
-  // 1. Local first
-  const local = getLocalRaffles().find((r) => r.id === raffleId && r.id !== 'demo-raffle-01');
-  if (local) return local;
-
-  // 2. Remote Firestore
+  // 1. Remote Firestore first (via public bridge if visitor is not logged in)
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const d = await getDoc(doc(db, 'raffles', raffleId));
-      if (d.exists()) {
-        const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
-        if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max') return null;
-        return data;
-      }
+    const activeDb = await getPublicFirestore();
+    const d = await getDoc(doc(activeDb, 'raffles', raffleId));
+    if (d.exists()) {
+      const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
+      if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max')
+        return null;
+      return data;
     }
   } catch {
-    // Fall through
+    // Fall through to local
   }
+
+  // 2. Local fallback
+  const local = getLocalRaffles().find(
+    (r) => r.id === raffleId && r.id !== 'demo-raffle-01'
+  );
+  if (local) return local;
 
   return null;
 }
@@ -225,30 +252,34 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
 export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {
   if (slug === 'iphone-16-pro-max') return null;
 
-  // 1. Local first
-  const local = getLocalRaffles().find((r) => r.slug === slug && r.slug !== 'iphone-16-pro-max');
-  if (local) return local;
-
-  // 2. Remote Firestore
+  // 1. Remote Firestore first (via public bridge so unauthenticated buyers ALWAYS load the raffle)
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const q = query(collection(db, 'raffles'), where('slug', '==', slug));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const d = snap.docs[0];
-        const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
-        if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max') return null;
-        return data;
-      }
+    const activeDb = await getPublicFirestore();
+    const q = query(collection(activeDb, 'raffles'), where('slug', '==', slug));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const d = snap.docs[0];
+      const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
+      if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max')
+        return null;
+      return data;
     }
-  } catch {
-    // Fall through
+  } catch (err) {
+    console.warn('Error fetching raffle by slug from Firestore:', err);
   }
+
+  // 2. Local fallback
+  const local = getLocalRaffles().find(
+    (r) => r.slug === slug && r.slug !== 'iphone-16-pro-max'
+  );
+  if (local) return local;
 
   return null;
 }
 
-export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
+export async function createRaffle(
+  data: Omit<Raffle, 'id' | 'created_at' | 'updated_at'>
+): Promise<string> {
   const now = new Date().toISOString();
   const newId = 'raf_' + Math.random().toString(36).substring(2, 10);
   const newRaffle: Raffle = {
@@ -258,25 +289,23 @@ export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'upd
     updated_at: now,
   };
 
-  // Always save locally immediately FIRST so it can never be lost
+  // Save locally first
   const current = getLocalRaffles();
   saveLocalRaffles([newRaffle, ...current]);
 
-  // Then attempt Firestore sync in parallel
+  // Sync to Firestore
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const docRef = await addDoc(collection(db, 'raffles'), {
-        ...data,
-        created_at: now,
-        updated_at: now,
-      });
-      // Update local copy with Firestore ID if it succeeded
-      const updated = getLocalRaffles().map((r) =>
-        r.id === newId ? { ...r, id: docRef.id } : r
-      );
-      saveLocalRaffles(updated);
-      return docRef.id;
-    }
+    const activeDb = await getPublicFirestore();
+    const docRef = await addDoc(collection(activeDb, 'raffles'), {
+      ...data,
+      created_at: now,
+      updated_at: now,
+    });
+    const updated = getLocalRaffles().map((r) =>
+      r.id === newId ? { ...r, id: docRef.id } : r
+    );
+    saveLocalRaffles(updated);
+    return docRef.id;
   } catch (err) {
     console.warn('Firestore addDoc failed, kept local raffle:', err);
   }
@@ -285,42 +314,64 @@ export async function createRaffle(data: Omit<Raffle, 'id' | 'created_at' | 'upd
 }
 
 export async function getRaffleOrders(raffleId: string): Promise<Order[]> {
-  try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const q = query(
-        collection(db, 'orders'),
-        where('raffle_id', '==', raffleId),
-        orderBy('created_at', 'desc')
-      );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Order, 'id'>) }));
-      }
-    }
-  } catch {
-    // Fall through to local
+  const mergedMap = new Map<string, Order>();
+
+  // 1. Add local orders for this raffle
+  const localOrders = getLocalOrders().filter((o) => o.raffle_id === raffleId);
+  for (const loc of localOrders) {
+    mergedMap.set(loc.id, loc);
   }
 
-  const all = getLocalOrders();
-  return all.filter((o) => o.raffle_id === raffleId);
+  // 2. Fetch remote orders from Firestore (sem orderBy composto para não exigir índice manual)
+  try {
+    const activeDb = await getPublicFirestore();
+    const q = query(
+      collection(activeDb, 'orders'),
+      where('raffle_id', '==', raffleId)
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      snap.docs.forEach((d) => {
+        const ord = { id: d.id, ...(d.data() as Omit<Order, 'id'>) };
+        mergedMap.set(ord.id, ord);
+      });
+    }
+  } catch (err) {
+    console.warn('Error fetching orders from Firestore:', err);
+  }
+
+  const list = Array.from(mergedMap.values());
+  list.sort((a, b) => {
+    const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return tB - tA;
+  });
+
+  return list;
 }
 
-export async function getOccupiedTickets(raffleId: string): Promise<OccupiedTicket[]> {
+export async function getOccupiedTickets(
+  raffleId: string
+): Promise<OccupiedTicket[]> {
   const orders = await getRaffleOrders(raffleId);
-  const occupied: OccupiedTicket[] = [];
+  const occupiedMap = new Map<number, 'pending' | 'paid'>();
 
   orders
     .filter((o) => o.status === 'pending' || o.status === 'paid')
     .forEach((ord) => {
+      const st = ord.status as 'pending' | 'paid';
       ord.ticket_numbers?.forEach((num) => {
-        occupied.push({
-          ticket_number: num,
-          status: ord.status as 'pending' | 'paid',
-        });
+        // Se já estiver marcado como 'paid', mantém 'paid'
+        if (occupiedMap.get(num) !== 'paid') {
+          occupiedMap.set(num, st);
+        }
       });
     });
 
-  return occupied;
+  return Array.from(occupiedMap.entries()).map(([ticket_number, status]) => ({
+    ticket_number,
+    status,
+  }));
 }
 
 export async function createOrder(
@@ -347,16 +398,15 @@ export async function createOrder(
   };
 
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const docRef = await addDoc(collection(db, 'orders'), {
-        ...data,
-        created_at: now,
-        paid_at: null,
-      });
-      newOrder.id = docRef.id;
-    }
-  } catch {
-    // Save locally
+    const activeDb = await getPublicFirestore();
+    const docRef = await addDoc(collection(activeDb, 'orders'), {
+      ...data,
+      created_at: now,
+      paid_at: null,
+    });
+    newOrder.id = docRef.id;
+  } catch (err) {
+    console.warn('Error saving order to Firestore, saved locally:', err);
   }
 
   const current = getLocalOrders();
@@ -365,16 +415,18 @@ export async function createOrder(
   return { success: true, orderId: newOrder.id };
 }
 
-export async function updateOrderStatus(orderId: string, status: 'paid' | 'cancelled' | 'pending'): Promise<void> {
+export async function updateOrderStatus(
+  orderId: string,
+  status: 'paid' | 'cancelled' | 'pending'
+): Promise<void> {
   const now = status === 'paid' ? new Date().toISOString() : null;
 
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      await updateDoc(doc(db, 'orders', orderId), {
-        status,
-        paid_at: now,
-      });
-    }
+    const activeDb = await getPublicFirestore();
+    await updateDoc(doc(activeDb, 'orders', orderId), {
+      status,
+      paid_at: now,
+    });
   } catch {
     // Update locally
   }
@@ -385,19 +437,22 @@ export async function updateOrderStatus(orderId: string, status: 'paid' | 'cance
   );
 }
 
-export async function finishRaffle(raffleId: string, winnerTicket: number, winnerName: string): Promise<void> {
+export async function finishRaffle(
+  raffleId: string,
+  winnerTicket: number,
+  winnerName: string
+): Promise<void> {
   const now = new Date().toISOString();
 
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      await updateDoc(doc(db, 'raffles', raffleId), {
-        status: 'completed',
-        winner_ticket: winnerTicket,
-        winner_name: winnerName || 'Ganhador do Bilhete ' + winnerTicket,
-        draw_date: now,
-        updated_at: now,
-      });
-    }
+    const activeDb = await getPublicFirestore();
+    await updateDoc(doc(activeDb, 'raffles', raffleId), {
+      status: 'completed',
+      winner_ticket: winnerTicket,
+      winner_name: winnerName || 'Ganhador do Bilhete ' + winnerTicket,
+      draw_date: now,
+      updated_at: now,
+    });
   } catch {
     // Update locally
   }
@@ -420,15 +475,12 @@ export async function finishRaffle(raffleId: string, winnerTicket: number, winne
 }
 
 export async function deleteRaffle(raffleId: string): Promise<boolean> {
-  // 1. Remove local
   const current = getLocalRaffles();
   saveLocalRaffles(current.filter((r) => r.id !== raffleId));
 
-  // 2. Remove remote from Firestore
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      await deleteDoc(doc(db, 'raffles', raffleId));
-    }
+    const activeDb = await getPublicFirestore();
+    await deleteDoc(doc(activeDb, 'raffles', raffleId));
   } catch (err) {
     console.warn('Error deleting remote raffle from Firestore:', err);
   }
@@ -437,13 +489,14 @@ export async function deleteRaffle(raffleId: string): Promise<boolean> {
 }
 
 export async function deleteCreatorProfile(userId: string): Promise<boolean> {
-  // 1. Remove from local storage accounts
   if (typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem('fastrifa_auth_accounts');
       if (raw) {
         const accounts = JSON.parse(raw);
-        const filtered = accounts.filter((a: { profile?: { id?: string } }) => a?.profile?.id !== userId);
+        const filtered = accounts.filter(
+          (a: { profile?: { id?: string } }) => a?.profile?.id !== userId
+        );
         localStorage.setItem('fastrifa_auth_accounts', JSON.stringify(filtered));
       }
       const curUser = localStorage.getItem('fastrifa_local_user');
@@ -459,20 +512,17 @@ export async function deleteCreatorProfile(userId: string): Promise<boolean> {
     }
   }
 
-  // 2. Remove local raffles owned by this user
   const currentRaffles = getLocalRaffles();
   saveLocalRaffles(currentRaffles.filter((r) => r.user_id !== userId));
 
-  // 3. Remove remote profile and its raffles in Firestore
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      const q = query(collection(db, 'raffles'), where('user_id', '==', userId));
-      const snap = await getDocs(q);
-      for (const d of snap.docs) {
-        await deleteDoc(doc(db, 'raffles', d.id));
-      }
-      await deleteDoc(doc(db, 'profiles', userId));
+    const activeDb = await getPublicFirestore();
+    const q = query(collection(activeDb, 'raffles'), where('user_id', '==', userId));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      await deleteDoc(doc(activeDb, 'raffles', d.id));
     }
+    await deleteDoc(doc(activeDb, 'profiles', userId));
   } catch (err) {
     console.warn('Error deleting remote creator from Firestore:', err);
   }
@@ -480,20 +530,20 @@ export async function deleteCreatorProfile(userId: string): Promise<boolean> {
   return true;
 }
 
-export async function updateRaffleByMaster(raffleId: string, updates: Partial<Raffle>): Promise<boolean> {
+export async function updateRaffleByMaster(
+  raffleId: string,
+  updates: Partial<Raffle>
+): Promise<boolean> {
   const now = new Date().toISOString();
   const payload = { ...updates, updated_at: now };
 
-  // 1. Update remote in Firestore
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      await updateDoc(doc(db, 'raffles', raffleId), payload);
-    }
+    const activeDb = await getPublicFirestore();
+    await updateDoc(doc(activeDb, 'raffles', raffleId), payload);
   } catch (err) {
     console.warn('Error updating remote raffle:', err);
   }
 
-  // 2. Update local storage
   const current = getLocalRaffles();
   saveLocalRaffles(
     current.map((r) => (r.id === raffleId ? { ...r, ...payload } : r))
@@ -508,32 +558,35 @@ export async function updateProfileByMaster(
   updatedEmail?: string
 ): Promise<boolean> {
   const now = new Date().toISOString();
-  const payload = { ...updates, updated_at: now, ...(updatedEmail ? { email: updatedEmail } : {}) };
+  const payload = {
+    ...updates,
+    updated_at: now,
+    ...(updatedEmail ? { email: updatedEmail } : {}),
+  };
 
-  // 1. Update remote in Firestore
   try {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder')) {
-      await updateDoc(doc(db, 'profiles', userId), payload);
-    }
+    const activeDb = await getPublicFirestore();
+    await updateDoc(doc(activeDb, 'profiles', userId), payload);
   } catch (err) {
     console.warn('Error updating remote profile:', err);
   }
 
-  // 2. Update local storage if present
   if (typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem('fastrifa_auth_accounts');
       if (raw) {
         const accounts = JSON.parse(raw);
-        const updated = accounts.map((a: { email?: string; profile: Profile }) => {
-          if (a?.profile?.id === userId) {
-            return {
-              email: updatedEmail || a.email,
-              profile: { ...a.profile, ...payload },
-            };
+        const updated = accounts.map(
+          (a: { email?: string; profile: Profile }) => {
+            if (a?.profile?.id === userId) {
+              return {
+                email: updatedEmail || a.email,
+                profile: { ...a.profile, ...payload },
+              };
+            }
+            return a;
           }
-          return a;
-        });
+        );
         localStorage.setItem('fastrifa_auth_accounts', JSON.stringify(updated));
       }
     } catch (e) {
