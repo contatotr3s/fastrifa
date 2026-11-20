@@ -39,6 +39,19 @@ interface RafflePublicViewProps {
   initialOccupiedTickets: OccupiedTicket[];
 }
 
+function PixIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M17.074 3.326a3.83 3.83 0 0 0-5.42 0L9.43 5.55a.77.77 0 0 0 0 1.085l2.946 2.946a.767.767 0 0 0 1.085 0l2.73-2.73a1.536 1.536 0 0 1 2.172 0 1.536 1.536 0 0 1 0 2.172l-2.73 2.73a.767.767 0 0 0 0 1.085l2.946 2.946a.767.767 0 0 0 1.085 0l2.224-2.224a3.83 3.83 0 0 0 0-5.42L17.074 3.326zM6.926 3.326a3.83 3.83 0 0 0-5.42 0 3.83 3.83 0 0 0 0 5.42l2.224 2.224a.767.767 0 0 0 1.085 0l2.946-2.946a.767.767 0 0 0 0-1.085l-2.73-2.73a1.536 1.536 0 0 1 0-2.172 1.536 1.536 0 0 1 2.172 0l2.73 2.73a.767.767 0 0 0 1.085 0l2.946-2.946a.767.767 0 0 0 0-1.085L6.926 3.326zm-3.6 10.748a3.83 3.83 0 0 0-3.326 3.852 3.83 3.83 0 0 0 1.102 2.748l4.814 4.814a3.83 3.83 0 0 0 5.42 0l2.224-2.224a.767.767 0 0 0 0-1.085l-2.946-2.946a.767.767 0 0 0-1.085 0l-2.73 2.73a1.536 1.536 0 0 1-2.172 0 1.536 1.536 0 0 1 0-2.172l2.73-2.73a.767.767 0 0 0 0-1.085l-2.946-2.946a.767.767 0 0 0-1.085 0L3.326 14.074zm13.748 0a.767.767 0 0 0-1.085 0l-2.946 2.946a.767.767 0 0 0 0 1.085l2.73 2.73a1.536 1.536 0 0 1 0 2.172 1.536 1.536 0 0 1-2.172 0l-2.73-2.73a.767.767 0 0 0-1.085 0l-2.946 2.946a.767.767 0 0 0 0 1.085l2.224 2.224a3.83 3.83 0 0 0 5.42 0l4.814-4.814a3.83 3.83 0 0 0 0-5.42l-2.224-2.224z" />
+    </svg>
+  );
+}
+
 export default function RafflePublicView({
   raffle: initialRaffle,
   initialOccupiedTickets,
@@ -1069,7 +1082,7 @@ export default function RafflePublicView({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
+                    <PixIcon className="w-4 h-4" />
                     <span>Confirmar e Gerar PIX</span>
                   </>
                 )}
@@ -1144,6 +1157,28 @@ export default function RafflePublicView({
               </button>
             )}
 
+            {/* Mensagem de Atenção e Envio de Comprovante */}
+            <div className="text-left bg-[#FFFBEB] border border-[#FDE68A] rounded-[22px] p-4 sm:p-5 space-y-2.5 shadow-xs">
+              <div className="flex items-center gap-2 text-[#92400E] font-display font-bold text-xs sm:text-sm">
+                <span className="text-base">📸</span>
+                <span>ATENÇÃO: COMPROVANTE DE PAGAMENTO</span>
+              </div>
+              <p className="text-xs sm:text-[13px] text-[#78350F] leading-relaxed">
+                Após realizar o Pix, <strong>salve o comprovante no seu celular</strong>.
+              </p>
+              <p className="text-xs sm:text-[13px] text-[#78350F] leading-relaxed">
+                Em seguida, clique no botão abaixo para abrir o WhatsApp e <strong>anexe o comprovante à mensagem</strong>.
+              </p>
+              <div className="pt-2 border-t border-[#FDE68A]/70 flex items-start gap-2 text-xs sm:text-[13px] text-[#065F46] font-medium leading-snug">
+                <span>✅</span>
+                <span>Seus números serão confirmados após a conferência do pagamento.</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-[#065F46] font-medium pt-0.5">
+                <span>🍀</span>
+                <span>Obrigado(a) por participar e boa sorte!</span>
+              </div>
+            </div>
+
             {/* WhatsApp Receipt Button */}
             {(() => {
               const organizerCleanPhone = (raffle.phone_whatsapp || '').replace(
@@ -1154,7 +1189,7 @@ export default function RafflePublicView({
                 .map((n) => `#${n.toString().padStart(3, '0')}`)
                 .join(', ');
 
-              const message = `Olá! Meu nome é ${buyerName} e acabei de reservar as cotas (${formattedTickets}) na rifa "${raffle.title}". Notifico o pagamento no valor de R$ ${confirmedOrder.total.toFixed(2)}. Por favor, confirme minhas cotas assim que constar no seu extrato!`;
+              const message = `Olá! Meu nome é ${buyerName} e reservei as cotas (${formattedTickets}) na rifa "${raffle.title}". Notifico o pagamento no valor de R$ ${confirmedOrder.total.toFixed(2)} e anexo meu comprovante para conferência e confirmação!`;
               const whatsappUrl = `https://wa.me/55${organizerCleanPhone}?text=${encodeURIComponent(
                 message
               )}`;
@@ -1165,10 +1200,10 @@ export default function RafflePublicView({
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-3.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-[18px] flex items-center justify-center gap-2 text-sm shadow-sm transition active:scale-[0.98]"
+                    className="w-full py-4 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-[18px] flex items-center justify-center gap-2 text-sm sm:text-base shadow-sm transition active:scale-[0.98]"
                   >
                     <MessageCircle className="w-5 h-5" />
-                    <span>Enviar Notificação de Pagamento via WhatsApp</span>
+                    <span>Enviar Notificação e Comprovante no WhatsApp</span>
                   </a>
 
                   <button

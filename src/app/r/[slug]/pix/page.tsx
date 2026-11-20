@@ -1089,15 +1089,37 @@ export default function PhysicalCartelaPixPage({
               </button>
             </div>
 
+            {/* Mensagem de Atenção e Envio de Comprovante */}
+            <div className="text-left bg-[#FFFBEB] border border-[#FDE68A] rounded-[22px] p-4 sm:p-5 space-y-2.5 shadow-xs">
+              <div className="flex items-center gap-2 text-[#92400E] font-display font-bold text-xs sm:text-sm">
+                <span className="text-base">📸</span>
+                <span>ATENÇÃO: COMPROVANTE DE PAGAMENTO</span>
+              </div>
+              <p className="text-xs sm:text-[13px] text-[#78350F] leading-relaxed">
+                Após realizar o Pix, <strong>salve o comprovante no seu celular</strong>.
+              </p>
+              <p className="text-xs sm:text-[13px] text-[#78350F] leading-relaxed">
+                Em seguida, clique no botão abaixo para abrir o WhatsApp e <strong>anexe o comprovante à mensagem</strong>.
+              </p>
+              <div className="pt-2 border-t border-[#FDE68A]/70 flex items-start gap-2 text-xs sm:text-[13px] text-[#065F46] font-medium leading-snug">
+                <span>✅</span>
+                <span>Seus números serão confirmados após a conferência do pagamento.</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-[#065F46] font-medium pt-0.5">
+                <span>🍀</span>
+                <span>Obrigado(a) por participar e boa sorte!</span>
+              </div>
+            </div>
+
             <div className="pt-2 space-y-3 border-t border-[#E0E9F7]">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3.5 px-5 rounded-[18px] bg-[#10B981] hover:bg-[#059669] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98]"
+                className="w-full py-4 px-5 rounded-[18px] bg-[#10B981] hover:bg-[#059669] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98]"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span>Enviar Notificação de Pagamento via WhatsApp</span>
+                <span>Enviar Notificação e Comprovante no WhatsApp</span>
               </a>
 
               <button
