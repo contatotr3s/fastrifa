@@ -25,5 +25,11 @@ service cloud.firestore {
       allow create: if true;
       allow update, delete: if request.auth != null;
     }
+
+    // System Settings & Global Themes
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isMaster();
+    }
   }
 }
