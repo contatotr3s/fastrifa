@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import HeroOrbitScene from '@/components/hero-orbit-scene';
+import ScrollToTopButton from '@/components/scroll-to-top-button';
 import {
   ArrowUpRight,
   ArrowRight,
@@ -10,6 +11,7 @@ import {
   MessageCircle,
   Trophy,
   ShieldCheck,
+  Mail,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -490,16 +492,34 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-[#E0E9F7] bg-white py-10 px-4 sm:px-8">
-        <div className="max-w-[1340px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#526480]">
-          <div className="flex items-center gap-3">
+        <div className="max-w-[1340px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-[#526480]">
+          {/* Brand & Rights */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
             <img
               src="/logo-fastrifa.png"
               alt="Fast Rifa"
-              className="h-6 w-auto object-contain"
+              className="h-6 w-auto object-contain flex-shrink-0"
             />
-            <span>© 2026 — Rifa rápida, prática e 100% no PIX.</span>
+            <div className="space-y-0.5">
+              <p className="text-xs sm:text-sm text-[#0D1729] font-medium">
+                © 2026 Fast Rifa. Todos os direitos reservados.
+              </p>
+              <p className="text-xs text-[#526480]">
+                Rifa rápida, prática e 100% no PIX.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-6 font-medium">
+
+          {/* Links & Contact */}
+          <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-6 font-medium text-xs sm:text-sm">
+            <a
+              href="mailto:contatotr3s@gmail.com"
+              className="inline-flex items-center gap-1.5 text-[#526480] hover:text-[#0869F5] transition"
+              title="Fale conosco por e-mail"
+            >
+              <Mail className="w-4 h-4 text-[#0869F5]" />
+              <span>contatotr3s@gmail.com</span>
+            </a>
             <Link href="/admin" className="hover:text-[#0869F5] transition">
               Painel
             </Link>
@@ -509,6 +529,11 @@ export default function HomePage() {
             <Link href="/cadastro" className="hover:text-[#0869F5] transition">
               Criar Conta
             </Link>
+          </div>
+
+          {/* Back to top button na extremidade direita */}
+          <div className="flex items-center justify-end">
+            <ScrollToTopButton />
           </div>
         </div>
       </footer>
