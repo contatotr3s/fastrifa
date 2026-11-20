@@ -770,11 +770,11 @@ export default function PhysicalCardModal({
         drawPixDiamondIcon(ctx2, 104, p2HeaderY + 150, 30, primary);
         ctx2.fillStyle = '#0D1729';
         ctx2.font = 'bold 15px sans-serif';
-        ctx2.fillText('COMO PAGAR PELO QR CODE AO LADO:', 146, p2HeaderY + 162);
+        ctx2.fillText('CHECADOR DE NÚMEROS & PIX SOMADO (PÁGINA EXCLUSIVA):', 146, p2HeaderY + 162);
         ctx2.fillStyle = '#475872';
         ctx2.font = '600 13.5px sans-serif';
         ctx2.fillText(
-          'Escaneie o QR Code → Digite quantas cotas escolheu → O sistema gera o PIX já com o valor total somado!',
+          'Escaneie o QR Code → Cheque se cada número está livre (✓) → Reserve na hora e gere o PIX somado!',
           146,
           p2HeaderY + 184
         );
@@ -794,9 +794,9 @@ export default function PhysicalCardModal({
           ctx2.drawImage(qrPixCalcImg, pixQrBoxX + 33, pixQrBoxY + 8, 150, 150);
         }
         ctx2.fillStyle = primary;
-        ctx2.font = 'bold 13px sans-serif';
+        ctx2.font = 'bold 12px sans-serif';
         ctx2.textAlign = 'center';
-        ctx2.fillText('GERAR PIX SOMADO', pixQrBoxX + 108, pixQrBoxY + 176);
+        ctx2.fillText('CHECAR & GERAR PIX', pixQrBoxX + 108, pixQrBoxY + 176);
 
         // --- FAIXA DE LEGENDA DE VENDIDOS E RESERVADOS NA PÁGINA 2 ---
         const p2LegendY = 284;

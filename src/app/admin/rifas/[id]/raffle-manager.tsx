@@ -302,14 +302,25 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowPhysicalCardModal(true)}
-            className="ora-btn-primary px-5 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer shadow-sm"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Gerar Cartela</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+            <Link
+              href={`/r/${raffle.slug}/pix`}
+              target="_blank"
+              className="ora-btn-secondary px-4 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-sm hover:border-[#0869F5]"
+            >
+              <ExternalLink className="w-4 h-4 text-[#0869F5]" />
+              <span>Abrir Checador Físico</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setShowPhysicalCardModal(true)}
+              className="ora-btn-primary px-5 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Gerar Cartela</span>
+            </button>
+          </div>
         </div>
       )}
 

@@ -518,23 +518,42 @@ export default function RafflePublicView({
               </div>
 
               {raffle.total_tickets <= 200 && (
-                <button
-                  type="button"
-                  onClick={() => setShowPhysicalCardModal(true)}
-                  className="px-4 py-2.5 rounded-2xl bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[#CDE0FC] hover:border-[#0869F5] text-left flex items-center gap-2.5 transition active:scale-95 cursor-pointer self-start sm:self-auto"
-                >
-                  <span className="w-8 h-8 rounded-xl bg-white border border-[#CDE0FC] flex items-center justify-center text-[#0869F5] flex-shrink-0 shadow-sm">
-                    <Printer className="w-4 h-4" />
-                  </span>
-                  <div>
-                    <strong className="block text-xs font-display font-bold text-[#0D1729] leading-tight">
-                      Gerar Cartela
-                    </strong>
-                    <span className="block text-[10px] font-semibold text-[#526480] leading-tight">
-                      Cartela física pronta p/ impressão
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                  <Link
+                    href={`/r/${raffle.slug}/pix`}
+                    className="px-3.5 py-2.5 rounded-2xl bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[#CDE0FC] hover:border-[#0869F5] text-left flex items-center gap-2.5 transition active:scale-95"
+                  >
+                    <span className="w-8 h-8 rounded-xl bg-white border border-[#CDE0FC] flex items-center justify-center text-[#0869F5] flex-shrink-0 shadow-sm">
+                      <Search className="w-4 h-4" />
                     </span>
-                  </div>
-                </button>
+                    <div>
+                      <strong className="block text-xs font-display font-bold text-[#0D1729] leading-tight">
+                        Checador de Números
+                      </strong>
+                      <span className="block text-[10px] font-semibold text-[#526480] leading-tight">
+                        Verificador p/ venda física
+                      </span>
+                    </div>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPhysicalCardModal(true)}
+                    className="px-3.5 py-2.5 rounded-2xl bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[#CDE0FC] hover:border-[#0869F5] text-left flex items-center gap-2.5 transition active:scale-95 cursor-pointer"
+                  >
+                    <span className="w-8 h-8 rounded-xl bg-white border border-[#CDE0FC] flex items-center justify-center text-[#0869F5] flex-shrink-0 shadow-sm">
+                      <Printer className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <strong className="block text-xs font-display font-bold text-[#0D1729] leading-tight">
+                        Gerar Cartela
+                      </strong>
+                      <span className="block text-[10px] font-semibold text-[#526480] leading-tight">
+                        Cartela física pronta p/ impressão
+                      </span>
+                    </div>
+                  </button>
+                </div>
               )}
             </div>
 
