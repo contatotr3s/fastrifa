@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/firebase/auth-context";
-import { ThemeProvider } from "@/lib/theme-context";
+import { ThemeProvider, GLOBAL_THEME_STORAGE_KEY } from "@/lib/theme-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,11 +24,28 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      data-theme="green"
       data-scroll-behavior="smooth"
       className={`${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
+        {/* Anti-FOUC: aplica o tema síncronamente antes do primeiro paint da tela */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function() {
+              try {
+                var stored = localStorage.getItem('${GLOBAL_THEME_STORAGE_KEY}');
+                var match = document.cookie.match(/${GLOBAL_THEME_STORAGE_KEY}=([^;]+)/);
+                var cookieTheme = match ? match[1] : null;
+                var theme = stored || cookieTheme || 'green';
+                document.documentElement.setAttribute('data-theme', theme);
+              } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'green');
+              }
+            })();`,
+          }}
+        />
         <link
           rel="preconnect"
           href="https://api.fontshare.com"

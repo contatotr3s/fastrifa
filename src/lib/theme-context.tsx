@@ -10,6 +10,7 @@ import { syncCreatorBrandColorToRaffles } from './firebase/raffles';
 export type SystemTheme = 'blue' | 'green';
 
 export const GLOBAL_THEME_STORAGE_KEY = 'fastrifa_global_system_theme';
+export const DEFAULT_SYSTEM_THEME: SystemTheme = 'green';
 
 interface ThemeContextType {
   theme: SystemTheme;
@@ -20,8 +21,8 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'blue',
-  globalTheme: 'blue',
+  theme: DEFAULT_SYSTEM_THEME,
+  globalTheme: DEFAULT_SYSTEM_THEME,
   isMaster: false,
   setTheme: async () => {},
   toggleTheme: () => {},
@@ -31,18 +32,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { user, profile, updateProfile } = useAuth();
   const pathname = usePathname();
 
-  // Cor global definida pelo Master (com fallback no cache local ou 'blue')
+  // Cor global definida pelo Master (com fallback no cache local ou 'green' padrão atual)
   const [globalTheme, setGlobalThemeState] = useState<SystemTheme>(() => {
     if (typeof window !== 'undefined') {
       const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
       if (cached === 'blue' || cached === 'green') return cached;
     }
-    return 'blue';
+    return DEFAULT_SYSTEM_THEME;
   });
 
   // Cor individual do usuário logado
-  const [userTheme, setUserThemeState] = useState<SystemTheme>('blue');
-  const [activeTheme, setActiveThemeState] = useState<SystemTheme>('blue');
+  const [userTheme, setUserThemeState] = useState<SystemTheme>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
+      if (cached === 'blue' || cached === 'green') return cached;
+    }
+    return DEFAULT_SYSTEM_THEME;
+  });
+  const [activeTheme, setActiveThemeState] = useState<SystemTheme>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
+      if (cached === 'blue' || cached === 'green') return cached;
+    }
+    return DEFAULT_SYSTEM_THEME;
+  });
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
@@ -72,6 +85,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                 setGlobalThemeState(newGlobal);
                 try {
                   localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, newGlobal);
+                  document.cookie = `${GLOBAL_THEME_STORAGE_KEY}=${newGlobal}; path=/; max-age=31536000; SameSite=Lax`;
                 } catch {}
               }
             }
@@ -147,6 +161,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.setAttribute('data-theme', newTheme);
         try {
           localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, newTheme);
+          document.cookie = `${GLOBAL_THEME_STORAGE_KEY}=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
           if (user) {
             localStorage.setItem(`fastrifa_theme_${user.uid}`, newTheme);
           }
