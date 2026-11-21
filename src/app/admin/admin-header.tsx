@@ -40,11 +40,18 @@ export default function AdminHeader() {
               title={isMaster ? 'FastRifa — Painel Master' : `Painel do Organizador — ${brandName}`}
             >
               {isMaster ? (
-                <img
-                  src="/icone-isolado.png"
-                  alt="Ícone Fast Rifa"
-                  className="w-8 h-8 object-contain flex-shrink-0"
-                />
+                <>
+                  <img
+                    src="/icone-mobile-fastrifa.png"
+                    alt="Fast Rifa"
+                    className="h-7 w-auto object-contain flex-shrink-0 block sm:hidden"
+                  />
+                  <img
+                    src="/icone-isolado.png"
+                    alt="Fast Rifa"
+                    className="w-8 h-8 object-contain flex-shrink-0 hidden sm:block"
+                  />
+                </>
               ) : brandLogo ? (
                 <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-[#D9E5F7] flex-shrink-0">
                   <img
@@ -60,11 +67,18 @@ export default function AdminHeader() {
                   </span>
                 </div>
               ) : (
-                <img
-                  src="/icone-isolado.png"
-                  alt="Ícone Fast Rifa"
-                  className="w-8 h-8 object-contain flex-shrink-0"
-                />
+                <>
+                  <img
+                    src="/icone-mobile-fastrifa.png"
+                    alt="Fast Rifa"
+                    className="h-7 w-auto object-contain flex-shrink-0 block sm:hidden"
+                  />
+                  <img
+                    src="/icone-isolado.png"
+                    alt="Fast Rifa"
+                    className="w-8 h-8 object-contain flex-shrink-0 hidden sm:block"
+                  />
+                </>
               )}
               <div className="flex flex-col text-left">
                 <span className="font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight">
