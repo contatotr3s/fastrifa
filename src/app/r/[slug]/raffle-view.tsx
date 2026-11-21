@@ -93,6 +93,21 @@ export default function RafflePublicView({
     return () => clearInterval(interval);
   }, [allPrizeImages.length, isHoveringImage]);
 
+  // Efeito celebrativo ao abrir página de rifa sorteada/concluída
+  useEffect(() => {
+    if (raffle.status === 'completed' && raffle.winner_ticket != null) {
+      const timer = setTimeout(() => {
+        confetti({
+          particleCount: 85,
+          spread: 75,
+          origin: { y: 0.5 },
+          colors: ['#FFD700', '#0869F5', '#00A868', '#FFFFFF', '#F59E0B'],
+        });
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [raffle.status, raffle.winner_ticket]);
+
   // Checkout modal states
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [buyerName, setBuyerName] = useState('');
@@ -561,21 +576,36 @@ export default function RafflePublicView({
 
         {/* Prize Showcase Card */}
         <section className="ora-card rounded-[32px] p-6 sm:p-10 relative overflow-hidden">
-          {raffle.status === 'completed' && (
-            <div className="mb-7 p-5 bg-[#FFF8EB] border border-[#F5D08A] rounded-[22px] flex items-center gap-4">
-              <span className="p-3 bg-[#9A6700] text-white rounded-2xl">
-                <Trophy className="w-6 h-6" />
-              </span>
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#9A6700] block">
-                  Sorteio Concluído
+          {raffle.status === 'completed' && raffle.winner_ticket != null && (
+            <div className="mb-8 p-6 sm:p-7 bg-gradient-to-r from-[#FFFDF0] via-[#FFF8EB] to-white border-2 border-[#F5D08A] rounded-[26px] shadow-[0_12px_36px_rgba(245,158,11,0.12)] flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden animate-in fade-in">
+              <div className="flex items-start sm:items-center gap-4 relative z-10">
+                <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white flex items-center justify-center flex-shrink-0 shadow-md text-2xl">
+                  🏆
                 </span>
-                <span className="text-base font-bold text-[#0D1729] tabular-nums">
-                  Cota Premiada:{' '}
-                  <strong className="text-[#0869F5] text-lg">
-                    #{raffle.winner_ticket?.toString().padStart(3, '0')}
-                  </strong>
-                  {raffle.winner_name && ` — Parabéns, ${raffle.winner_name}!`}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-white bg-[#9A6700] px-3 py-0.5 rounded-full shadow-xs">
+                      Sorteio Realizado Oficial
+                    </span>
+                    {raffle.draw_date && (
+                      <span className="text-xs text-[#9A6700] font-semibold">
+                        {new Date(raffle.draw_date).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-display font-extrabold text-xl sm:text-2xl text-[#0D1729] tracking-[-0.03em]">
+                    Cota Premiada: <strong className="text-[#0869F5]">#{raffle.winner_ticket.toString().padStart(3, '0')}</strong>
+                  </h3>
+                  <p className="text-sm font-semibold text-[#526480] mt-0.5">
+                    Ganhador Oficial: <strong className="text-[#0D1729]">{raffle.winner_name || 'Comprador da Cota'}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="sm:self-center flex-shrink-0 relative z-10">
+                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-xs font-bold shadow-xs">
+                  <Check className="w-4 h-4" />
+                  <span>Resultado Homologado</span>
                 </span>
               </div>
             </div>
@@ -741,18 +771,22 @@ export default function RafflePublicView({
         </section>
 
         {/* Ticket Selector Section */}
-        {raffle.status === 'active' && (
-          <section className="ora-card rounded-[32px] p-5 sm:p-8 space-y-6 relative z-10">
-            <div>
-              <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
-                Escolha suas cotas
-              </h2>
-              <p className="text-sm sm:text-[15px] text-[#475872] mt-1">
-                Toque nos números desejados na grade abaixo ou adicione pacotes aleatórios com 1 clique.
-              </p>
-            </div>
+        <section className="ora-card rounded-[32px] p-5 sm:p-8 space-y-6 relative z-10">
+          <div>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
+              {raffle.status === 'completed'
+                ? 'Cartela Oficial & Resultado do Sorteio'
+                : 'Escolha suas cotas'}
+            </h2>
+            <p className="text-sm sm:text-[15px] text-[#475872] mt-1">
+              {raffle.status === 'completed'
+                ? 'Esta campanha já foi finalizada. Confira os números e a cota premiada na grade abaixo.'
+                : 'Toque nos números desejados na grade abaixo ou adicione pacotes aleatórios com 1 clique.'}
+            </p>
+          </div>
 
-            {/* Quick Pick Buttons */}
+          {/* Quick Pick Buttons (apenas quando ativa) */}
+          {raffle.status === 'active' && (
             <div className="p-5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[24px] space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#475872] block">
@@ -780,82 +814,107 @@ export default function RafflePublicView({
                 ))}
               </div>
             </div>
+          )}
 
-            {/* Search and Status Legend */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t border-[#E0E9F7]">
-              {/* Legend */}
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#475872] tabular-nums">
+          {/* Search and Status Legend */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t border-[#E0E9F7]">
+            {/* Legend */}
+            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#475872] tabular-nums">
+              {raffle.status === 'completed' && raffle.winner_ticket != null && (
                 <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#F5F9FF] border border-[#D9E5F7]" />
-                  <span>Disponível ({allAvailableNumbers.length})</span>
+                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFD700] border border-[#D97706] shadow-xs" />
+                  <span className="text-[#9A6700] font-bold">
+                    Cota Premiada (#{raffle.winner_ticket.toString().padStart(3, '0')})
+                  </span>
                 </div>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-[5px] bg-[#F5F9FF] border border-[#D9E5F7]" />
+                <span>Disponível ({allAvailableNumbers.length})</span>
+              </div>
+              {raffle.status === 'active' && (
                 <div className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 rounded-[5px] bg-[#0869F5]" />
                   <span>Selecionada ({selectedTickets.length})</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF8EB] border border-[#F5D08A]" />
-                  <span className="text-[#D97706] font-semibold">Reservada ({pendingCount})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF0F0] border border-[#FCA5A5]" />
-                  <span className="text-[#DC2626] font-semibold">Paga ({paidCount})</span>
-                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF8EB] border border-[#F5D08A]" />
+                <span className="text-[#D97706] font-semibold">Reservada ({pendingCount})</span>
               </div>
-
-              {/* Number Search */}
-              <div className="relative w-full sm:w-56">
-                <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#526480]" />
-                <input
-                  type="text"
-                  aria-label="Buscar número da cota"
-                  placeholder="Buscar número..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value.replace(/\D/g, ''))}
-                  className="w-full pl-10 pr-4 py-2 bg-[#F5F9FF] border border-[#D9E5F7] rounded-full text-xs font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] tabular-nums"
-                />
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-[5px] bg-[#FFF0F0] border border-[#FCA5A5]" />
+                <span className="text-[#DC2626] font-semibold">Paga ({paidCount})</span>
               </div>
             </div>
 
-            {/* Numbers Grid */}
-            <div className="max-h-[420px] overflow-y-auto pr-1">
-              <div className="grid grid-cols-5 sm:grid-cols-10 md:grid-cols-10 gap-2 tabular-nums">
-                {visibleNumbers.map((num) => {
-                  const isSelected = selectedSet.has(num);
-                  const status = occupiedMap.get(num);
-                  const isPaid = status === 'paid';
-                  const isPending = status === 'pending';
-
-                  let btnStyle =
-                    'bg-[#F5F9FF] hover:bg-[#EDF5FF] text-[#14213A] border-[#D9E5F7] hover:border-[#0869F5] cursor-pointer';
-
-                  if (isSelected) {
-                    btnStyle =
-                      'bg-[#0869F5] text-white font-bold border-[#0869F5] shadow-[0_8px_18px_rgba(8,105,245,0.28)] scale-[1.02] cursor-pointer';
-                  } else if (isPaid) {
-                    btnStyle =
-                      'bg-[#FFF0F0] text-[#DC2626] border-[#FCA5A5] line-through font-bold opacity-80 cursor-not-allowed shadow-[inset_0_1px_2px_rgba(220,38,38,0.06)]';
-                  } else if (isPending) {
-                    btnStyle =
-                      'bg-[#FFF8EB] text-[#9A6700] border-[#F5D08A] cursor-not-allowed';
-                  }
-
-                  return (
-                    <button
-                      key={num}
-                      type="button"
-                      disabled={isPaid || isPending}
-                      onClick={() => toggleTicket(num)}
-                      className={`h-11 sm:h-12 rounded-[13px] text-xs font-display font-bold transition-all duration-150 active:scale-90 flex items-center justify-center border ${btnStyle}`}
-                    >
-                      {num.toString().padStart(3, '0')}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Number Search */}
+            <div className="relative w-full sm:w-56">
+              <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#526480]" />
+              <input
+                type="text"
+                aria-label="Buscar número da cota"
+                placeholder="Buscar número..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value.replace(/\D/g, ''))}
+                className="w-full pl-10 pr-4 py-2 bg-[#F5F9FF] border border-[#D9E5F7] rounded-full text-xs font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] tabular-nums"
+              />
             </div>
-          </section>
-        )}
+          </div>
+
+          {/* Numbers Grid */}
+          <div className="max-h-[420px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-5 sm:grid-cols-10 md:grid-cols-10 gap-2 tabular-nums">
+              {visibleNumbers.map((num) => {
+                const isWinner =
+                  raffle.status === 'completed' && raffle.winner_ticket === num;
+                const isSelected = selectedSet.has(num);
+                const status = occupiedMap.get(num);
+                const isPaid = status === 'paid';
+                const isPending = status === 'pending';
+
+                let btnStyle =
+                  'bg-[#F5F9FF] hover:bg-[#EDF5FF] text-[#14213A] border-[#D9E5F7] hover:border-[#0869F5] cursor-pointer';
+
+                if (isWinner) {
+                  btnStyle =
+                    'bg-gradient-to-br from-[#FFE899] via-[#FFD700] to-[#F59E0B] text-[#78350F] font-extrabold border-2 border-[#D97706] shadow-[0_0_20px_rgba(245,158,11,0.55)] scale-105 z-10 animate-pulse';
+                } else if (isSelected) {
+                  btnStyle =
+                    'bg-[#0869F5] text-white font-bold border-[#0869F5] shadow-[0_8px_18px_rgba(8,105,245,0.28)] scale-[1.02] cursor-pointer';
+                } else if (isPaid) {
+                  btnStyle =
+                    'bg-[#FFF0F0] text-[#DC2626] border-[#FCA5A5] line-through font-bold opacity-80 cursor-not-allowed shadow-[inset_0_1px_2px_rgba(220,38,38,0.06)]';
+                } else if (isPending) {
+                  btnStyle =
+                    'bg-[#FFF8EB] text-[#9A6700] border-[#F5D08A] cursor-not-allowed';
+                } else if (raffle.status === 'completed') {
+                  btnStyle =
+                    'bg-[#F5F9FF] text-[#8A9BB3] border-[#E0E9F7] cursor-not-allowed opacity-60';
+                }
+
+                return (
+                  <button
+                    key={num}
+                    type="button"
+                    disabled={isPaid || isPending || raffle.status === 'completed'}
+                    onClick={() => toggleTicket(num)}
+                    className={`h-11 sm:h-12 rounded-[13px] text-xs font-display font-bold transition-all duration-150 active:scale-90 flex items-center justify-center border ${btnStyle}`}
+                  >
+                    {isWinner ? (
+                      <span className="flex items-center gap-1">
+                        <span>🏆</span>
+                        <span>{num.toString().padStart(3, '0')}</span>
+                      </span>
+                    ) : (
+                      num.toString().padStart(3, '0')
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
         {/* Footer Brand & Security Attribution */}
         <footer className="pt-2 pb-2 text-center text-xs text-[#526480] space-y-1 relative z-10">
@@ -869,7 +928,7 @@ export default function RafflePublicView({
       </main>
 
       {/* Floating Bottom Capsule (Active when tickets are selected) */}
-      {selectedTickets.length > 0 && (
+      {raffle.status === 'active' && selectedTickets.length > 0 && (
         <div className="fixed bottom-4 inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
           <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[#0869F5] rounded-[24px] px-5 py-4 shadow-[0_20px_50px_rgba(8,105,245,0.22)] flex items-center justify-between gap-4 tabular-nums">
             <div className="space-y-0.5">

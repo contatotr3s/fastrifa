@@ -22,6 +22,10 @@ import {
   Trash2,
   Printer,
   Pencil,
+  Search,
+  CheckCheck,
+  AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { updateOrderStatus, finishRaffle, deleteRaffle } from '@/lib/firebase/raffles';
@@ -43,9 +47,13 @@ export default function RaffleManager({ raffle: initialRaffle, initialOrders }: 
   const [raffle, setCurrentRaffle] = useState<Raffle>(initialRaffle);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'cancelled'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchActionType, setBatchActionType] = useState<'approve' | 'cancel' | null>(null);
+  const [batchSuccessMessage, setBatchSuccessMessage] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
   const email = user?.email?.toLowerCase().trim() || '';
@@ -165,14 +173,121 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
     }
   }
 
-  async function handleFinishDraw(winnerTicket: number, winnerName: string) {
-    await finishRaffle(raffle.id, winnerTicket, winnerName);
-    window.location.reload();
+  async function handleBatchApprovePending() {
+    if (pendingOrders.length === 0) return;
+    if (
+      !confirm(
+        `Deseja confirmar o pagamento de todos os ${pendingOrders.length} pedido(s) pendente(s) de uma vez?`
+      )
+    ) {
+      return;
+    }
+
+    setIsBatchProcessing(true);
+    setBatchActionType('approve');
+    try {
+      await Promise.all(
+        pendingOrders.map((order) => updateOrderStatus(order.id, 'paid'))
+      );
+      setOrders((prev) =>
+        prev.map((o) => (o.status === 'pending' ? { ...o, status: 'paid' } : o))
+      );
+      setBatchSuccessMessage(`${pendingOrders.length} pedido(s) aprovado(s) com sucesso!`);
+      setTimeout(() => setBatchSuccessMessage(null), 3500);
+    } catch (err) {
+      console.error('Erro ao aprovar pedidos em lote:', err);
+      alert('Ocorreu um erro ao processar alguns pedidos.');
+    } finally {
+      setIsBatchProcessing(false);
+      setBatchActionType(null);
+    }
   }
 
+  async function handleBatchCancelPending() {
+    if (pendingOrders.length === 0) return;
+    if (
+      !confirm(
+        `Tem certeza que deseja cancelar todas as ${pendingOrders.length} reserva(s) pendente(s)?\n\nIsso liberará as cotas na grade imediatamente para que outros compradores possam escolher.`
+      )
+    ) {
+      return;
+    }
+
+    setIsBatchProcessing(true);
+    setBatchActionType('cancel');
+    try {
+      await Promise.all(
+        pendingOrders.map((order) => updateOrderStatus(order.id, 'cancelled'))
+      );
+      setOrders((prev) =>
+        prev.map((o) => (o.status === 'pending' ? { ...o, status: 'cancelled' } : o))
+      );
+      setBatchSuccessMessage(`${pendingOrders.length} reserva(s) cancelada(s) e cotas liberadas!`);
+      setTimeout(() => setBatchSuccessMessage(null), 3500);
+    } catch (err) {
+      console.error('Erro ao liberar cotas em lote:', err);
+      alert('Ocorreu um erro ao liberar algumas cotas.');
+    } finally {
+      setIsBatchProcessing(false);
+      setBatchActionType(null);
+    }
+  }
+
+  async function handleFinishDraw(winnerTicket: number, winnerName: string) {
+    await finishRaffle(raffle.id, winnerTicket, winnerName);
+    const now = new Date().toISOString();
+    setCurrentRaffle((prev) => ({
+      ...prev,
+      status: 'completed',
+      winner_ticket: winnerTicket,
+      winner_name: winnerName,
+      draw_date: now,
+    }));
+    setShowDrawModal(false);
+  }
+
+  // Dados do ganhador oficial para comunicação rápida
+  const winnerTicket = raffle.winner_ticket;
+  const winnerOrder =
+    winnerTicket != null
+      ? paidOrders.find((o) => o.ticket_numbers.includes(winnerTicket))
+      : null;
+  const winnerPhone = winnerOrder?.buyer_phone?.replace(/\D/g, '') || '';
+  const resolvedWinnerName =
+    raffle.winner_name || winnerOrder?.buyer_name || 'Ganhador da Cota';
+
+  const winnerWhatsappMessage = `🎉 *PARABÉNS! VOCÊ GANHOU O PRÊMIO!* 🏆
+Olá ${resolvedWinnerName}, sua cota *#${winnerTicket?.toString().padStart(3, '0')}* foi a grande vencedora da rifa *"${raffle.title}"*!
+
+Entre em contato para combinarmos a entrega do seu prêmio.
+— *${raffle.brand_name || 'FastRifa'}*`;
+
+  const winnerWhatsappUrl = winnerPhone
+    ? `https://wa.me/55${winnerPhone}?text=${encodeURIComponent(winnerWhatsappMessage)}`
+    : null;
+
   const filteredOrders = orders.filter((o) => {
-    if (filter === 'all') return true;
-    return o.status === filter;
+    // 1. Filtro por status
+    if (filter !== 'all' && o.status !== filter) return false;
+
+    // 2. Filtro por texto / telefone / cota
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const cleanPhone = (o.buyer_phone || '').replace(/\D/g, '');
+      const cleanDigits = q.replace(/\D/g, '');
+
+      const nameMatch = (o.buyer_name || '').toLowerCase().includes(q);
+      const phoneMatch = cleanDigits ? cleanPhone.includes(cleanDigits) : false;
+      const ticketMatch = o.ticket_numbers.some((num) => {
+        const numStr = num.toString();
+        const numPadded = numStr.padStart(3, '0');
+        return numStr === cleanDigits || numPadded === cleanDigits || numStr.includes(q);
+      });
+
+      return nameMatch || phoneMatch || ticketMatch;
+    }
+
+    return true;
   });
 
   return (
@@ -282,7 +397,7 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
             <span>Ver Página Pública</span>
           </Link>
 
-          {raffle.status === 'active' && (
+          {raffle.status === 'active' ? (
             <button
               type="button"
               onClick={() => setShowDrawModal(true)}
@@ -291,9 +406,73 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
               <Trophy className="w-4 h-4" />
               <span>Realizar Sorteio</span>
             </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowDrawModal(true)}
+              className="ora-btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-full cursor-pointer border-[#F5D08A] text-[#9A6700] hover:bg-[#FFF8EB]"
+              title="Abrir roleta novamente para transmissão ao vivo ou gravação de tela"
+            >
+              <Trophy className="w-4 h-4 text-[#9A6700]" />
+              <span>Ver Roleta</span>
+            </button>
           )}
         </div>
       </div>
+
+      {/* Banner Triunfante de Sorteio Concluído */}
+      {raffle.status === 'completed' && raffle.winner_ticket != null && (
+        <div className="ora-card rounded-[28px] p-6 sm:p-7 bg-gradient-to-r from-[#FFFDF0] via-[#FFF8EB] to-white border-2 border-[#F5D08A] shadow-[0_12px_32px_rgba(245,158,11,0.12)] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <span className="w-12 h-12 rounded-2xl bg-[#9A6700] text-white flex items-center justify-center flex-shrink-0 shadow-sm text-2xl">
+                🏆
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-0.5 rounded-full bg-[#9A6700] text-white text-[11px] font-bold uppercase tracking-wider">
+                    Sorteio Oficial Concluído
+                  </span>
+                  <span className="text-xs text-[#9A6700] font-semibold">
+                    {raffle.draw_date ? new Date(raffle.draw_date).toLocaleString('pt-BR') : 'Finalizado'}
+                  </span>
+                </div>
+                <h3 className="font-display font-extrabold text-xl sm:text-2xl text-[#0D1729] mt-0.5">
+                  Cota Premiada: <span className="text-[#0869F5]">#{String(raffle.winner_ticket).padStart(3, '0')}</span> — {resolvedWinnerName}
+                </h3>
+                {winnerOrder && (
+                  <p className="text-xs text-[#526480] mt-0.5">
+                    Telefone registrado: <strong>{winnerOrder.buyer_phone}</strong> • Total de cotas compradas: {winnerOrder.ticket_numbers.length}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+              {winnerWhatsappUrl && (
+                <a
+                  href={winnerWhatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2.5 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Notificar Ganhador no WhatsApp</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowDrawModal(true)}
+                className="ora-btn-secondary px-4 py-2.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                title="Abrir roleta novamente para transmissão ao vivo ou gravação de tela"
+              >
+                <RotateCcw className="w-4 h-4 text-[#9A6700]" />
+                <span>Reabrir Roleta</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Banner de Cartela Física Pronta para Impressão (Rifas até 200 números) */}
       {raffle.total_tickets <= 200 && (
@@ -429,6 +608,73 @@ Após pagar, envie o comprovante por aqui para confirmarmos suas cotas!
               Confirmados ({paidOrders.length})
             </button>
           </div>
+        </div>
+
+        {/* Batch Success Feedback */}
+        {batchSuccessMessage && (
+          <div className="p-3.5 bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-xs font-bold rounded-[16px] flex items-center gap-2 animate-in fade-in">
+            <CheckCheck className="w-4 h-4 flex-shrink-0" />
+            <span>{batchSuccessMessage}</span>
+          </div>
+        )}
+
+        {/* Search Bar & Batch Actions Toolbar */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-1 border-t border-[#E0E9F7]">
+          {/* Quick Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#526480]" />
+            <input
+              type="text"
+              placeholder="Buscar por comprador, telefone ou cota (ex: #42)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-9 py-2 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-xs font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] transition"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2.5 text-xs font-bold text-[#8A9BB3] hover:text-[#0D1729] cursor-pointer"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+
+          {/* Batch Actions when pending orders exist */}
+          {pendingOrders.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={isBatchProcessing}
+                onClick={handleBatchApprovePending}
+                className="ora-btn-primary px-3.5 py-2 text-xs font-bold rounded-[14px] inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
+                title="Aprova todos os pedidos que estão marcados como pendentes"
+              >
+                {isBatchProcessing && batchActionType === 'approve' ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CheckCheck className="w-3.5 h-3.5" />
+                )}
+                <span>Aprovar Todos os Pendentes ({pendingOrders.length})</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isBatchProcessing}
+                onClick={handleBatchCancelPending}
+                className="px-3.5 py-2 text-xs font-bold rounded-[14px] inline-flex items-center gap-1.5 bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#FECDD3] text-[#BE123C] cursor-pointer disabled:opacity-50 transition"
+                title="Cancela todas as reservas pendentes e devolve os números à grade"
+              >
+                {isBatchProcessing && batchActionType === 'cancel' ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <XCircle className="w-3.5 h-3.5" />
+                )}
+                <span>Liberar Todas as Reservas</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {filteredOrders.length === 0 ? (
