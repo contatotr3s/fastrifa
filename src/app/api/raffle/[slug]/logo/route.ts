@@ -42,22 +42,8 @@ export async function GET(
       }
     }
 
-    // Se for URL externa HTTP/HTTPS
-    if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
-      try {
-        const res = await fetch(rawImage);
-        if (res.ok) {
-          const contentType = res.headers.get('content-type') || 'image/png';
-          const arrayBuf = await res.arrayBuffer();
-          return new NextResponse(Buffer.from(arrayBuf), {
-            status: 200,
-            headers: {
-              'Content-Type': contentType,
-              'Cache-Control': 'public, max-age=86400, stale-while-revalidate=43200',
-            },
-          });
-        }
-      } catch {}
+    // Se for URL externa segura HTTP/HTTPS: redireciona diretamente o cliente sem SSRF
+    if (rawImage.startsWith('https://') || rawImage.startsWith('http://')) {
       return NextResponse.redirect(rawImage);
     }
 
