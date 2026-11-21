@@ -448,8 +448,7 @@ export default function RafflePublicView({
       </div>
 
       {/* Top Floating Pill Navbar with Smooth Feathered Atmosphere */}
-      <header className="sticky top-0 z-40 h-[84px] flex items-center">
-        <div className="ora-header-feather" aria-hidden="true" />
+      <header className="ora-header-container !z-40 flex items-center">
         <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
           <Link
             href="/"

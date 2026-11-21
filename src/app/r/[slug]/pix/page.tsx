@@ -473,8 +473,8 @@ export default function PhysicalCartelaPixPage({
   return (
     <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-16">
       {/* Top Security & Brand Header */}
-      <header className="sticky top-0 z-40 h-[76px] flex items-center bg-white/85 backdrop-blur-md border-b border-[#E0E9F7]">
-        <div className="max-w-xl w-full mx-auto px-4 flex items-center justify-between gap-2">
+      <header className="ora-header-container !z-40 flex items-center">
+        <div className="relative z-10 max-w-xl w-full mx-auto px-4 flex items-center justify-between gap-2">
           <Link
             href={`/r/${raffle.slug}`}
             className="ora-glass-pill rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-bold text-[#0D1729] hover:border-[#0869F5] transition"

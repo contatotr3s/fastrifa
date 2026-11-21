@@ -100,40 +100,84 @@ h1, h2, h3, h4, .font-display {
   box-shadow: 0 8px 24px rgba(32, 75, 134, 0.06);
 }
 
-/* Header translúcido suave inspirado no Oratry, sem máscaras ou rastros */
+/* Header translúcido suave estilo Oratry: blur progressivo sem linha dura e sem rastro */
 .ora-header-container {
   position: sticky;
   top: 0;
   z-index: 50;
-  height: 84px;
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(226, 236, 250, 0.75);
-  transition: background-color 0.25s ease, border-color 0.25s ease;
+  height: 78px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
-/* Transições suaves e luminosas entre seções (Oratry Style) */
+.ora-header-container::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateZ(0);
+  width: 100vw;
+  height: calc(100% + 28px);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.84) 38%,
+    rgba(255, 255, 255, 0.45) 66%,
+    rgba(255, 255, 255, 0.12) 82%,
+    rgba(255, 255, 255, 0) 94%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 42%,
+    rgba(0, 0, 0, 0.6) 65%,
+    rgba(0, 0, 0, 0.16) 80%,
+    rgba(0, 0, 0, 0) 92%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 42%,
+    rgba(0, 0, 0, 0.6) 65%,
+    rgba(0, 0, 0, 0.16) 80%,
+    rgba(0, 0, 0, 0) 92%
+  );
+}
+
+/* Transições atmosféricas suaves entre seções (zero emenda visível) */
 .ora-section-seam {
   position: relative;
-  scroll-margin-top: 96px;
-  border-top: 1px solid #EFF4FB;
+  scroll-margin-top: 86px;
+  border-top: 0;
   background:
-    radial-gradient(circle at 18% 26%, rgba(107, 174, 255, 0.07), transparent 30%),
-    radial-gradient(circle at 82% 64%, rgba(8, 105, 245, 0.05), transparent 32%),
+    radial-gradient(ellipse 65% 48% at 22% 52%, rgba(107, 174, 255, 0.065), transparent 68%),
+    radial-gradient(ellipse 58% 48% at 80% 56%, rgba(8, 105, 245, 0.045), transparent 68%),
     #FFFFFF;
 }
 
-.ora-section-seam::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: min(920px, 82vw);
-  height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, #BDD7FF, transparent);
-  pointer-events: none;
+html[data-theme="green"] .ora-section-seam {
+  background:
+    radial-gradient(ellipse 65% 48% at 22% 52%, rgba(52, 211, 153, 0.075), transparent 68%),
+    radial-gradient(ellipse 58% 48% at 80% 56%, rgba(0, 168, 104, 0.045), transparent 68%),
+    #FFFFFF;
+}
+
+.ora-print-soft-mask {
+  -webkit-mask-image: radial-gradient(108% 106% at 50% 50%, #000 84%, rgba(0, 0, 0, 0.6) 94%, transparent 100%);
+  mask-image: radial-gradient(108% 106% at 50% 50%, #000 84%, rgba(0, 0, 0, 0.6) 94%, transparent 100%);
+}
+
+.ora-demo-stage {
+  background: radial-gradient(ellipse at 50% 40%, #DCECFF, #F5FAFF 80%);
+}
+
+html[data-theme="green"] .ora-demo-stage {
+  background: radial-gradient(ellipse at 50% 40%, #E3F6EC, #F5FBF8 80%);
 }
 
 .ora-nav-link {

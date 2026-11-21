@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import HeroOrbitScene from '@/components/hero-orbit-scene';
+import GradePrintShowcase from '@/components/grade-print-showcase';
 import ScrollToTopButton from '@/components/scroll-to-top-button';
 import {
   ArrowUpRight,
@@ -15,21 +16,6 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const sampleCotas = [
-    { num: '001', status: 'paid' },
-    { num: '002', status: 'paid' },
-    { num: '003', status: 'free' },
-    { num: '004', status: 'selected' },
-    { num: '005', status: 'free' },
-    { num: '006', status: 'pending' },
-    { num: '007', status: 'selected' },
-    { num: '008', status: 'free' },
-    { num: '009', status: 'paid' },
-    { num: '010', status: 'free' },
-    { num: '011', status: 'free' },
-    { num: '012', status: 'selected' },
-  ];
-
   const faqs = [
     {
       q: 'Quanto tempo leva para colocar uma rifa no ar?',
@@ -61,7 +47,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#FFFFFF] text-[#0D1729] flex flex-col">
       {/* Oratry-style Clean Atmosphere Header */}
       <header className="ora-header-container flex items-center">
-        <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
+        <div className="relative z-10 max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
           {/* Brand Pill */}
           <Link
             href="/"
@@ -115,11 +101,11 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-10 pb-16 sm:pt-16 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
+        <section className="ora-hero-stage pt-2 pb-10 sm:pt-3 sm:pb-14 px-4 sm:px-8 relative overflow-hidden">
           <div className="max-w-[1400px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center relative">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
-              <div className="lg:col-span-6 xl:col-span-6 text-left space-y-6 relative z-20 pointer-events-auto">
+              <div className="lg:col-span-6 xl:col-span-6 text-left space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
                 <h1 className="font-display tracking-[-0.04em]">
                   <span className="block text-xl sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1.5 tracking-[-0.03em]">
                     Crie, divulgue e venda.
@@ -180,10 +166,10 @@ export default function HomePage() {
         </section>
 
         {/* Section 2: Interactive Live Demo Stage */}
-        <section id="campanha-ao-vivo" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
+        <section id="campanha-ao-vivo" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1280px] mx-auto">
-            <div className="rounded-[34px] p-6 sm:p-12 lg:p-16 bg-[radial-gradient(ellipse_at_50%_40%,#DCECFF,#F5FAFF_80%)] border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div className="ora-demo-stage rounded-[34px] p-6 sm:p-12 lg:p-14 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
                 {/* Left Editorial Explanation */}
                 <div className="lg:col-span-5 space-y-6">
                   <div className="inline-block px-3.5 py-1.5 rounded-full bg-white text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
@@ -228,69 +214,9 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Right Live Interactive Preview Card */}
+                {/* Right Animated Soft-Frame Print Showcase */}
                 <div className="lg:col-span-7">
-                  <div className="bg-white/95 backdrop-blur-md border border-white rounded-[26px] p-6 sm:p-8 shadow-[0_18px_45px_rgba(28,103,197,0.10)] space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E3EDFB]">
-                      <div>
-                        <span className="inline-block px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold tracking-wide uppercase mb-2">
-                          Demonstração da Grade
-                        </span>
-                        <h3 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
-                          Grade Ágil de Cotas Interativas
-                        </h3>
-                      </div>
-                      <div className="text-left sm:text-right tabular-nums">
-                        <span className="text-xs font-semibold text-[#526480] block">Valor por cota</span>
-                        <span className="font-display font-bold text-3xl text-[#0869F5]">R$ 1,00</span>
-                      </div>
-                    </div>
-
-                    {/* Sample Cota Grid Preview */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs font-semibold text-[#475872]">
-                        <span>Prévia de como seu cliente visualiza</span>
-                        <span className="text-[#0869F5] tabular-nums font-bold">3 cotas selecionadas (R$ 3,00)</span>
-                      </div>
-                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 tabular-nums">
-                        {sampleCotas.map((cota) => {
-                          let style =
-                            'bg-[#F5F9FF] border-[#D9E5F7] text-[#14213A]';
-                          if (cota.status === 'selected') {
-                            style =
-                              'bg-[#0869F5] border-[#0869F5] text-white shadow-[0_6px_16px_rgba(8,105,245,0.25)]';
-                          } else if (cota.status === 'paid') {
-                            style =
-                              'bg-[#FFF0F0] border-[#FCA5A5] text-[#DC2626] line-through font-bold opacity-80';
-                          } else if (cota.status === 'pending') {
-                            style =
-                              'bg-[#FFF8EB] border-[#F5D08A] text-[#9A6700]';
-                          }
-                          return (
-                            <div
-                              key={cota.num}
-                              className={`h-11 rounded-[13px] border font-display font-bold text-xs flex items-center justify-center select-none ${style}`}
-                            >
-                              #{cota.num}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F5F9FF] rounded-[18px] p-4 border border-[#E0E9F7]">
-                      <div className="text-xs sm:text-sm text-[#475872]">
-                        Seu comprador clica nos números da sorte, paga no seu PIX e você confirma pelo painel com 1 clique.
-                      </div>
-                      <Link
-                        href="/cadastro"
-                        className="text-xs font-bold text-[#0869F5] hover:text-[#052498] whitespace-nowrap inline-flex items-center gap-1"
-                      >
-                        <span>Criar minha rifa</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </div>
+                  <GradePrintShowcase />
                 </div>
               </div>
             </div>
@@ -298,7 +224,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 3: How It Works (4 Practical Steps) */}
-        <section id="como-funciona" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
+        <section id="como-funciona" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1340px] mx-auto space-y-14">
             <div className="max-w-2xl">
               <div className="inline-block px-3.5 py-1.5 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC] mb-4">
@@ -393,7 +319,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 4: Transparency & Direct PIX Highlight */}
-        <section id="transparencia" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
+        <section id="transparencia" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1160px] mx-auto">
             <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4">
@@ -429,7 +355,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 5: FAQ Section (Oratry Sticky Split Layout) */}
-        <section id="perguntas" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
+        <section id="perguntas" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4">
               <div className="inline-block px-3.5 py-1.5 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
@@ -462,7 +388,7 @@ export default function HomePage() {
         </section>
 
         {/* Closing CTA Section */}
-        <section className="ora-section-seam py-20 sm:py-28 px-4 text-center">
+        <section className="ora-section-seam py-14 sm:py-20 px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
             <h2 className="font-display font-bold text-[clamp(2.2rem,4.4vw,3.75rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
               Pronto para colocar sua rifa no ar?
