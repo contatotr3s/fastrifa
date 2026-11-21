@@ -397,15 +397,6 @@ export default function PhysicalCartelaPixPage({
     setPixQrDataUrl(qrUrl);
   }
 
-  // Atalho caso queira gerar apenas o QR Code PIX do valor somado sem reservar números
-  async function handleQuickPixWithoutNumbers() {
-    setVerifiedNumbers([]);
-    setReservationConfirmed(false);
-    await buildPixForCurrentAmount(quantity);
-    setStep('pix');
-    fireConfetti('mini');
-  }
-
   function handleResetForNextCustomer() {
     setVerifiedNumbers([]);
     setNumberInput('');
@@ -664,7 +655,7 @@ export default function PhysicalCartelaPixPage({
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div>
               <button
                 type="button"
                 onClick={handleStartChecking}
@@ -675,15 +666,6 @@ export default function PhysicalCartelaPixPage({
                   Verificar Disponibilidade dos {quantity} Números
                 </span>
                 <ArrowRight className="w-5 h-5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleQuickPixWithoutNumbers}
-                className="w-full py-2.5 text-xs font-bold text-[#526480] hover:text-[#0869F5] transition cursor-pointer"
-              >
-                Pular verificação e gerar apenas o QR Code PIX de R${' '}
-                {totalAmount.toFixed(2)} →
               </button>
             </div>
           </section>
