@@ -16,6 +16,18 @@
   --ora-border-strong: #CDE0FC;
   --font-display: 'Satoshi', var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Atmosfera Dinâmica da Órbita 3D e Glows */
+  --ora-glow-primary: rgba(98, 165, 255, 0.38);
+  --ora-glow-secondary: rgba(225, 237, 255, 0.55);
+  --ora-glow-ticket: rgba(98, 165, 255, 0.45);
+  --ora-glow-ticket-core: rgba(8, 105, 245, 0.22);
+  --ora-orbit-ring-1: rgba(185, 211, 248, 0.75);
+  --ora-orbit-ring-2: rgba(205, 224, 252, 0.50);
+  --ora-orbit-shadow: rgba(8, 105, 245, 0.07);
+  --ora-orbit-badge-bg: #EDF5FF;
+  --ora-orbit-badge-border: #D0E2FC;
+  --ora-orbit-badge-text: #0869F5;
 }
 
 @theme inline {
@@ -291,6 +303,18 @@ html[data-theme="green"] {
   --ora-blue-soft: #DCF4E9;
   --ora-border: #D6EFE3;
   --ora-border-strong: #B9E7D2;
+
+  /* Atmosfera Dinâmica da Órbita 3D e Glows adaptados ao Verde */
+  --ora-glow-primary: rgba(16, 185, 129, 0.35);
+  --ora-glow-secondary: rgba(220, 244, 233, 0.50);
+  --ora-glow-ticket: rgba(16, 185, 129, 0.40);
+  --ora-glow-ticket-core: rgba(0, 168, 104, 0.22);
+  --ora-orbit-ring-1: rgba(167, 243, 208, 0.75);
+  --ora-orbit-ring-2: rgba(185, 231, 210, 0.50);
+  --ora-orbit-shadow: rgba(0, 168, 104, 0.08);
+  --ora-orbit-badge-bg: #E8F7F0;
+  --ora-orbit-badge-border: #B9E7D2;
+  --ora-orbit-badge-text: #00A868;
 }
 
 html[data-theme="green"] ::selection {

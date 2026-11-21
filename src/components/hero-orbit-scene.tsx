@@ -142,16 +142,16 @@ export default function HeroOrbitScene() {
       className="fr-orbit-root relative w-full max-w-[920px] sm:max-w-[1040px] lg:max-w-[1140px] h-[520px] sm:h-[580px] lg:h-[620px] mx-auto flex items-center justify-center select-none overflow-visible pointer-events-none"
       aria-label="FastRifa em órbita tridimensional interativa"
     >
-      {/* Brilho radial de fundo ampliado */}
+      {/* Brilho radial de fundo ampliado dinâmico */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute w-[480px] h-[480px] sm:w-[680px] sm:h-[680px] rounded-full blur-3xl -z-10 bg-[radial-gradient(circle,rgba(98,165,255,0.38)_0%,rgba(225,237,255,0.55)_45%,transparent_72%)]"
+        className="fr-orbit-glow-bg pointer-events-none absolute w-[480px] h-[480px] sm:w-[680px] sm:h-[680px] rounded-full blur-3xl -z-10"
       />
 
-      {/* Anéis da órbita inclinados com diâmetro generoso */}
+      {/* Anéis da órbita inclinados com diâmetro generoso dinâmicos */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed border-[#B9D3F8]/75"
+        className="fr-orbit-ring-1 pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed"
         style={{
           width: 710,
           height: 345,
@@ -160,7 +160,7 @@ export default function HeroOrbitScene() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border border-[#CDE0FC]/50 shadow-[0_0_35px_rgba(8,105,245,0.07)]"
+        className="fr-orbit-ring-2 pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border"
         style={{
           width: 795,
           height: 390,
@@ -178,7 +178,7 @@ export default function HeroOrbitScene() {
         <div className="relative w-[295px] h-[148px] sm:w-[350px] sm:h-[170px] flex items-center justify-center">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -inset-6 rounded-full blur-2xl animate-pulse bg-[radial-gradient(circle,rgba(98,165,255,0.45)_0%,rgba(8,105,245,0.22)_55%,transparent_75%)]"
+            className="fr-ticket-glow pointer-events-none absolute -inset-6 rounded-full blur-2xl animate-pulse"
           />
 
           <div className="fr-ticket-holder">
@@ -213,7 +213,7 @@ export default function HeroOrbitScene() {
       {/* 1. Card: Criação em 2 min */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
         <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
-          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+          <span className="fr-orbit-badge w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] flex items-center justify-center flex-shrink-0 border shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -224,7 +224,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-zap w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
+              className="lucide lucide-zap w-4.5 h-4.5 sm:w-5 sm:h-5"
               aria-hidden="true"
             >
               <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" />
@@ -319,7 +319,7 @@ export default function HeroOrbitScene() {
       {/* 3. Card: Chave PIX Direta */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
         <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
-          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+          <span className="fr-orbit-badge w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] flex items-center justify-center flex-shrink-0 border shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -330,7 +330,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-qr-code w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
+              className="lucide lucide-qr-code w-4.5 h-4.5 sm:w-5 sm:h-5"
               aria-hidden="true"
             >
               <rect width="5" height="5" x="3" y="3" rx="1" />
@@ -402,7 +402,7 @@ export default function HeroOrbitScene() {
       {/* 5. Card: Link pro WhatsApp */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
         <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
-          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+          <span className="fr-orbit-badge w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] flex items-center justify-center flex-shrink-0 border shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -413,7 +413,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-message-circle w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
+              className="lucide lucide-message-circle w-4.5 h-4.5 sm:w-5 sm:h-5"
               aria-hidden="true"
             >
               <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
@@ -449,7 +449,7 @@ export default function HeroOrbitScene() {
       {/* 7. Card: Grade em Tempo Real */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
         <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
-          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+          <span className="fr-orbit-badge w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] flex items-center justify-center flex-shrink-0 border shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -460,7 +460,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-layout-grid w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
+              className="lucide lucide-layout-grid w-4.5 h-4.5 sm:w-5 sm:h-5"
               aria-hidden="true"
             >
               <rect width="7" height="7" x="3" y="3" rx="1" />
@@ -501,7 +501,7 @@ export default function HeroOrbitScene() {
       {/* 9. Card: Sem Taxa no Saque */}
       <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
         <div className="flex items-center gap-3 sm:gap-3.5 bg-white/95 backdrop-blur-md border border-[#E0E9F7] rounded-[22px] px-4 py-2.5 sm:px-4.5 sm:py-3 transition-colors">
-          <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0 border border-[#D0E2FC] shadow-sm">
+          <span className="fr-orbit-badge w-9 h-9 sm:w-10 sm:h-10 rounded-[14px] flex items-center justify-center flex-shrink-0 border shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -512,7 +512,7 @@ export default function HeroOrbitScene() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-shield-check w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#0869F5]"
+              className="lucide lucide-shield-check w-4.5 h-4.5 sm:w-5 sm:h-5"
               aria-hidden="true"
             >
               <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
@@ -555,6 +555,39 @@ export default function HeroOrbitScene() {
       </div>
 
       <style>{`
+        .fr-orbit-root .fr-orbit-glow-bg {
+          background: radial-gradient(
+            circle,
+            var(--ora-glow-primary, rgba(98, 165, 255, 0.38)) 0%,
+            var(--ora-glow-secondary, rgba(225, 237, 255, 0.55)) 45%,
+            transparent 72%
+          );
+        }
+
+        .fr-orbit-root .fr-orbit-ring-1 {
+          border-color: var(--ora-orbit-ring-1, rgba(185, 211, 248, 0.75));
+        }
+
+        .fr-orbit-root .fr-orbit-ring-2 {
+          border-color: var(--ora-orbit-ring-2, rgba(205, 224, 252, 0.50));
+          box-shadow: 0 0 35px var(--ora-orbit-shadow, rgba(8, 105, 245, 0.07));
+        }
+
+        .fr-orbit-root .fr-ticket-glow {
+          background: radial-gradient(
+            circle,
+            var(--ora-glow-ticket, rgba(98, 165, 255, 0.45)) 0%,
+            var(--ora-glow-ticket-core, rgba(8, 105, 245, 0.22)) 55%,
+            transparent 75%
+          );
+        }
+
+        .fr-orbit-root .fr-orbit-badge {
+          background-color: var(--ora-orbit-badge-bg, #EDF5FF);
+          border-color: var(--ora-orbit-badge-border, #D0E2FC);
+          color: var(--ora-orbit-badge-text, #0869F5);
+        }
+
         .fr-orbit-root .fr-object {
           position: absolute;
           top: 50%;
