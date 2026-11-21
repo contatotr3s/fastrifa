@@ -131,14 +131,14 @@ export default function GradePrintShowcase() {
       {/* Moldura flutuante 3D que responde ao scroll e ao mouse */}
       <div
         ref={frameRef}
-        className="relative z-10 w-full max-w-[660px] will-change-transform rounded-[30px] p-1.5 sm:p-2 bg-white/55 backdrop-blur-md border border-white/90 shadow-[0_24px_65px_rgba(24,74,120,0.12),0_4px_18px_rgba(255,255,255,0.8)_inset] transition-shadow duration-300"
+        className="relative z-10 w-full max-w-[560px] mx-auto will-change-transform rounded-[26px] p-1.5 sm:p-2 bg-white/60 backdrop-blur-md border border-white/90 shadow-[0_20px_50px_rgba(24,74,120,0.10),0_4px_18px_rgba(255,255,255,0.8)_inset] transition-shadow duration-300"
       >
-        <div className="relative overflow-hidden rounded-[24px]">
+        <div className="relative overflow-hidden rounded-[22px]">
           <img
             src="/demo-grade-print.jpg"
             alt="Demonstração da Grade Ágil de Cotas Interativas FastRifa"
             draggable={false}
-            className="w-full h-auto block object-cover rounded-[24px] ora-print-soft-mask"
+            className="w-full max-h-[min(420px,50vh)] object-contain block mx-auto ora-print-soft-mask"
           />
 
           {/* Reflexo luminoso suave ao passar o mouse */}

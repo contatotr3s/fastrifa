@@ -46,12 +46,16 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#0D1729] flex flex-col">
       {/* Oratry-style Clean Atmosphere Header */}
-      <header className="ora-header-container flex items-center">
+      <header
+        data-menu-open="false"
+        style={{ '--nav-blur-height': '75px' } as React.CSSProperties}
+        className="ora-header-container flex items-center"
+      >
         <div className="relative z-10 max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
           {/* Brand Pill */}
           <Link
             href="/"
-            className="ora-glass-pill rounded-full px-4 py-2 flex items-center justify-center hover:scale-[1.02]"
+            className="ora-glass-pill rounded-full px-4 py-2 flex items-center justify-center hover:border-[#B9D3F8] transition"
           >
             <img
               src="/logo-fastrifa.png"
@@ -60,10 +64,10 @@ export default function HomePage() {
             />
           </Link>
 
-          {/* Center Navigation Pill with Oratry + iOS 26 Liquid Glass Links */}
+          {/* Center Navigation Pill with Oratry Smooth Links */}
           <nav
             aria-label="Navegação principal"
-            className="ora-glass-pill rounded-full px-2.5 py-1.5 hidden md:flex items-center gap-1"
+            className="ora-glass-pill rounded-full px-3 py-1.5 hidden md:flex items-center gap-1"
           >
             <a href="#como-funciona" className="ora-nav-link">
               Como funciona
@@ -83,7 +87,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2.5">
             <Link
               href="/login"
-              className="ora-liquid-btn rounded-full px-4 sm:px-5 py-2.5 text-[14px] font-semibold inline-flex items-center gap-2"
+              className="ora-btn-secondary rounded-full px-4 sm:px-5 py-2.5 text-[14px] font-semibold inline-flex items-center gap-2"
             >
               <UserCheck className="w-4 h-4 text-[#0869F5]" />
               <span>Entrar</span>
@@ -165,48 +169,48 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Section 2: Interactive Live Demo Stage */}
-        <section id="campanha-ao-vivo" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
-          <div className="max-w-[1280px] mx-auto">
-            <div className="ora-demo-stage rounded-[34px] p-6 sm:p-12 lg:p-14 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+        {/* Section 2: Interactive Live Demo Stage (Ajustado à dimensão da tela) */}
+        <section id="campanha-ao-vivo" className="ora-section-seam py-8 sm:py-10 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-4 sm:px-8">
+          <div className="max-w-[1280px] w-full mx-auto">
+            <div className="ora-demo-stage rounded-[30px] p-6 sm:p-8 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
-                <div className="lg:col-span-5 space-y-6">
-                  <div className="inline-block px-3.5 py-1.5 rounded-full bg-white text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
+                <div className="lg:col-span-5 space-y-4">
+                  <div className="inline-block px-3.5 py-1 rounded-full bg-white text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
                     Experiência do Comprador
                   </div>
-                  <h2 className="font-display font-bold text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
+                  <h2 className="font-display font-bold text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.12] tracking-[-0.035em] text-[#0D1729]">
                     Pro seu cliente é vapt-vupt: escolheu, pagou no PIX, confirmou.
                   </h2>
-                  <p className="text-[16px] sm:text-[17px] text-[#475872] leading-[1.6]">
+                  <p className="text-[14.5px] sm:text-[15.5px] text-[#475872] leading-[1.55]">
                     Zero atrito. O comprador não precisa baixar nenhum aplicativo e nem criar conta com senha. Ele abre o seu link no celular, escolhe os números da sorte em segundos e já te manda o comprovante no WhatsApp.
                   </p>
 
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-3 text-[15px] font-medium text-[#14213A]">
-                      <span className="w-6 h-6 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-xs font-bold">
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#14213A]">
+                      <span className="w-5 h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Grade interativa com números livres e ocupados em tempo real</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[15px] font-medium text-[#14213A]">
-                      <span className="w-6 h-6 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-xs font-bold">
+                    <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#14213A]">
+                      <span className="w-5 h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Seleção rápida da sorte (+5, +10, +25, +50 cotas com um toque)</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[15px] font-medium text-[#14213A]">
-                      <span className="w-6 h-6 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-xs font-bold">
+                    <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#14213A]">
+                      <span className="w-5 h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Chave PIX copiada com 1 clique e envio do comprovante no zap</span>
                     </div>
                   </div>
 
-                  <div className="pt-4">
+                  <div className="pt-2">
                     <Link
                       href="/cadastro"
-                      className="ora-btn-primary rounded-[18px] px-7 py-3.5 text-[15px] font-bold inline-flex items-center gap-2"
+                      className="ora-btn-primary rounded-[18px] px-6 py-3 text-[14.5px] font-bold inline-flex items-center gap-2"
                     >
                       <span>Criar Minha Rifa Agora</span>
                       <ArrowUpRight className="w-4 h-4" />
@@ -215,7 +219,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Right Animated Soft-Frame Print Showcase */}
-                <div className="lg:col-span-7">
+                <div className="lg:col-span-7 flex items-center justify-center">
                   <GradePrintShowcase />
                 </div>
               </div>
