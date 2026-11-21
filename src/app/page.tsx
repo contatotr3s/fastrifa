@@ -51,7 +51,7 @@ export default function HomePage() {
           {/* Brand Pill */}
           <Link
             href="/"
-            className="ora-glass-pill rounded-full px-4 py-2 flex items-center justify-center hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full px-4 py-2 flex items-center justify-center hover:scale-[1.02]"
           >
             <img
               src="/logo-fastrifa.png"
@@ -60,10 +60,10 @@ export default function HomePage() {
             />
           </Link>
 
-          {/* Center Navigation Pill with Oratry Smooth Links */}
+          {/* Center Navigation Pill with Oratry + iOS 26 Liquid Glass Links */}
           <nav
             aria-label="Navegação principal"
-            className="ora-glass-pill rounded-full px-3 py-1.5 hidden md:flex items-center gap-1"
+            className="ora-glass-pill rounded-full px-2.5 py-1.5 hidden md:flex items-center gap-1"
           >
             <a href="#como-funciona" className="ora-nav-link">
               Como funciona
@@ -83,7 +83,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2.5">
             <Link
               href="/login"
-              className="ora-btn-secondary rounded-full px-4 sm:px-5 py-2.5 text-[14px] font-semibold inline-flex items-center gap-2"
+              className="ora-liquid-btn rounded-full px-4 sm:px-5 py-2.5 text-[14px] font-semibold inline-flex items-center gap-2"
             >
               <UserCheck className="w-4 h-4 text-[#0869F5]" />
               <span>Entrar</span>

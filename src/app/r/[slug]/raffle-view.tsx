@@ -498,7 +498,7 @@ export default function RafflePublicView({
                 </Link>
                 <Link
                   href={profile?.role === 'master' ? '/admin/master' : '/admin'}
-                  className="ora-btn-secondary rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 text-[#475872] hover:text-[#0D1729]"
+                  className="ora-liquid-btn rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 text-[#475872] hover:text-[#0D1729]"
                 >
                   <span>Painel</span>
                 </Link>
@@ -506,7 +506,7 @@ export default function RafflePublicView({
             ) : (
               <Link
                 href="/cadastro"
-                className="ora-btn-secondary rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5"
+                className="ora-liquid-btn rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5"
               >
                 <span>Criar Minha Rifa</span>
                 <ArrowUpRight className="w-4 h-4 text-[#0869F5]" />
