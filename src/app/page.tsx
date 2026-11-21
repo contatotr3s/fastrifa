@@ -6,7 +6,7 @@ import {
   ArrowRight,
   CheckCircle2,
   UserCheck,
-  Sparkles,
+  Zap,
   QrCode,
   MessageCircle,
   Trophy,
@@ -59,10 +59,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#0D1729] flex flex-col">
-      {/* Oratry-style Floating Pill Header with Smooth Feathered Atmosphere */}
-      <header className="sticky top-0 z-50 h-[92px] flex items-center">
-        <div className="ora-header-feather" aria-hidden="true" />
-        <div className="relative z-10 max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
+      {/* Oratry-style Clean Atmosphere Header */}
+      <header className="ora-header-container flex items-center">
+        <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
           {/* Brand Pill */}
           <Link
             href="/"
@@ -75,21 +74,21 @@ export default function HomePage() {
             />
           </Link>
 
-          {/* Center Navigation Pill */}
+          {/* Center Navigation Pill with Oratry Smooth Links */}
           <nav
             aria-label="Navegação principal"
-            className="ora-glass-pill rounded-full px-7 py-3 hidden md:flex items-center gap-8 text-[15px] font-medium text-[#475872]"
+            className="ora-glass-pill rounded-full px-3 py-1.5 hidden md:flex items-center gap-1"
           >
-            <a href="#como-funciona" className="hover:text-[#0869F5] transition">
+            <a href="#como-funciona" className="ora-nav-link">
               Como funciona
             </a>
-            <a href="#campanha-ao-vivo" className="hover:text-[#0869F5] transition">
+            <a href="#campanha-ao-vivo" className="ora-nav-link">
               Demonstração
             </a>
-            <a href="#transparencia" className="hover:text-[#0869F5] transition">
+            <a href="#transparencia" className="ora-nav-link">
               PIX Direto
             </a>
-            <a href="#perguntas" className="hover:text-[#0869F5] transition">
+            <a href="#perguntas" className="ora-nav-link">
               Dúvidas
             </a>
           </nav>
@@ -116,17 +115,11 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-8 pb-16 sm:pt-12 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
+        <section className="ora-hero-stage pt-10 pb-16 sm:pt-16 sm:pb-24 px-4 sm:px-8 relative overflow-hidden">
           <div className="max-w-[1400px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
               <div className="lg:col-span-6 xl:col-span-6 text-left space-y-6 relative z-20 pointer-events-auto">
-                {/* Top Pill Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-xs sm:text-sm font-bold tracking-wide">
-                  <span className="w-2 h-2 rounded-full bg-[#0869F5] animate-pulse" />
-                  <span>Rifa Rápida e Prática • 100% Direto no seu PIX</span>
-                </div>
-
                 <h1 className="font-display tracking-[-0.04em]">
                   <span className="block text-xl sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1.5 tracking-[-0.03em]">
                     Crie, divulgue e venda.
@@ -187,7 +180,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 2: Interactive Live Demo Stage */}
-        <section id="campanha-ao-vivo" className="py-20 sm:py-28 px-4 sm:px-8">
+        <section id="campanha-ao-vivo" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
           <div className="max-w-[1280px] mx-auto">
             <div className="rounded-[34px] p-6 sm:p-12 lg:p-16 bg-[radial-gradient(ellipse_at_50%_40%,#DCECFF,#F5FAFF_80%)] border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
@@ -305,7 +298,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 3: How It Works (4 Practical Steps) */}
-        <section id="como-funciona" className="ora-section-glow py-20 sm:py-28 px-4 sm:px-8">
+        <section id="como-funciona" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
           <div className="max-w-[1340px] mx-auto space-y-14">
             <div className="max-w-2xl">
               <div className="inline-block px-3.5 py-1.5 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC] mb-4">
@@ -324,7 +317,7 @@ export default function HomePage() {
               <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
-                    <Sparkles className="w-6 h-6" />
+                    <Zap className="w-6 h-6" />
                   </div>
                   <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 1</span>
                   <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
@@ -400,7 +393,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 4: Transparency & Direct PIX Highlight */}
-        <section id="transparencia" className="py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-b from-white via-[#F7FAFF] to-white">
+        <section id="transparencia" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
           <div className="max-w-[1160px] mx-auto">
             <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4">
@@ -436,7 +429,7 @@ export default function HomePage() {
         </section>
 
         {/* Section 5: FAQ Section (Oratry Sticky Split Layout) */}
-        <section id="perguntas" className="py-20 sm:py-28 px-4 sm:px-8 bg-gradient-to-b from-white to-[#F5F9FF]">
+        <section id="perguntas" className="ora-section-seam py-20 sm:py-28 px-4 sm:px-8">
           <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4">
               <div className="inline-block px-3.5 py-1.5 rounded-full bg-[#EDF5FF] text-[#0755DE] text-xs font-bold uppercase tracking-wider border border-[#CDE0FC]">
@@ -469,7 +462,7 @@ export default function HomePage() {
         </section>
 
         {/* Closing CTA Section */}
-        <section className="py-20 sm:py-28 px-4 text-center bg-[radial-gradient(ellipse_at_50%_95%,#E5F0FF_0%,transparent_65%),#FFFFFF]">
+        <section className="ora-section-seam py-20 sm:py-28 px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
             <h2 className="font-display font-bold text-[clamp(2.2rem,4.4vw,3.75rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
               Pronto para colocar sua rifa no ar?
