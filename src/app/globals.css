@@ -149,22 +149,39 @@ h1, h2, h3, h4, .font-display {
   );
 }
 
-/* Transições atmosféricas suaves entre seções (zero emenda visível) */
+/* Transições suaves e dividers luminosos entre seções (Oratry Style) */
 .ora-section-seam {
   position: relative;
   scroll-margin-top: 86px;
-  border-top: 0;
+  border-top: 1px solid #EFF4FB;
   background:
     radial-gradient(ellipse 65% 48% at 22% 52%, rgba(107, 174, 255, 0.065), transparent 68%),
     radial-gradient(ellipse 58% 48% at 80% 56%, rgba(8, 105, 245, 0.045), transparent 68%),
     #FFFFFF;
 }
 
+.ora-section-seam::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: min(920px, 82vw);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, #BDD7FF, transparent);
+  pointer-events: none;
+}
+
 html[data-theme="green"] .ora-section-seam {
+  border-top-color: #E6F4EC;
   background:
     radial-gradient(ellipse 65% 48% at 22% 52%, rgba(52, 211, 153, 0.075), transparent 68%),
     radial-gradient(ellipse 58% 48% at 80% 56%, rgba(0, 168, 104, 0.045), transparent 68%),
     #FFFFFF;
+}
+
+html[data-theme="green"] .ora-section-seam::before {
+  background: linear-gradient(90deg, transparent, #A3E4C6, transparent);
 }
 
 .ora-print-soft-mask {
