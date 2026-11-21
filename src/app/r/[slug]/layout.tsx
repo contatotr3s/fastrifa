@@ -36,13 +36,15 @@ export async function generateMetadata({
 
   const imageUrl = `${host}/api/raffle/${slug}/logo`;
 
+  const faviconUrl = raffle.brand_logo_url || `${host}/icone-mobile-fastrifa.png`;
+
   return {
     title: pageTitle,
     description: pageDescription,
     icons: {
-      icon: imageUrl,
-      shortcut: imageUrl,
-      apple: imageUrl,
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
     },
     openGraph: {
       type: 'website',

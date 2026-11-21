@@ -25,6 +25,7 @@ import {
   Pencil,
   Eye,
   AlertTriangle,
+  ArrowRight,
 } from 'lucide-react';
 import { createOrder } from '@/lib/firebase/raffles';
 import { generateBrandInitials } from '@/lib/image-processor';
@@ -243,6 +244,15 @@ export default function RafflePublicView({
       .catch(() => setPixQrCodeUrl(''));
   }, [confirmedOrder, raffle]);
 
+  // Sincroniza o tema da rifa ou o tema global padrão (verde)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const globalTheme =
+      localStorage.getItem('fastrifa_global_system_theme') || 'green';
+    const themeToApply = raffle.brand_color ? raffle.brand_color : globalTheme;
+    document.documentElement.setAttribute('data-theme', themeToApply);
+  }, [raffle.brand_color]);
+
   // Handle clicking a number in the grid
   function toggleTicket(num: number) {
     if (raffle.status !== 'active') return;
@@ -401,112 +411,33 @@ export default function RafflePublicView({
 
   return (
     <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-8 sm:pb-12 relative overflow-hidden">
-      {/* Elementos de Sorte Sutis com Baixa Opacidade ao redor da página */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
-      >
-        {/* Trevo superior esquerdo */}
-        <svg
-          viewBox="0 0 120 144"
-          className="w-28 h-28 sm:w-36 sm:h-36 absolute top-24 -left-6 sm:left-6 opacity-[0.055] -rotate-12 text-[#0869F5]"
-          fill="currentColor"
-        >
-          <circle cx="60" cy="36" r="22" />
-          <circle cx="84" cy="60" r="22" />
-          <circle cx="60" cy="84" r="22" />
-          <circle cx="36" cy="60" r="22" />
-          <path
-            d="M60 84 Q78 112 66 136"
-            stroke="currentColor"
-            strokeWidth="8"
-            strokeLinecap="round"
-            fill="none"
-          />
-        </svg>
-
-        {/* Ferradura superior direita */}
-        <svg
-          viewBox="0 0 120 125"
-          className="w-28 h-28 sm:w-36 sm:h-36 absolute top-28 -right-6 sm:right-8 opacity-[0.055] rotate-12 text-[#0869F5]"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="18"
-          strokeLinecap="round"
-        >
-          <path d="M35 22 C16 42, 16 78, 36 96 C50 108, 70 108, 84 96 C104 78, 104 42, 85 22" />
-        </svg>
-
-        {/* Trevo inferior direito */}
-        <svg
-          viewBox="0 0 120 144"
-          className="w-32 h-32 absolute bottom-20 right-6 opacity-[0.045] rotate-15 text-[#0869F5] hidden md:block"
-          fill="currentColor"
-        >
-          <circle cx="60" cy="36" r="22" />
-          <circle cx="84" cy="60" r="22" />
-          <circle cx="60" cy="84" r="22" />
-          <circle cx="36" cy="60" r="22" />
-        </svg>
-
-        {/* Ferradura inferior esquerda */}
-        <svg
-          viewBox="0 0 120 125"
-          className="w-32 h-32 absolute bottom-24 left-8 opacity-[0.045] -rotate-15 text-[#0869F5] hidden md:block"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="18"
-          strokeLinecap="round"
-        >
-          <path d="M35 22 C16 42, 16 78, 36 96 C50 108, 70 108, 84 96 C104 78, 104 42, 85 22" />
-        </svg>
-      </div>
-
       {/* Top Floating Pill Navbar with Smooth Feathered Atmosphere */}
       <header className="ora-header-container !z-40 flex items-center">
         <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="ora-glass-pill rounded-full px-3.5 sm:px-4 py-2 flex items-center justify-center hover:border-[#B9D3F8] transition flex-shrink-0"
-          >
-            {/* Desktop: Logo completa */}
-            <img
-              src="/logo-fastrifa.png"
-              alt="Fast Rifa"
-              className="h-8 w-auto object-contain hidden sm:block"
-            />
-            {/* Mobile celular: Ícone do bilhete FR */}
-            <img
-              src="/icone-mobile-fastrifa.png"
-              alt="Fast Rifa"
-              className="h-7 w-auto object-contain block sm:hidden"
-            />
-          </Link>
-
-          {/* Organizer Brand Badge (Visível em todas as telas para reforçar a marca do criador) */}
-          {raffle.brand_name && (
-            <div className="ora-glass-pill rounded-full px-3 sm:px-3.5 py-1.5 flex items-center gap-2 sm:gap-2.5 border-[#CDE0FC]">
-              <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white text-[10px] font-bold flex-shrink-0 shadow-sm">
+          {/* Logo do Cliente / Organizador em Destaque no Topo */}
+          <div className="flex items-center gap-3">
+            <div className="ora-glass-pill rounded-[20px] px-3.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-3 border-[#CDE0FC] shadow-xs">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-[14px] overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#A7F3D0] to-[var(--ora-blue,#00A868)] text-white text-xs sm:text-sm font-bold flex-shrink-0 shadow-sm border border-white">
                 {raffle.brand_logo_url ? (
                   <img
                     src={raffle.brand_logo_url}
-                    alt={raffle.brand_name}
+                    alt={raffle.brand_name || 'Organizador'}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span>{generateBrandInitials(raffle.brand_name)}</span>
+                  <span>{generateBrandInitials(raffle.brand_name || 'FR')}</span>
                 )}
               </div>
               <div className="text-left">
                 <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#526480] block leading-none">
-                  Organizador
+                  Campanha Oficial de
                 </span>
-                <strong className="text-[11px] sm:text-xs text-[#0D1729] font-bold leading-tight block truncate max-w-[110px] sm:max-w-none">
-                  {raffle.brand_name}
+                <strong className="text-[13px] sm:text-[15px] text-[#0D1729] font-bold leading-tight block truncate max-w-[150px] sm:max-w-[280px]">
+                  {raffle.brand_name || 'Organizador Oficial'}
                 </strong>
               </div>
             </div>
-          )}
+          </div>
 
           <div className="flex items-center gap-2">
             {user ? (
@@ -923,21 +854,50 @@ export default function RafflePublicView({
           </div>
         </section>
 
-        {/* Footer Brand & Security Attribution */}
-        <footer className="pt-2 pb-2 text-center text-xs text-[#526480] space-y-1 relative z-10">
-          <p className="font-semibold text-[#0D1729]">
-            Campanha gerenciada por <strong>{raffle.brand_name || 'Organizador Oficial'}</strong>
-          </p>
-          <p className="text-[11px] text-[#526480]">
-            Tecnologia FastRifa • Pagamentos 100% diretos via PIX sem intermediários
-          </p>
+        {/* Footer Brand, FastRifa Attribution & CTA Crie Sua Rifa */}
+        <footer className="pt-8 pb-4 text-center text-xs text-[#526480] space-y-3.5 relative z-10 max-w-xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 group hover:opacity-90 transition"
+              title="FastRifa Oficial"
+            >
+              <img
+                src="/logo-fastrifa.png"
+                alt="FastRifa"
+                className="h-6 w-auto object-contain hidden sm:block opacity-90 group-hover:opacity-100"
+              />
+              <img
+                src="/icone-mobile-fastrifa.png"
+                alt="FastRifa"
+                className="h-6 w-auto object-contain block sm:hidden"
+              />
+            </Link>
+
+            <Link
+              href="/"
+              className="ora-btn-secondary rounded-full px-4 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 shadow-xs"
+            >
+              <span>Crie sua rifa</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[var(--ora-blue,#00A868)]" />
+            </Link>
+          </div>
+
+          <div className="space-y-0.5">
+            <p className="font-semibold text-[#0D1729]">
+              Campanha gerenciada por <strong>{raffle.brand_name || 'Organizador Oficial'}</strong>
+            </p>
+            <p className="text-[11px] text-[#526480]">
+              Tecnologia FastRifa • Pagamentos 100% diretos via PIX sem intermediários
+            </p>
+          </div>
         </footer>
       </main>
 
       {/* Floating Bottom Capsule (Active when tickets are selected) */}
       {raffle.status === 'active' && selectedTickets.length > 0 && (
         <div className="fixed bottom-4 inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
-          <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[#0869F5] rounded-[24px] px-5 py-4 shadow-[0_20px_50px_rgba(8,105,245,0.22)] flex items-center justify-between gap-4 tabular-nums">
+          <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[24px] px-5 py-4 shadow-[0_20px_50px_rgba(0,168,104,0.18)] flex items-center justify-between gap-4 tabular-nums">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2.5">
                 <span className="text-sm font-display font-bold text-[#0D1729]">
@@ -951,7 +911,7 @@ export default function RafflePublicView({
                   Limpar
                 </button>
               </div>
-              <div className="font-display font-bold text-xl text-[#0869F5]">
+              <div className="font-display font-bold text-xl text-[var(--ora-blue,#00A868)]">
                 Total: R$ {totalPrice}
               </div>
             </div>

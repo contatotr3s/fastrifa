@@ -96,7 +96,9 @@ export default function PhysicalCartelaPixPage({
         setOccupiedTickets(occupied);
 
         if (typeof window !== 'undefined') {
-          const themeToApply = data.brand_color === 'green' ? 'green' : 'blue';
+          const globalTheme =
+            localStorage.getItem('fastrifa_global_system_theme') || 'green';
+          const themeToApply = data.brand_color ? data.brand_color : globalTheme;
           document.documentElement.setAttribute('data-theme', themeToApply);
         }
       })
@@ -106,7 +108,7 @@ export default function PhysicalCartelaPixPage({
     return () => {
       if (typeof window !== 'undefined') {
         const globalTheme =
-          localStorage.getItem('fastrifa_global_system_theme') || 'blue';
+          localStorage.getItem('fastrifa_global_system_theme') || 'green';
         document.documentElement.setAttribute('data-theme', globalTheme);
       }
     };
@@ -427,7 +429,7 @@ export default function PhysicalCartelaPixPage({
   if (loading) {
     return (
       <div className="min-h-screen ora-hero-stage flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#0869F5] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[var(--ora-blue,#00A868)] animate-spin" />
       </div>
     );
   }
@@ -477,14 +479,14 @@ export default function PhysicalCartelaPixPage({
         <div className="relative z-10 max-w-xl w-full mx-auto px-4 flex items-center justify-between gap-2">
           <Link
             href={`/r/${raffle.slug}`}
-            className="ora-glass-pill rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-bold text-[#0D1729] hover:border-[#0869F5] transition"
+            className="ora-glass-pill rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-bold text-[#0D1729] hover:border-[var(--ora-blue,#00A868)] transition"
           >
-            <ArrowLeft className="w-4 h-4 text-[#0869F5]" />
+            <ArrowLeft className="w-4 h-4 text-[var(--ora-blue,#00A868)]" />
             <span>Ver Grade Completa</span>
           </Link>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0755DE] text-[11px] font-bold">
-            <ShieldCheck className="w-4 h-4 text-[#0869F5]" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] border border-[var(--ora-border-strong,#B9E7D2)] text-[var(--ora-blue,#00A868)] text-[11px] font-bold">
+            <ShieldCheck className="w-4 h-4 text-[var(--ora-blue,#00A868)]" />
             <span>Checador Oficial • Físico + Digital</span>
           </div>
         </div>
@@ -495,7 +497,7 @@ export default function PhysicalCartelaPixPage({
         <section className="ora-card rounded-[26px] p-4 sm:p-5 space-y-3.5">
           <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#E0E9F7]">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white text-xs font-bold shadow-sm flex-shrink-0">
+              <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#A7F3D0] to-[var(--ora-blue,#00A868)] text-white text-xs font-bold shadow-sm flex-shrink-0">
                 {raffle.brand_logo_url ? (
                   <img
                     src={raffle.brand_logo_url}
@@ -550,7 +552,7 @@ export default function PhysicalCartelaPixPage({
               <span className="text-[10px] font-bold uppercase text-[#526480] block">
                 Cada Cota
               </span>
-              <strong className="font-display font-bold text-base sm:text-lg text-[#0869F5]">
+              <strong className="font-display font-bold text-base sm:text-lg text-[var(--ora-blue,#00A868)]">
                 R$ {unitPrice.toFixed(2)}
               </strong>
             </div>
@@ -563,7 +565,7 @@ export default function PhysicalCartelaPixPage({
         {step === 'qty' && (
           <section className="ora-card rounded-[28px] p-6 sm:p-7 space-y-6 animate-in fade-in duration-150">
             <div className="text-center space-y-1.5">
-              <span className="px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0869F5] text-xs font-bold uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] text-xs font-bold uppercase tracking-wider">
                 Etapa 1 de 3 • Quantidade
               </span>
               <h2 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em] pt-1">
@@ -579,7 +581,7 @@ export default function PhysicalCartelaPixPage({
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-12 h-12 rounded-2xl bg-white border border-[#CDE0FC] hover:border-[#0869F5] flex items-center justify-center text-[#0D1729] active:scale-90 transition cursor-pointer shadow-sm"
+                  className="w-12 h-12 rounded-2xl bg-white border border-[var(--ora-border-strong,#B9E7D2)] hover:border-[var(--ora-blue,#00A868)] flex items-center justify-center text-[#0D1729] active:scale-90 transition cursor-pointer shadow-sm"
                   aria-label="Diminuir quantidade"
                 >
                   <Minus className="w-5 h-5" />
@@ -599,7 +601,7 @@ export default function PhysicalCartelaPixPage({
                           : Math.min(raffle.total_tickets, Math.max(1, val))
                       );
                     }}
-                    className="w-24 text-center font-display font-bold text-4xl text-[#0869F5] bg-transparent focus:outline-none tabular-nums"
+                    className="w-24 text-center font-display font-bold text-4xl text-[var(--ora-blue,#00A868)] bg-transparent focus:outline-none tabular-nums"
                   />
                   <span className="block text-xs font-bold uppercase tracking-wider text-[#526480]">
                     {quantity === 1 ? 'Número' : 'Números'}
@@ -611,7 +613,7 @@ export default function PhysicalCartelaPixPage({
                   onClick={() =>
                     setQuantity((q) => Math.min(raffle.total_tickets, q + 1))
                   }
-                  className="w-12 h-12 rounded-2xl bg-white border border-[#CDE0FC] hover:border-[#0869F5] flex items-center justify-center text-[#0D1729] active:scale-90 transition cursor-pointer shadow-sm"
+                  className="w-12 h-12 rounded-2xl bg-white border border-[var(--ora-border-strong,#B9E7D2)] hover:border-[var(--ora-blue,#00A868)] flex items-center justify-center text-[#0D1729] active:scale-90 transition cursor-pointer shadow-sm"
                   aria-label="Aumentar quantidade"
                 >
                   <Plus className="w-5 h-5" />
@@ -626,8 +628,8 @@ export default function PhysicalCartelaPixPage({
                     onClick={() => setQuantity(preset)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-display font-bold border transition active:scale-95 cursor-pointer ${
                       quantity === preset
-                        ? 'bg-[#0869F5] text-white border-[#0869F5] shadow-sm'
-                        : 'bg-white text-[#0755DE] border-[#CDE0FC] hover:border-[#0869F5]'
+                        ? 'bg-[var(--ora-blue,#00A868)] text-white border-[var(--ora-blue,#00A868)] shadow-sm'
+                        : 'bg-white text-[var(--ora-blue,#00A868)] border-[var(--ora-border-strong,#B9E7D2)] hover:border-[var(--ora-blue,#00A868)]'
                     }`}
                   >
                     {preset} {preset === 1 ? 'cota' : 'cotas'}
@@ -636,7 +638,7 @@ export default function PhysicalCartelaPixPage({
               </div>
             </div>
 
-            <div className="p-4 rounded-[20px] bg-[#EDF5FF] border border-[#CDE0FC] flex items-center justify-between tabular-nums">
+            <div className="p-4 rounded-[20px] bg-[var(--ora-surface-alt,#E8F7F0)] border border-[var(--ora-border-strong,#B9E7D2)] flex items-center justify-between tabular-nums">
               <div>
                 <span className="text-xs font-bold text-[#475872] block">
                   {quantity} cota(s) × R$ {unitPrice.toFixed(2)}
@@ -646,10 +648,10 @@ export default function PhysicalCartelaPixPage({
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0755DE] block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ora-blue-deep,#008F58)] block">
                   Total a Pagar
                 </span>
-                <span className="font-display font-bold text-2xl sm:text-3xl text-[#0869F5]">
+                <span className="font-display font-bold text-2xl sm:text-3xl text-[var(--ora-blue,#00A868)]">
                   R$ {totalAmount.toFixed(2)}
                 </span>
               </div>
@@ -659,7 +661,7 @@ export default function PhysicalCartelaPixPage({
               <button
                 type="button"
                 onClick={handleStartChecking}
-                className="ora-btn-primary w-full py-4 rounded-[20px] font-bold text-base flex items-center justify-center gap-2.5 shadow-[0_14px_30px_rgba(8,105,245,0.28)] active:scale-[0.98] transition cursor-pointer"
+                className="ora-btn-primary w-full py-4 rounded-[20px] font-bold text-base flex items-center justify-center gap-2.5 shadow-md active:scale-[0.98] transition cursor-pointer"
               >
                 <Search className="w-5 h-5" />
                 <span>
@@ -685,7 +687,7 @@ export default function PhysicalCartelaPixPage({
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Mudar quantidade ({quantity})</span>
               </button>
-              <span className="px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0869F5] text-xs font-bold tabular-nums">
+              <span className="px-3 py-1 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] text-xs font-bold tabular-nums">
                 Verificando {Math.min(currentSlotIndex, quantity)} de {quantity}
               </span>
             </div>
@@ -725,7 +727,7 @@ export default function PhysicalCartelaPixPage({
                       key={idx}
                       className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border-2 text-xs font-display font-bold transition ${
                         isCurrent
-                          ? 'bg-[#EDF5FF] border-[#0869F5] text-[#0869F5] shadow-sm'
+                          ? 'bg-[var(--ora-surface-alt,#E8F7F0)] border-[var(--ora-blue,#00A868)] text-[var(--ora-blue,#00A868)] shadow-sm'
                           : 'bg-[#F8FAFC] border-dashed border-[#CBD5E1] text-[#94A3B8]'
                       }`}
                     >
@@ -823,7 +825,7 @@ export default function PhysicalCartelaPixPage({
                   e.preventDefault();
                   handleCheckNumber();
                 }}
-                className="p-5 bg-[#F5F9FF] border-2 border-[#CDE0FC] rounded-[24px] space-y-4"
+                className="p-5 bg-[#F5F9FF] border-2 border-[var(--ora-border-strong,#B9E7D2)] rounded-[24px] space-y-4"
               >
                 <div className="text-center space-y-1">
                   <label
@@ -850,14 +852,14 @@ export default function PhysicalCartelaPixPage({
                     placeholder={`Ex: ${Math.min(12, raffle.total_tickets)}`}
                     value={numberInput}
                     onChange={(e) => setNumberInput(e.target.value)}
-                    className="w-full px-4 py-4 bg-white border-2 border-[#B9D3F8] focus:border-[#0869F5] rounded-2xl text-center font-display font-bold text-3xl text-[#0D1729] placeholder-[#94A3B8] focus:outline-none tabular-nums shadow-inner"
+                    className="w-full px-4 py-4 bg-white border-2 border-[var(--ora-border-strong,#B9E7D2)] focus:border-[var(--ora-blue,#00A868)] rounded-2xl text-center font-display font-bold text-3xl text-[#0D1729] placeholder-[#94A3B8] focus:outline-none tabular-nums shadow-inner"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={!numberInput.trim() || isCheckingNumber}
-                  className="ora-btn-primary w-full py-4 rounded-[18px] font-bold text-base flex items-center justify-center gap-2 shadow-[0_12px_26px_rgba(8,105,245,0.25)] disabled:opacity-45 active:scale-[0.98] transition cursor-pointer"
+                  className="ora-btn-primary w-full py-4 rounded-[18px] font-bold text-base flex items-center justify-center gap-2 shadow-md disabled:opacity-45 active:scale-[0.98] transition cursor-pointer"
                 >
                   {isCheckingNumber ? (
                     <>
@@ -902,7 +904,7 @@ export default function PhysicalCartelaPixPage({
               </h2>
               <p className="text-xs sm:text-sm text-[#475872]">
                 Confirme os dados do comprador abaixo para travar esses números no sistema online e gerar o QR Code PIX de{' '}
-                <strong className="text-[#0869F5]">
+                <strong className="text-[var(--ora-blue,#00A868)]">
                   R$ {totalAmount.toFixed(2)}
                 </strong>
                 .
@@ -916,7 +918,7 @@ export default function PhysicalCartelaPixPage({
                 <button
                   type="button"
                   onClick={() => setStep('check')}
-                  className="text-[#0869F5] hover:underline cursor-pointer"
+                  className="text-[var(--ora-blue,#00A868)] hover:underline cursor-pointer"
                 >
                   Alterar números
                 </button>
@@ -954,7 +956,7 @@ export default function PhysicalCartelaPixPage({
                   placeholder="Nome completo do cliente"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[var(--ora-blue,#00A868)]"
                 />
               </div>
 
@@ -968,14 +970,14 @@ export default function PhysicalCartelaPixPage({
                   placeholder="(11) 99999-9999"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(formatPhone(e.target.value))}
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[var(--ora-blue,#00A868)]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmittingReservation}
-                className="ora-btn-primary w-full py-4 rounded-[20px] font-bold text-base flex items-center justify-center gap-2.5 shadow-[0_14px_30px_rgba(8,105,245,0.28)] active:scale-[0.98] transition cursor-pointer"
+                className="ora-btn-primary w-full py-4 rounded-[20px] font-bold text-base flex items-center justify-center gap-2.5 shadow-md active:scale-[0.98] transition cursor-pointer"
               >
                 {isSubmittingReservation ? (
                   <>
@@ -1034,7 +1036,7 @@ export default function PhysicalCartelaPixPage({
             </div>
 
             {pixQrDataUrl && (
-              <div className="mx-auto w-56 h-56 p-3.5 bg-white rounded-[24px] border-2 border-[#CDE0FC] shadow-[0_14px_34px_rgba(8,105,245,0.12)] flex items-center justify-center">
+              <div className="mx-auto w-56 h-56 p-3.5 bg-white rounded-[24px] border-2 border-[var(--ora-border-strong,#B9E7D2)] shadow-md flex items-center justify-center">
                 <img
                   src={pixQrDataUrl}
                   alt="QR Code PIX com valor somado"
@@ -1107,7 +1109,7 @@ export default function PhysicalCartelaPixPage({
               <button
                 type="button"
                 onClick={handleResetForNextCustomer}
-                className="w-full py-3 rounded-[16px] bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[#CDE0FC] text-xs font-bold text-[#0755DE] flex items-center justify-center gap-1.5 cursor-pointer transition"
+                className="w-full py-3 rounded-[16px] bg-[#F5F9FF] hover:bg-[#EDF5FF] border border-[var(--ora-border-strong,#B9E7D2)] text-xs font-bold text-[var(--ora-blue,#00A868)] flex items-center justify-center gap-1.5 cursor-pointer transition"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Atender Próximo Cliente (Nova Verificação)</span>

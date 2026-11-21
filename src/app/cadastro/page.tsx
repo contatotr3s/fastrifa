@@ -125,11 +125,9 @@ export default function SignupPage() {
     setError(null);
     setFieldErrors({});
 
+    // Marca aceitação dos termos automaticamente ao escolher continuar com o Google
     if (!acceptedTerms) {
-      setFieldErrors({
-        terms: 'Por favor, marque a caixa confirmando que leu e concorda com os Termos de Uso antes de continuar com o Google.',
-      });
-      return;
+      setAcceptedTerms(true);
     }
 
     setGoogleLoading(true);

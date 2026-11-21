@@ -96,7 +96,7 @@ export default function NewRafflePage() {
         draw_date: null,
       });
 
-      router.push(`/admin/rifas/${newId}`);
+      router.push(`/admin/rifas/${newId}?created=true`);
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
       setError(errorObj.message || 'Erro ao criar rifa.');

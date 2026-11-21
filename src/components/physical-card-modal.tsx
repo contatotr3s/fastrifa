@@ -128,19 +128,19 @@ function drawLuckyWatermarks(
     ctx.restore();
   }
 
-  drawClover(85, 220, 95, -0.25, 0.065);
-  drawHorseshoe(1155, 240, 95, 0.3, 0.065);
-  drawClover(1145, 860, 110, 0.22, 0.055);
-  drawHorseshoe(90, 920, 105, -0.35, 0.055);
-  drawClover(100, 1580, 90, 0.18, 0.06);
-  drawHorseshoe(1140, 1560, 90, -0.2, 0.06);
+  drawClover(115, 220, 62, -0.25, 0.055);
+  drawHorseshoe(1125, 240, 62, 0.3, 0.055);
+  drawClover(1120, 860, 66, 0.22, 0.05);
+  drawHorseshoe(120, 920, 66, -0.35, 0.05);
+  drawClover(125, 1580, 60, 0.18, 0.055);
+  drawHorseshoe(1115, 1560, 60, -0.2, 0.055);
 
-  drawSparkle(220, 130, 18, 0.09);
-  drawSparkle(1030, 140, 16, 0.08);
-  drawSparkle(65, 560, 20, 0.08);
-  drawSparkle(1175, 540, 18, 0.08);
-  drawSparkle(70, 1280, 16, 0.08);
-  drawSparkle(1170, 1250, 20, 0.08);
+  drawSparkle(220, 130, 13, 0.07);
+  drawSparkle(1030, 140, 13, 0.07);
+  drawSparkle(105, 560, 14, 0.07);
+  drawSparkle(1135, 540, 14, 0.07);
+  drawSparkle(110, 1280, 13, 0.07);
+  drawSparkle(1130, 1250, 14, 0.07);
 
   ctx.restore();
 }
@@ -229,12 +229,12 @@ export default function PhysicalCardModal({
   const publicRaffleUrl = `${publicOrigin}/r/${raffle.slug}`;
   const smartPixCalculatorUrl = `${publicOrigin}/r/${raffle.slug}/pix`;
 
-  const isGreen = raffle.brand_color === 'green';
-  const primary = isGreen ? '#059669' : '#0869F5';
-  const primaryDark = isGreen ? '#065F46' : '#052498';
-  const primarySoft = isGreen ? '#ECFDF5' : '#EDF5FF';
-  const primaryBorder = isGreen ? '#A7F3D0' : '#CDE0FC';
-  const surfaceBg = isGreen ? '#F3FBF7' : '#F5F9FF';
+  const isGreen = raffle.brand_color ? raffle.brand_color === 'green' : true;
+  const primary = isGreen ? '#00A868' : '#0869F5';
+  const primaryDark = isGreen ? '#064E3B' : '#052498';
+  const primarySoft = isGreen ? '#E8F7F0' : '#EDF5FF';
+  const primaryBorder = isGreen ? '#B9E7D2' : '#CDE0FC';
+  const surfaceBg = isGreen ? '#F3FAF6' : '#F5F9FF';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -282,6 +282,7 @@ export default function PhysicalCardModal({
         const brandInitials = generateBrandInitials(brandName);
         const total = Math.min(200, Math.max(1, raffle.total_tickets));
         const availableCount = Math.max(0, total - paidSet.size - pendingSet.size);
+        const hasOccupied = paidSet.size > 0 || pendingSet.size > 0;
 
         // =========================================================================
         // PÁGINA 1: VITRINE ESTILIZADA & GRADE COM DISCRIMINAÇÃO DE VENDIDOS E RESERVADOS
@@ -519,7 +520,7 @@ export default function PhysicalCardModal({
           qrBoxY + 216
         );
 
-        // --- BARRA DE LEGENDA VISUAL (DISPONÍVEIS, VENDIDOS E RESERVADOS) ---
+        // --- BARRA DE LEGENDA VISUAL ---
         const legendBarY = 424;
         ctx1.fillStyle = '#FFFFFF';
         ctx1.strokeStyle = primaryBorder;
@@ -534,58 +535,73 @@ export default function PhysicalCardModal({
         ctx1.font = 'bold 18px sans-serif';
         ctx1.fillText('ESCOLHA SEUS NÚMEROS:', 88, legendBarY + 33);
 
-        // Indicador 1: Disponível
-        const leg1X = 425;
-        ctx1.fillStyle = '#FFFFFF';
-        ctx1.strokeStyle = primaryBorder;
-        ctx1.lineWidth = 2;
-        ctx1.beginPath();
-        ctx1.roundRect(leg1X, legendBarY + 14, 24, 24, 6);
-        ctx1.fill();
-        ctx1.stroke();
-        ctx1.fillStyle = '#14213A';
-        ctx1.font = 'bold 15px sans-serif';
-        ctx1.fillText(`Disponível (${availableCount})`, leg1X + 34, legendBarY + 32);
+        if (hasOccupied) {
+          // Indicador 1: Disponível
+          const leg1X = 425;
+          ctx1.fillStyle = '#FFFFFF';
+          ctx1.strokeStyle = primaryBorder;
+          ctx1.lineWidth = 2;
+          ctx1.beginPath();
+          ctx1.roundRect(leg1X, legendBarY + 14, 24, 24, 6);
+          ctx1.fill();
+          ctx1.stroke();
+          ctx1.fillStyle = '#14213A';
+          ctx1.font = 'bold 15px sans-serif';
+          ctx1.fillText(`Disponível (${availableCount})`, leg1X + 34, legendBarY + 32);
 
-        // Indicador 2: Vendido / Pago (Vermelho com traço)
-        const leg2X = 660;
-        ctx1.fillStyle = '#FEE2E2';
-        ctx1.strokeStyle = '#EF4444';
-        ctx1.lineWidth = 2;
-        ctx1.beginPath();
-        ctx1.roundRect(leg2X, legendBarY + 14, 24, 24, 6);
-        ctx1.fill();
-        ctx1.stroke();
-        ctx1.strokeStyle = '#DC2626';
-        ctx1.beginPath();
-        ctx1.moveTo(leg2X + 4, legendBarY + 26);
-        ctx1.lineTo(leg2X + 20, legendBarY + 26);
-        ctx1.stroke();
-        ctx1.fillStyle = '#DC2626';
-        ctx1.font = 'bold 15px sans-serif';
-        ctx1.fillText(`Vendido / Pago (${paidSet.size})`, leg2X + 34, legendBarY + 32);
+          // Indicador 2: Vendido / Pago (Vermelho com traço)
+          const leg2X = 660;
+          ctx1.fillStyle = '#FEE2E2';
+          ctx1.strokeStyle = '#EF4444';
+          ctx1.lineWidth = 2;
+          ctx1.beginPath();
+          ctx1.roundRect(leg2X, legendBarY + 14, 24, 24, 6);
+          ctx1.fill();
+          ctx1.stroke();
+          ctx1.strokeStyle = '#DC2626';
+          ctx1.beginPath();
+          ctx1.moveTo(leg2X + 4, legendBarY + 26);
+          ctx1.lineTo(leg2X + 20, legendBarY + 26);
+          ctx1.stroke();
+          ctx1.fillStyle = '#DC2626';
+          ctx1.font = 'bold 15px sans-serif';
+          ctx1.fillText(`Vendido / Pago (${paidSet.size})`, leg2X + 34, legendBarY + 32);
 
-        // Indicador 3: Reservado (Vermelho/Coral com traço)
-        const leg3X = 925;
-        ctx1.fillStyle = '#FFF1F2';
-        ctx1.strokeStyle = '#FB7185';
-        ctx1.lineWidth = 2;
-        ctx1.beginPath();
-        ctx1.roundRect(leg3X, legendBarY + 14, 24, 24, 6);
-        ctx1.fill();
-        ctx1.stroke();
-        ctx1.strokeStyle = '#E11D48';
-        ctx1.beginPath();
-        ctx1.moveTo(leg3X + 4, legendBarY + 26);
-        ctx1.lineTo(leg3X + 20, legendBarY + 26);
-        ctx1.stroke();
-        ctx1.fillStyle = '#E11D48';
-        ctx1.font = 'bold 15px sans-serif';
-        ctx1.fillText(`Reservado (${pendingSet.size})`, leg3X + 34, legendBarY + 32);
+          // Indicador 3: Reservado (Vermelho/Coral com traço)
+          const leg3X = 925;
+          ctx1.fillStyle = '#FFF1F2';
+          ctx1.strokeStyle = '#FB7185';
+          ctx1.lineWidth = 2;
+          ctx1.beginPath();
+          ctx1.roundRect(leg3X, legendBarY + 14, 24, 24, 6);
+          ctx1.fill();
+          ctx1.stroke();
+          ctx1.strokeStyle = '#E11D48';
+          ctx1.beginPath();
+          ctx1.moveTo(leg3X + 4, legendBarY + 26);
+          ctx1.lineTo(leg3X + 20, legendBarY + 26);
+          ctx1.stroke();
+          ctx1.fillStyle = '#E11D48';
+          ctx1.font = 'bold 15px sans-serif';
+          ctx1.fillText(`Reservado (${pendingSet.size})`, leg3X + 34, legendBarY + 32);
+        } else {
+          // Rifa sem reservas/vendas ainda: visual 100% limpo e positivo
+          const leg1X = 425;
+          ctx1.fillStyle = '#FFFFFF';
+          ctx1.strokeStyle = primaryBorder;
+          ctx1.lineWidth = 2;
+          ctx1.beginPath();
+          ctx1.roundRect(leg1X, legendBarY + 14, 24, 24, 6);
+          ctx1.fill();
+          ctx1.stroke();
+          ctx1.fillStyle = primaryDark;
+          ctx1.font = 'bold 15px sans-serif';
+          ctx1.fillText(`Todas as ${total} cotas livres e disponíveis para você escolher!`, leg1X + 34, legendBarY + 32);
+        }
 
         // --- GRADE DE COTAS (10 COLUNAS, FIEL AO SITE) ---
         const gridTop = 490;
-        const gridBottom = 1528;
+        const gridBottom = hasOccupied ? 1528 : 1640;
         const availH = gridBottom - gridTop;
         const cols = 10;
         const rows = Math.ceil(total / cols);
@@ -657,40 +673,42 @@ export default function PhysicalCardModal({
         }
 
         // --- BOX INFERIOR DE LEGENDA DISCRIMINADA (QUAIS NÚMEROS FORAM VENDIDOS E RESERVADOS) ---
-        const summaryBoxY = 1544;
-        const summaryBoxH = 116;
-        ctx1.fillStyle = '#FFFFFF';
-        ctx1.strokeStyle = '#FECACA';
-        ctx1.lineWidth = 2;
-        ctx1.beginPath();
-        ctx1.roundRect(68, summaryBoxY, A4_W - 136, summaryBoxH, 18);
-        ctx1.fill();
-        ctx1.stroke();
+        if (hasOccupied) {
+          const summaryBoxY = 1544;
+          const summaryBoxH = 116;
+          ctx1.fillStyle = '#FFFFFF';
+          ctx1.strokeStyle = '#FECACA';
+          ctx1.lineWidth = 2;
+          ctx1.beginPath();
+          ctx1.roundRect(68, summaryBoxY, A4_W - 136, summaryBoxH, 18);
+          ctx1.fill();
+          ctx1.stroke();
 
-        ctx1.textAlign = 'left';
-        ctx1.fillStyle = '#0D1729';
-        ctx1.font = 'bold 14px sans-serif';
-        ctx1.fillText(
-          'LEGENDA DE COTAS INDISPONÍVEIS (MARCADAS EM VERMELHO COM TRAÇO):',
-          88,
-          summaryBoxY + 26
-        );
+          ctx1.textAlign = 'left';
+          ctx1.fillStyle = '#0D1729';
+          ctx1.font = 'bold 14px sans-serif';
+          ctx1.fillText(
+            'LEGENDA DE COTAS INDISPONÍVEIS (MARCADAS EM VERMELHO COM TRAÇO):',
+            88,
+            summaryBoxY + 26
+          );
 
-        ctx1.fillStyle = '#B91C1C';
-        ctx1.font = 'bold 13px sans-serif';
-        ctx1.fillText(
-          `• VENDIDOS / PAGOS (${paidSet.size}): ${formatNumberList(Array.from(paidSet), 26)}`,
-          88,
-          summaryBoxY + 58
-        );
+          ctx1.fillStyle = '#B91C1C';
+          ctx1.font = 'bold 13px sans-serif';
+          ctx1.fillText(
+            `• VENDIDOS / PAGOS (${paidSet.size}): ${formatNumberList(Array.from(paidSet), 26)}`,
+            88,
+            summaryBoxY + 58
+          );
 
-        ctx1.fillStyle = '#E11D48';
-        ctx1.font = 'bold 13px sans-serif';
-        ctx1.fillText(
-          `• RESERVADOS AGUARDANDO PIX (${pendingSet.size}): ${formatNumberList(Array.from(pendingSet), 24)}`,
-          88,
-          summaryBoxY + 92
-        );
+          ctx1.fillStyle = '#E11D48';
+          ctx1.font = 'bold 13px sans-serif';
+          ctx1.fillText(
+            `• RESERVADOS AGUARDANDO PIX (${pendingSet.size}): ${formatNumberList(Array.from(pendingSet), 24)}`,
+            88,
+            summaryBoxY + 92
+          );
+        }
 
         // Rodapé Página 1
         ctx1.textAlign = 'center';
@@ -799,34 +817,36 @@ export default function PhysicalCardModal({
         ctx2.fillText('CHECAR & GERAR PIX', pixQrBoxX + 108, pixQrBoxY + 176);
 
         // --- FAIXA DE LEGENDA DE VENDIDOS E RESERVADOS NA PÁGINA 2 ---
-        const p2LegendY = 284;
-        const p2LegendH = 58;
-        ctx2.fillStyle = '#FFF5F5';
-        ctx2.strokeStyle = '#FECACA';
-        ctx2.lineWidth = 1.6;
-        ctx2.beginPath();
-        ctx2.roundRect(64, p2LegendY, A4_W - 128, p2LegendH, 14);
-        ctx2.fill();
-        ctx2.stroke();
+        if (hasOccupied) {
+          const p2LegendY = 284;
+          const p2LegendH = 58;
+          ctx2.fillStyle = '#FFF5F5';
+          ctx2.strokeStyle = '#FECACA';
+          ctx2.lineWidth = 1.6;
+          ctx2.beginPath();
+          ctx2.roundRect(64, p2LegendY, A4_W - 128, p2LegendH, 14);
+          ctx2.fill();
+          ctx2.stroke();
 
-        ctx2.textAlign = 'left';
-        ctx2.fillStyle = '#0D1729';
-        ctx2.font = 'bold 13px sans-serif';
-        ctx2.fillText(
-          `STATUS DA CARTELA:  Disponíveis: ${availableCount}   |   Vendidos/Pagos: ${paidSet.size}   |   Reservados: ${pendingSet.size}`,
-          82,
-          p2LegendY + 23
-        );
-        ctx2.fillStyle = '#B91C1C';
-        ctx2.font = 'bold 12px sans-serif';
-        ctx2.fillText(
-          `Vendidos: ${formatNumberList(Array.from(paidSet), 14)}   •   Reservados: ${formatNumberList(Array.from(pendingSet), 14)}`,
-          82,
-          p2LegendY + 45
-        );
+          ctx2.textAlign = 'left';
+          ctx2.fillStyle = '#0D1729';
+          ctx2.font = 'bold 13px sans-serif';
+          ctx2.fillText(
+            `STATUS DA CARTELA:  Disponíveis: ${availableCount}   |   Vendidos/Pagos: ${paidSet.size}   |   Reservados: ${pendingSet.size}`,
+            82,
+            p2LegendY + 23
+          );
+          ctx2.fillStyle = '#B91C1C';
+          ctx2.font = 'bold 12px sans-serif';
+          ctx2.fillText(
+            `Vendidos: ${formatNumberList(Array.from(paidSet), 14)}   •   Reservados: ${formatNumberList(Array.from(pendingSet), 14)}`,
+            82,
+            p2LegendY + 45
+          );
+        }
 
         // --- TABELA DE LINHAS NUMERADAS PARA ANOTAÇÃO À MÃO ---
-        const listTop = 354;
+        const listTop = hasOccupied ? 354 : 290;
         const listBottom = 1656;
         const listH = listBottom - listTop;
         const listCols =

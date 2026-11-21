@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -33,6 +33,7 @@ import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
 import PhysicalCardModal from '@/components/physical-card-modal';
 import EditRaffleModal from '@/components/edit-raffle-modal';
+import HybridSalesWelcomeModal from '@/components/hybrid-sales-welcome-modal';
 import type { Raffle, Order } from '@/types/database.types';
 
 interface RaffleManagerProps {
@@ -83,7 +84,18 @@ export default function RaffleManager({ raffle: initialRaffle, initialOrders }: 
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDrawModal, setShowDrawModal] = useState(false);
   const [showPhysicalCardModal, setShowPhysicalCardModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [approvalNotification, setApprovalNotification] = useState<Order | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('created') === 'true') {
+        setShowWelcomeModal(true);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, []);
 
   const publicUrl =
     typeof window !== 'undefined' &&
@@ -872,6 +884,14 @@ Entre em contato para combinarmos a entrega do seu prêmio.
         pendingTicketNumbers={pendingTicketNumbers}
         isOpen={showPhysicalCardModal}
         onClose={() => setShowPhysicalCardModal(false)}
+      />
+
+      {/* MODAL 2.8: Boas-Vindas Pós-Criação com Apresentação da Venda Híbrida (Físico + Online) */}
+      <HybridSalesWelcomeModal
+        raffle={raffle}
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        onOpenPrintModal={() => setShowPhysicalCardModal(true)}
       />
 
       {/* MODAL 3: Confirmação Imediata de Aprovação de PIX */}

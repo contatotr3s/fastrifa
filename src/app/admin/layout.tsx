@@ -1,5 +1,6 @@
 import AdminHeader from './admin-header';
 import AdminGuard from '@/components/admin-guard';
+import DynamicFavicon from '@/components/dynamic-favicon';
 
 export default function AdminLayout({
   children,
@@ -9,6 +10,7 @@ export default function AdminLayout({
   return (
     <AdminGuard>
       <div className="min-h-screen bg-[#F8FBFF] text-[#0D1729] flex flex-col">
+        <DynamicFavicon />
         <AdminHeader />
         <main className="flex-1 max-w-[1240px] w-full mx-auto px-4 sm:px-8 py-8 sm:py-10">
           {children}
