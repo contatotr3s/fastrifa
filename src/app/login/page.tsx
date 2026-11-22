@@ -165,19 +165,19 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="ora-glass-pill rounded-full px-3.5 sm:px-4 py-2 inline-flex items-center justify-center mb-5 hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full h-11 sm:h-12 px-3 sm:px-4 inline-flex items-center justify-center mb-5 hover:border-[#B9D3F8] transition"
           >
             {/* Desktop: Logo completa */}
             <img
               src="/logo-fastrifa.png"
               alt="Fast Rifa"
-              className="h-8 w-auto object-contain hidden sm:block"
+              className="h-8 sm:h-[38px] w-auto object-contain hidden sm:block"
             />
-            {/* Mobile celular: Ícone do bilhete FR */}
+            {/* Mobile celular: Logo responsiva */}
             <img
               src="/icone-mobile-fastrifa.png"
               alt="Fast Rifa"
-              className="h-7 w-auto object-contain block sm:hidden"
+              className="h-[30px] sm:h-8 w-auto object-contain block sm:hidden"
             />
           </Link>
 
