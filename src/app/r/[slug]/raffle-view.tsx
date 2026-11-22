@@ -896,22 +896,22 @@ export default function RafflePublicView({
 
       {/* Floating Bottom Capsule (Active when tickets are selected) */}
       {raffle.status === 'active' && selectedTickets.length > 0 && (
-        <div className="fixed bottom-4 inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
-          <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[24px] px-5 py-4 shadow-[0_20px_50px_rgba(0,168,104,0.18)] flex items-center justify-between gap-4 tabular-nums">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2.5">
-                <span className="text-sm font-display font-bold text-[#0D1729]">
-                  {selectedTickets.length} cota(s) selecionada(s)
+        <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
+          <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[24px] px-3.5 py-2.5 sm:px-5 sm:py-4 shadow-[0_20px_50px_rgba(0,168,104,0.18)] flex items-center justify-between gap-2.5 sm:gap-4 tabular-nums">
+            <div className="space-y-0.5 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-display font-bold text-[#0D1729] truncate">
+                  {selectedTickets.length} cota(s)
                 </span>
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="text-xs font-bold text-[#BE123C] hover:underline cursor-pointer"
+                  className="text-[11px] sm:text-xs font-bold text-[#BE123C] hover:underline cursor-pointer flex-shrink-0"
                 >
                   Limpar
                 </button>
               </div>
-              <div className="font-display font-bold text-xl text-[var(--ora-blue,#00A868)]">
+              <div className="font-display font-bold text-base sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
                 Total: R$ {totalPrice}
               </div>
             </div>
@@ -919,9 +919,9 @@ export default function RafflePublicView({
             <button
               type="button"
               onClick={() => setIsCheckoutOpen(true)}
-              className="ora-btn-primary px-6 py-3.5 font-bold rounded-[18px] flex items-center gap-2 text-sm sm:text-base active:scale-95 transition cursor-pointer"
+              className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-[16px] sm:rounded-[18px] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Reservar Agora</span>
             </button>
           </div>

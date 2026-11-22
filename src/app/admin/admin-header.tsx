@@ -80,8 +80,8 @@ export default function AdminHeader() {
                   />
                 </>
               )}
-              <div className="flex flex-col text-left">
-                <span className="font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight">
+              <div className="flex flex-col text-left max-w-[110px] sm:max-w-[200px] md:max-w-none">
+                <span className="font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight truncate">
                   {isMaster ? (
                     <>
                       Fast<span className="text-[#0869F5]">Rifa</span>
@@ -94,7 +94,7 @@ export default function AdminHeader() {
                     </>
                   )}
                 </span>
-                <span className="text-[10px] font-semibold text-[#526480] leading-none mt-0.5">
+                <span className="text-[10px] font-semibold text-[#526480] leading-none mt-0.5 truncate">
                   {isMaster
                     ? 'Painel Master'
                     : profile?.brand_name

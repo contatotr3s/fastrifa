@@ -344,11 +344,11 @@ export default function AdminMasterPage() {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-3 border-b border-[#E0E9F7] pb-3">
+      <div className="flex items-center gap-2 sm:gap-3 border-b border-[#E0E9F7] pb-3 overflow-x-auto whitespace-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab('creators')}
-          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
+          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer flex-shrink-0 ${
             activeTab === 'creators'
               ? 'bg-[#0869F5] text-white shadow-sm'
               : 'text-[#475872] hover:text-[#0D1729] hover:bg-[#F2F7FF]'
@@ -361,7 +361,7 @@ export default function AdminMasterPage() {
         <button
           type="button"
           onClick={() => setActiveTab('raffles')}
-          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
+          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer flex-shrink-0 ${
             activeTab === 'raffles'
               ? 'bg-[#0869F5] text-white shadow-sm'
               : 'text-[#475872] hover:text-[#0D1729] hover:bg-[#F2F7FF]'
@@ -377,7 +377,7 @@ export default function AdminMasterPage() {
             setActiveTab('audits');
             getAuditLogs().then(setAuditLogs).catch(() => {});
           }}
-          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
+          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer flex-shrink-0 ${
             activeTab === 'audits'
               ? 'bg-[#0869F5] text-white shadow-sm'
               : 'text-[#475872] hover:text-[#0D1729] hover:bg-[#F2F7FF]'

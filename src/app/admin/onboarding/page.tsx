@@ -173,11 +173,11 @@ export default function OnboardingPage() {
 
           {/* 3. Chave PIX Oficial */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
               <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
                 3. Chave PIX para Recebimento *
               </label>
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1">
                 {(['random', 'cpf_cnpj', 'phone', 'email'] as const).map((t) => (
                   <button
                     key={t}
