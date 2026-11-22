@@ -407,8 +407,8 @@ Organizado por: *${brandName}*`;
   )}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/65 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-white rounded-[32px] p-6 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto flex flex-col md:flex-row gap-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/65 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto flex flex-col md:flex-row gap-5 sm:gap-6">
         {/* Close Button */}
         <button
           type="button"
@@ -430,8 +430,8 @@ Organizado por: *${brandName}*`;
           <div
             className={`relative rounded-[20px] overflow-hidden shadow-[0_16px_40px_rgba(8,105,245,0.18)] border border-[#D9E5F7] bg-white transition-all duration-300 flex items-center justify-center ${
               format === 'story'
-                ? 'w-[240px] sm:w-[280px] h-[426px] sm:h-[498px]'
-                : 'w-[280px] sm:w-[320px] h-[280px] sm:h-[320px]'
+                ? 'w-[210px] sm:w-[280px] h-[373px] sm:h-[498px]'
+                : 'w-[240px] sm:w-[320px] h-[240px] sm:h-[320px]'
             }`}
           >
             {isGenerating ? (

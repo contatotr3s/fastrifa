@@ -29,8 +29,8 @@ export default function HybridSalesWelcomeModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0D1729]/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="ora-card rounded-[32px] max-w-xl w-full p-6 sm:p-9 space-y-6 relative border-2 border-[var(--ora-border-strong,#B9E7D2)] shadow-[0_24px_60px_rgba(0,168,104,0.18)] my-8">
+    <div className="fixed inset-0 z-50 bg-[#0D1729]/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="ora-card rounded-[24px] sm:rounded-[32px] max-w-xl w-full p-4 sm:p-8 space-y-5 sm:space-y-6 relative border-2 border-[var(--ora-border-strong,#B9E7D2)] shadow-[0_24px_60px_rgba(0,168,104,0.18)] my-auto max-h-[92vh] overflow-y-auto">
         {/* Fechar */}
         <button
           type="button"

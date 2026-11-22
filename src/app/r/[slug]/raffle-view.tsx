@@ -930,8 +930,8 @@ export default function RafflePublicView({
 
       {/* Checkout Modal */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0D1729]/45 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="ora-card rounded-[28px] max-w-md w-full p-7 sm:p-8 space-y-6 relative animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-[#0D1729]/45 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="ora-card rounded-[24px] sm:rounded-[28px] max-w-md w-full p-4 sm:p-8 space-y-4 sm:space-y-6 relative my-auto max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-150">
             <button
               type="button"
               aria-label="Fechar modal"
@@ -1119,8 +1119,8 @@ export default function RafflePublicView({
 
       {/* Payment Screen Modal (Com QR Code PIX já no Valor Somado + Confetes) */}
       {confirmedOrder && (
-        <div className="fixed inset-0 z-50 bg-[#0D1729]/55 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="ora-card rounded-[32px] max-w-lg w-full p-6 sm:p-8 space-y-5 relative text-center my-auto animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-[#0D1729]/55 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="ora-card rounded-[24px] sm:rounded-[32px] max-w-lg w-full p-4 sm:p-8 space-y-4 sm:space-y-5 relative text-center my-auto max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
             <div className="w-16 h-16 bg-[#ECFDF5] border border-[#A7F3D0] rounded-full flex items-center justify-center mx-auto text-[#059669] shadow-sm">
               <Check className="w-8 h-8" />
             </div>

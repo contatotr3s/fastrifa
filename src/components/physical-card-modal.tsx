@@ -1139,7 +1139,7 @@ export default function PhysicalCardModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0D1729]/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-      <div className="ora-card rounded-[32px] max-w-4xl w-full p-5 sm:p-8 space-y-6 relative my-auto max-h-[94vh] overflow-y-auto">
+      <div className="ora-card rounded-[24px] sm:rounded-[32px] max-w-4xl w-full p-4 sm:p-8 space-y-5 sm:space-y-6 relative my-auto max-h-[92vh] overflow-y-auto">
         <button
           type="button"
           onClick={onClose}
@@ -1276,12 +1276,12 @@ export default function PhysicalCardModal({
             <span>Testar página do QR Code PIX da Cartela (/r/{raffle.slug}/pix)</span>
           </a>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-end">
             <button
               type="button"
               disabled={isGenerating}
               onClick={handlePrintDirect}
-              className="ora-btn-secondary px-5 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer"
+              className="ora-btn-secondary w-full sm:w-auto px-5 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <Printer className={`w-4 h-4 ${isGreen ? 'text-[#00A868]' : 'text-[#0869F5]'}`} />
               <span>Imprimir Direto</span>
@@ -1291,7 +1291,7 @@ export default function PhysicalCardModal({
               type="button"
               disabled={isGenerating}
               onClick={handleDownloadPdf}
-              className={`ora-btn-primary px-6 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer ${
+              className={`ora-btn-primary w-full sm:w-auto px-6 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer ${
                 isGreen
                   ? 'shadow-[0_12px_28px_rgba(0,168,104,0.28)]'
                   : 'shadow-[0_12px_28px_rgba(8,105,245,0.28)]'

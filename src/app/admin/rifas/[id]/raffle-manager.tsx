@@ -901,8 +901,8 @@ Entre em contato para combinarmos a entrega do seu prêmio.
 
       {/* MODAL 3: Confirmação Imediata de Aprovação de PIX */}
       {approvalNotification && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/55 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[28px] max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#D9E5F7] space-y-5 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/55 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] sm:rounded-[28px] max-w-md w-full p-4 sm:p-7 shadow-2xl border border-[#D9E5F7] space-y-4 sm:space-y-5 text-center max-h-[92vh] overflow-y-auto">
             <div className="w-14 h-14 rounded-2xl bg-[#EBF7F0] text-[#00A868] flex items-center justify-center mx-auto border border-[#BCECD4]">
               <CheckCircle2 className="w-8 h-8" />
             </div>

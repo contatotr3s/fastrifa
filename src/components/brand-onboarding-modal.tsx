@@ -102,8 +102,8 @@ export default function BrandOnboardingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[620px] bg-white rounded-[32px] p-6 sm:p-9 shadow-[0_24px_70px_rgba(13,23,41,0.22)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-[620px] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.22)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto">
         {/* Close button if in edit mode */}
         {isEditMode && onClose && (
           <button
@@ -259,7 +259,7 @@ export default function BrandOnboardingModal({
           </div>
 
           {/* Live Badge Preview */}
-          <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#D9E5F7] shadow-sm flex items-center justify-between gap-3">
+          <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-[#FFFFFF] border border-[#D9E5F7] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white flex-shrink-0 shadow-sm">
                 {logoPreview ? (

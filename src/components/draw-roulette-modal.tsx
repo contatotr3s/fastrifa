@@ -226,8 +226,8 @@ Entre em contato para combinarmos a entrega do seu prêmio.
   )}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#0D1729] border border-[#203456] rounded-[36px] p-6 sm:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.5)] text-white text-center overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-[#0D1729] border border-[#203456] rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 shadow-[0_30px_90px_rgba(0,0,0,0.5)] text-white text-center max-h-[92vh] overflow-y-auto">
         {/* Ambient Top Glow */}
         <div
           aria-hidden="true"

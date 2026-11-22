@@ -128,8 +128,8 @@ export default function EditRaffleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/65 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white rounded-[32px] p-6 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/65 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto">
         {/* Close Button */}
         <button
           type="button"
@@ -307,19 +307,19 @@ export default function EditRaffleModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-[#E0E9F7] flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-[#E0E9F7] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="ora-btn-secondary px-5 py-3 rounded-full text-xs font-bold cursor-pointer"
+              className="ora-btn-secondary w-full sm:w-auto px-5 py-3 rounded-full text-xs font-bold cursor-pointer justify-center"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="ora-btn-primary px-6 py-3 rounded-full text-xs font-bold inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="ora-btn-primary w-full sm:w-auto px-6 py-3 rounded-full text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

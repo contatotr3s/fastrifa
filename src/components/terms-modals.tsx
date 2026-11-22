@@ -16,8 +16,8 @@ export function PlatformTermsModal({ isOpen, onClose, onAccept }: ModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1729]/65 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[680px] bg-white rounded-[32px] p-6 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/65 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-[680px] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#E0E9F7]">
           <div className="flex items-center gap-3">
@@ -164,8 +164,8 @@ export function RaffleCreationTermsModal({ isOpen, onClose, onAccept }: ModalPro
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1729]/65 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[680px] bg-white rounded-[32px] p-6 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/65 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-[680px] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#E0E9F7]">
           <div className="flex items-center gap-3">

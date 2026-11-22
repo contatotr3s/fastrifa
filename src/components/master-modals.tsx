@@ -138,8 +138,8 @@ export function MasterEditUserModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-[28px] max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-[#D9E5F7] max-h-[90vh] overflow-y-auto space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-[22px] sm:rounded-[28px] max-w-xl w-full p-4 sm:p-8 shadow-2xl border border-[#D9E5F7] max-h-[92vh] overflow-y-auto space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E0E9F7]">
           <div className="flex items-center gap-3">
@@ -485,8 +485,8 @@ export function MasterEditRaffleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-[28px] max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-[#D9E5F7] max-h-[90vh] overflow-y-auto space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-[22px] sm:rounded-[28px] max-w-xl w-full p-4 sm:p-8 shadow-2xl border border-[#D9E5F7] max-h-[92vh] overflow-y-auto space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E0E9F7]">
           <div className="flex items-center gap-3">
