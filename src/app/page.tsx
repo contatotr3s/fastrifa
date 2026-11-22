@@ -145,7 +145,7 @@ export default function HomePage() {
 
                 {/* 3D Orbital Scene no modo responsivo (ajustada para manter o botão CTA visível na primeira dobra) */}
                 <div className="block lg:hidden -my-3 sm:my-0 w-full overflow-visible pointer-events-none">
-                  <HeroOrbitScene />
+                  <HeroOrbitScene variant="mobile" />
                 </div>
 
                 {/* Primary CTA Button (Only one) */}
@@ -182,7 +182,7 @@ export default function HomePage() {
 
               {/* Right Column: 3D Orbital Scene side-by-side no desktop (lower layer z-10) */}
               <div className="hidden lg:flex lg:col-span-6 xl:col-span-6 items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible pointer-events-none">
-                <HeroOrbitScene />
+                <HeroOrbitScene variant="desktop" />
               </div>
             </div>
           </div>
