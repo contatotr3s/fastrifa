@@ -2,6 +2,7 @@ import Link from 'next/link';
 import HeroOrbitScene from '@/components/hero-orbit-scene';
 import GradePrintShowcase from '@/components/grade-print-showcase';
 import ScrollToTopButton from '@/components/scroll-to-top-button';
+import FacildanTextoDinamico from '@/components/facildan-texto-dinamico';
 import {
   ArrowUpRight,
   ArrowRight,
@@ -115,19 +116,26 @@ export default function HomePage() {
           <div className="max-w-[1400px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
-              <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
+              <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left space-y-2.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
                 <h1 className="font-display tracking-[-0.04em]">
-                  <span className="block text-xl sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1.5 tracking-[-0.03em]">
+                  <span className="block text-lg sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1 tracking-[-0.03em]">
                     Crie, divulgue e venda.
                   </span>
-                  <span className="block text-[clamp(2.6rem,4.6vw,4.4rem)] font-bold text-[#0869F5] leading-[1.06]">
-                    Tudo vapt-vupt
+                  <span className="block text-[clamp(2.15rem,4.6vw,4.4rem)] font-bold text-[#00A868] leading-[1.06]">
+                    Tudo{' '}
+                    <FacildanTextoDinamico
+                      words={['vapt-vupt', 'rápido', 'na hora', 'prático', 'fluido']}
+                      effect="typewriter"
+                      speed={0.6}
+                      hold={1800}
+                      variant="plain"
+                    />
                     <br />
                     no seu PIX.
                   </span>
                 </h1>
 
-                <p className="text-[17px] sm:text-[19px] text-[#475872] leading-[1.6] max-w-[54ch] mx-auto lg:mx-0">
+                <p className="text-[14.5px] sm:text-[19px] text-[#475872] leading-[1.48] sm:leading-[1.6] max-w-[54ch] mx-auto lg:mx-0">
                   Pra você criar em 2 minutos e divulgar no WhatsApp,
                   <br className="hidden sm:inline" />
                   pro seu cliente escolher, pagar no PIX e você receber na hora.
@@ -135,11 +143,16 @@ export default function HomePage() {
                   Sem taxa no saque, sem intermediário e sem complicação.
                 </p>
 
+                {/* 3D Orbital Scene no modo responsivo (ajustada para manter o botão CTA visível na primeira dobra) */}
+                <div className="block lg:hidden -my-3 sm:my-0 w-full overflow-visible pointer-events-none">
+                  <HeroOrbitScene />
+                </div>
+
                 {/* Primary CTA Button (Only one) */}
-                <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                <div className="pt-0 sm:pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
                   <Link
                     href="/cadastro"
-                    className="ora-btn-primary rounded-[18px] px-8 py-4 text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)] hover:scale-[1.02] transition-transform"
+                    className="ora-btn-primary rounded-[18px] px-7 py-3.5 sm:px-8 sm:py-4 text-[16px] sm:text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)] hover:scale-[1.02] transition-transform"
                   >
                     <span>Criar Minha Rifa Rápida</span>
                     <ArrowRight className="w-5 h-5" />
@@ -167,8 +180,8 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right Column: 3D Orbital Scene side-by-side on lower layer (z-10), expanded to spread behind text */}
-              <div className="lg:col-span-6 xl:col-span-6 flex items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible pointer-events-none">
+              {/* Right Column: 3D Orbital Scene side-by-side no desktop (lower layer z-10) */}
+              <div className="hidden lg:flex lg:col-span-6 xl:col-span-6 items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible pointer-events-none">
                 <HeroOrbitScene />
               </div>
             </div>
@@ -182,7 +195,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
                 <div className="lg:col-span-5 space-y-4 text-center lg:text-left">
-                  <span className="text-[#0755DE] text-xs font-bold uppercase tracking-wider block">
+                  <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
                     Experiência do Comprador
                   </span>
                   <h2 className="font-display font-bold text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.12] tracking-[-0.035em] text-[#0D1729]">
@@ -237,7 +250,7 @@ export default function HomePage() {
         <section id="como-funciona" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1340px] mx-auto space-y-14">
             <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
-              <span className="text-[#0755DE] text-xs font-bold uppercase tracking-wider block mb-4">
+              <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block mb-4">
                 Praticidade de Ponta a Ponta
               </span>
               <h2 className="font-display font-bold text-[clamp(2.1rem,4vw,3.5rem)] leading-[1.05] tracking-[-0.045em] text-[#0D1729]">
@@ -252,10 +265,10 @@ export default function HomePage() {
               {/* Step 1 */}
               <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
                     <Zap className="w-6 h-6" />
                   </div>
-                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 1</span>
+                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 1</span>
                   <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
                     Você cria em 2 minutos
                   </h3>
@@ -263,7 +276,7 @@ export default function HomePage() {
                     Coloque o título do prêmio, a quantidade de cotas, o valor do número e sua chave PIX. Sem burocracia.
                   </p>
                 </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
                   ⚡ Rifa no ar na hora
                 </div>
               </div>
@@ -271,10 +284,10 @@ export default function HomePage() {
               {/* Step 2 */}
               <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
                     <MessageCircle className="w-6 h-6" />
                   </div>
-                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 2</span>
+                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 2</span>
                   <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
                     Você divulga no WhatsApp
                   </h3>
@@ -282,7 +295,7 @@ export default function HomePage() {
                     Copie seu link exclusivo e mande nos grupos, status do zap e redes sociais. O link abre rápido em qualquer celular.
                   </p>
                 </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
                   📲 Link pronto com 1 clique
                 </div>
               </div>
@@ -290,10 +303,10 @@ export default function HomePage() {
               {/* Step 3 */}
               <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
                     <QrCode className="w-6 h-6" />
                   </div>
-                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 3</span>
+                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 3</span>
                   <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
                     Seu cliente escolhe e paga
                   </h3>
@@ -301,7 +314,7 @@ export default function HomePage() {
                     Ele clica nos números da sorte, copia seu PIX, faz o pagamento e envia o comprovante direto no seu WhatsApp.
                   </p>
                 </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
                   💸 PIX direto pro seu banco
                 </div>
               </div>
@@ -309,10 +322,10 @@ export default function HomePage() {
               {/* Step 4 */}
               <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869F5] flex items-center justify-center shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
                     <Trophy className="w-6 h-6" />
                   </div>
-                  <span className="text-xs font-bold text-[#0869F5] uppercase tracking-wider block">Passo 4</span>
+                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 4</span>
                   <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
                     Você recebe e confirma
                   </h3>
@@ -320,7 +333,7 @@ export default function HomePage() {
                     O dinheiro já está na sua conta bancária. Você confere no painel e confirma as cotas com 1 toque.
                   </p>
                 </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869F5]">
+                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
                   🏆 100% sob seu controle
                 </div>
               </div>
@@ -333,8 +346,8 @@ export default function HomePage() {
           <div className="max-w-[1160px] mx-auto">
             <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0869F5] text-white text-xs font-bold tracking-wider uppercase">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="inline-flex items-center gap-2 text-[#0869f5] text-xs font-bold tracking-wider uppercase">
+                  <ShieldCheck className="w-4 h-4 text-[#0869f5]" />
                   <span>Dinheiro Direto na Sua Conta Bancária</span>
                 </div>
                 <h2 className="font-display font-bold text-[clamp(1.85rem,3.2vw,2.75rem)] leading-[1.1] tracking-[-0.04em] text-[#0D1729]">
@@ -368,7 +381,7 @@ export default function HomePage() {
         <section id="perguntas" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4 text-center lg:text-left max-w-xl mx-auto lg:mx-0 lg:max-w-none">
-              <span className="text-[#0755DE] text-xs font-bold uppercase tracking-wider block">
+              <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
                 Tira-Dúvidas Rápido
               </span>
               <h2 className="font-display font-bold text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">

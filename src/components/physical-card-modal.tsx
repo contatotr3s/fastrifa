@@ -13,6 +13,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import type { Raffle } from '@/types/database.types';
+import { useTheme } from '@/lib/theme-context';
+import { useAuth } from '@/lib/firebase/auth-context';
 
 interface PhysicalCardModalProps {
   raffle: Raffle;
@@ -209,11 +211,28 @@ export default function PhysicalCardModal({
   isOpen,
   onClose,
 }: PhysicalCardModalProps) {
+  const { theme } = useTheme();
+  const { profile } = useAuth();
+
   const [activePreviewPage, setActivePreviewPage] = useState<1 | 2>(1);
   const [markOccupiedOnGrid, setMarkOccupiedOnGrid] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [page1DataUrl, setPage1DataUrl] = useState<string | null>(null);
   const [page2DataUrl, setPage2DataUrl] = useState<string | null>(null);
+
+  // Determina a cor com prioridade para o seletor ativo do painel
+  const defaultThemeColor = useMemo<'green' | 'blue'>(() => {
+    if (theme === 'green' || theme === 'blue') return theme;
+    if (profile?.brand_color === 'green' || profile?.brand_color === 'blue') return profile.brand_color;
+    if (raffle.brand_color === 'green' || raffle.brand_color === 'blue') return raffle.brand_color;
+    return 'green';
+  }, [theme, profile?.brand_color, raffle.brand_color]);
+
+  const [selectedColor, setSelectedColor] = useState<'green' | 'blue'>(defaultThemeColor);
+
+  useEffect(() => {
+    setSelectedColor(defaultThemeColor);
+  }, [defaultThemeColor, isOpen]);
 
   // Nunca codifica localhost nos QR Codes da cartela para que celulares externos sempre consigam abrir
   const publicOrigin = useMemo(() => {
@@ -229,7 +248,7 @@ export default function PhysicalCardModal({
   const publicRaffleUrl = `${publicOrigin}/r/${raffle.slug}`;
   const smartPixCalculatorUrl = `${publicOrigin}/r/${raffle.slug}/pix`;
 
-  const isGreen = raffle.brand_color ? raffle.brand_color === 'green' : true;
+  const isGreen = selectedColor === 'green';
   const primary = isGreen ? '#00A868' : '#0869F5';
   const primaryDark = isGreen ? '#064E3B' : '#052498';
   const primarySoft = isGreen ? '#E8F7F0' : '#EDF5FF';
@@ -1132,7 +1151,11 @@ export default function PhysicalCardModal({
 
         {/* Cabeçalho do Modal */}
         <div className="space-y-1.5 pr-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] text-xs font-bold">
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+            isGreen
+              ? 'bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868]'
+              : 'bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5]'
+          }`}>
             <Sparkles className="w-3.5 h-3.5" />
             <span>Cartela Física A4 Pronta para Impressão (2 Páginas)</span>
           </div>
@@ -1144,15 +1167,17 @@ export default function PhysicalCardModal({
           </p>
         </div>
 
-        {/* Controles de Visualização e Sincronização */}
+        {/* Controles de Visualização, Cor e Sincronização */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[20px]">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setActivePreviewPage(1)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activePreviewPage === 1
-                  ? 'bg-[#0869F5] text-white shadow-sm'
+                  ? isGreen
+                    ? 'bg-[#00A868] text-white shadow-sm'
+                    : 'bg-[#0869F5] text-white shadow-sm'
                   : 'bg-white text-[#475872] border border-[#D9E5F7] hover:text-[#0D1729]'
               }`}
             >
@@ -1163,12 +1188,43 @@ export default function PhysicalCardModal({
               onClick={() => setActivePreviewPage(2)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activePreviewPage === 2
-                  ? 'bg-[#0869F5] text-white shadow-sm'
+                  ? isGreen
+                    ? 'bg-[#00A868] text-white shadow-sm'
+                    : 'bg-[#0869F5] text-white shadow-sm'
                   : 'bg-white text-[#475872] border border-[#D9E5F7] hover:text-[#0D1729]'
               }`}
             >
               Página 2: Lista + QR Code PIX
             </button>
+
+            {/* Seletor Rápido de Cor da Cartela (Honra o tema do painel) */}
+            <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-[#D9E5F7] ml-1">
+              <span className="text-[11px] font-bold text-[#526480] px-1">Cor:</span>
+              <button
+                type="button"
+                onClick={() => setSelectedColor('green')}
+                className={`px-2 py-0.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                  selectedColor === 'green'
+                    ? 'bg-[#00A868] text-white shadow-xs'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+                title="Versão Verde da Cartela"
+              >
+                Verde
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedColor('blue')}
+                className={`px-2 py-0.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                  selectedColor === 'blue'
+                    ? 'bg-[#0869F5] text-white shadow-xs'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+                title="Versão Azul da Cartela"
+              >
+                Azul
+              </button>
+            </div>
           </div>
 
           <label className="inline-flex items-center gap-2 text-xs font-bold text-[#14213A] cursor-pointer select-none">
@@ -1176,7 +1232,7 @@ export default function PhysicalCardModal({
               type="checkbox"
               checked={markOccupiedOnGrid}
               onChange={(e) => setMarkOccupiedOnGrid(e.target.checked)}
-              className="w-4 h-4 rounded accent-[#0869F5]"
+              className={`w-4 h-4 rounded ${isGreen ? 'accent-[#00A868]' : 'accent-[#0869F5]'}`}
             />
             <span>
               Discriminar Vendidos ({paidTicketNumbers.length}) e Reservados ({pendingTicketNumbers.length})
@@ -1185,10 +1241,12 @@ export default function PhysicalCardModal({
         </div>
 
         {/* Preview da Folha A4 */}
-        <div className="bg-[#E8F0FE] border border-[#CDE0FC] rounded-[24px] p-4 sm:p-6 flex flex-col items-center justify-center min-h-[420px]">
+        <div className={`rounded-[24px] p-4 sm:p-6 flex flex-col items-center justify-center min-h-[420px] border ${
+          isGreen ? 'bg-[#E8F7F0] border-[#B9E7D2]' : 'bg-[#E8F0FE] border-[#CDE0FC]'
+        }`}>
           {isGenerating || !page1DataUrl || !page2DataUrl ? (
             <div className="py-20 flex flex-col items-center gap-3 text-[#475872]">
-              <Loader2 className="w-8 h-8 text-[#0869F5] animate-spin" />
+              <Loader2 className={`w-8 h-8 animate-spin ${isGreen ? 'text-[#00A868]' : 'text-[#0869F5]'}`} />
               <span className="text-sm font-semibold">
                 Montando as 2 páginas A4 em alta definição...
               </span>
@@ -1210,7 +1268,9 @@ export default function PhysicalCardModal({
             href={`/r/${raffle.slug}/pix`}
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-bold text-[#0869F5] hover:underline inline-flex items-center gap-1.5"
+            className={`text-xs font-bold hover:underline inline-flex items-center gap-1.5 ${
+              isGreen ? 'text-[#00A868]' : 'text-[#0869F5]'
+            }`}
           >
             <QrIcon className="w-4 h-4" />
             <span>Testar página do QR Code PIX da Cartela (/r/{raffle.slug}/pix)</span>
@@ -1223,7 +1283,7 @@ export default function PhysicalCardModal({
               onClick={handlePrintDirect}
               className="ora-btn-secondary px-5 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer"
             >
-              <Printer className="w-4 h-4 text-[#0869F5]" />
+              <Printer className={`w-4 h-4 ${isGreen ? 'text-[#00A868]' : 'text-[#0869F5]'}`} />
               <span>Imprimir Direto</span>
             </button>
 
@@ -1231,7 +1291,11 @@ export default function PhysicalCardModal({
               type="button"
               disabled={isGenerating}
               onClick={handleDownloadPdf}
-              className="ora-btn-primary px-6 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center gap-2 shadow-[0_12px_28px_rgba(8,105,245,0.28)] cursor-pointer"
+              className={`ora-btn-primary px-6 py-3.5 rounded-[18px] text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer ${
+                isGreen
+                  ? 'shadow-[0_12px_28px_rgba(0,168,104,0.28)]'
+                  : 'shadow-[0_12px_28px_rgba(8,105,245,0.28)]'
+              }`}
             >
               <Download className="w-4 h-4" />
               <span>Baixar Cartela em PDF (2 Páginas)</span>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
+import { useTheme } from '@/lib/theme-context';
 import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
 import PrizeImageUploader from '@/components/prize-image-uploader';
 import { numeroPorExtensoBRL } from '@/lib/currency';
@@ -13,6 +14,7 @@ import type { PixKeyType } from '@/types/database.types';
 
 export default function NewRafflePage() {
   const { user, profile } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +91,7 @@ export default function NewRafflePage() {
         phone_whatsapp: phoneWhatsapp || '',
         brand_name: profile?.brand_name || profile?.full_name || 'FastRifa',
         brand_logo_url: profile?.brand_logo_url || null,
-        brand_color: (profile?.brand_color as 'blue' | 'green') || 'blue',
+        brand_color: (profile?.brand_color as 'blue' | 'green') || (theme as 'blue' | 'green') || 'green',
         status: 'active',
         winner_ticket: null,
         winner_name: null,

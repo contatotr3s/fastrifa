@@ -28,6 +28,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
+import { useTheme } from '@/lib/theme-context';
 import { updateOrderStatus, finishRaffle, deleteRaffle } from '@/lib/firebase/raffles';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
@@ -43,6 +44,7 @@ interface RaffleManagerProps {
 
 export default function RaffleManager({ raffle: initialRaffle, initialOrders }: RaffleManagerProps) {
   const { user, profile } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
 
   const [raffle, setCurrentRaffle] = useState<Raffle>(initialRaffle);
@@ -879,7 +881,10 @@ Entre em contato para combinarmos a entrega do seu prêmio.
 
       {/* MODAL 2.5: Gerador de Cartela Física em PDF (2 Páginas A4) */}
       <PhysicalCardModal
-        raffle={raffle}
+        raffle={{
+          ...raffle,
+          brand_color: (theme === 'green' || theme === 'blue') ? theme : (raffle.brand_color || 'green'),
+        }}
         paidTicketNumbers={paidTicketNumbers}
         pendingTicketNumbers={pendingTicketNumbers}
         isOpen={showPhysicalCardModal}
