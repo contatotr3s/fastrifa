@@ -171,7 +171,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       id={`fastRifaOrbit-${variant || 'auto'}`}
       className={`fr-orbit-root relative w-full select-none overflow-visible pointer-events-none mx-auto flex items-center justify-center ${
         isMobile
-          ? 'max-w-[420px] h-[155px] sm:h-[185px] scale-[0.82] sm:scale-100'
+          ? 'max-w-[480px] h-[210px] sm:h-[220px]'
           : 'max-w-[920px] sm:max-w-[1040px] lg:max-w-[1140px] h-[520px] sm:h-[580px] lg:h-[620px]'
       }`}
       aria-label="FastRifa em órbita tridimensional interativa"

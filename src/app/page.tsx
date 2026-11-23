@@ -112,16 +112,16 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-2 pb-10 sm:pt-3 sm:pb-14 px-4 sm:px-8 relative overflow-hidden">
-          <div className="max-w-[1400px] mx-auto">
+        <section className="ora-hero-stage pt-2 pb-8 sm:pt-3 sm:pb-14 px-4 sm:px-8 relative overflow-hidden min-h-[calc(100svh-72px)] flex flex-col justify-center">
+          <div className="max-w-[1400px] w-full mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
-              <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left space-y-1.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
+              <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left space-y-2.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
                 <h1 className="font-display tracking-[-0.04em]">
-                  <span className="block text-base sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-0.5 sm:mb-1 tracking-[-0.03em]">
+                  <span className="block text-lg sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1 tracking-[-0.03em]">
                     Crie, divulgue e venda.
                   </span>
-                  <span className="block text-[clamp(2.05rem,4.6vw,4.4rem)] font-bold text-[#00A868] leading-[1.06]">
+                  <span className="block text-[clamp(2.15rem,4.6vw,4.4rem)] font-bold text-[#00A868] leading-[1.06]">
                     Tudo{' '}
                     <FacildanTextoDinamico
                       words={['vapt-vupt', 'rápido', 'na hora', 'prático', 'fluido']}
@@ -135,7 +135,7 @@ export default function HomePage() {
                   </span>
                 </h1>
 
-                <p className="text-[13.5px] sm:text-[19px] text-[#475872] leading-[1.4] sm:leading-[1.6] max-w-[54ch] mx-auto lg:mx-0">
+                <p className="text-[14.5px] sm:text-[19px] text-[#475872] leading-[1.48] sm:leading-[1.6] max-w-[54ch] mx-auto lg:mx-0">
                   Pra você criar em 2 minutos e divulgar no WhatsApp,
                   <br className="hidden sm:inline" />
                   pro seu cliente escolher, pagar no PIX e você receber na hora.
@@ -143,16 +143,16 @@ export default function HomePage() {
                   Sem taxa no saque, sem intermediário e sem complicação.
                 </p>
 
-                {/* 3D Orbital Scene no modo responsivo (ajustada para manter o botão CTA visível na primeira dobra) */}
-                <div className="block lg:hidden -my-4 sm:my-0 w-full overflow-visible pointer-events-none">
+                {/* 3D Orbital Scene no modo responsivo (harmonizada no fluxo mobile) */}
+                <div className="block lg:hidden -my-1.5 sm:my-0 w-full overflow-visible pointer-events-none">
                   <HeroOrbitScene variant="mobile" />
                 </div>
 
                 {/* Primary CTA Button (Only one) */}
-                <div className="pt-0 sm:pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                <div className="pt-0.5 sm:pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
                   <Link
                     href="/cadastro"
-                    className="ora-btn-primary rounded-[18px] px-6 py-3 sm:px-8 sm:py-4 text-[15px] sm:text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)] hover:scale-[1.02] transition-transform"
+                    className="ora-btn-primary rounded-[18px] px-7 py-3.5 sm:px-8 sm:py-4 text-[16px] sm:text-[17px] font-bold inline-flex items-center justify-center gap-2.5 shadow-[0_12px_28px_rgba(8,105,245,0.28)] hover:scale-[1.02] transition-transform"
                   >
                     <span>Criar Minha Rifa Rápida</span>
                     <ArrowRight className="w-5 h-5" />
