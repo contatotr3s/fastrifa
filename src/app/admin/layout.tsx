@@ -24,12 +24,7 @@ export default function AdminLayout({
               <img
                 src="/logo-fastrifa.png"
                 alt="Fast Rifa"
-                className="h-7 w-auto object-contain hidden sm:block"
-              />
-              <img
-                src="/icone-mobile-fastrifa.png"
-                alt="Fast Rifa"
-                className="h-6 w-auto object-contain block sm:hidden"
+                className="h-7 w-auto object-contain"
               />
               <div className="space-y-0.5">
                 <p className="text-xs font-semibold text-[#0D1729]">

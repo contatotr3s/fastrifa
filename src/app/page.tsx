@@ -58,17 +58,10 @@ export default function HomePage() {
             href="/"
             className="ora-glass-pill rounded-full h-11 sm:h-12 px-3 sm:px-4 flex items-center justify-center hover:border-[#B9D3F8] transition shrink-0"
           >
-            {/* Desktop: Logo completa */}
             <img
               src="/logo-fastrifa.png"
               alt="Fast Rifa"
-              className="h-8 sm:h-[38px] w-auto object-contain hidden sm:block"
-            />
-            {/* Mobile celular: Logo responsiva */}
-            <img
-              src="/icone-mobile-fastrifa.png"
-              alt="Fast Rifa"
-              className="h-[30px] sm:h-8 w-auto object-contain block sm:hidden"
+              className="h-7 sm:h-[38px] w-auto object-contain"
             />
           </Link>
 
