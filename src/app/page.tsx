@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import HeroOrbitScene from '@/components/hero-orbit-scene';
 import GradePrintShowcase from '@/components/grade-print-showcase';
+import HowItWorksShowcase from '@/components/how-it-works-showcase';
 import ScrollToTopButton from '@/components/scroll-to-top-button';
 import FacildanTextoDinamico from '@/components/facildan-texto-dinamico';
 import {
@@ -8,10 +9,7 @@ import {
   ArrowRight,
   CheckCircle2,
   UserCheck,
-  Zap,
-  QrCode,
   MessageCircle,
-  Trophy,
   ShieldCheck,
   Mail,
 } from 'lucide-react';
@@ -239,100 +237,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Section 3: How It Works (4 Practical Steps) */}
-        <section id="como-funciona" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
-          <div className="max-w-[1340px] mx-auto space-y-14">
-            <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
-              <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block mb-4">
-                Praticidade de Ponta a Ponta
-              </span>
-              <h2 className="font-display font-bold text-[clamp(2.1rem,4vw,3.5rem)] leading-[1.05] tracking-[-0.045em] text-[#0D1729]">
-                Criar. Divulgar. Vender. Receber.
-              </h2>
-              <p className="mt-4 text-[17px] text-[#475872] leading-[1.6]">
-                Desenvolvemos a FastRifa para eliminar qualquer perda de tempo entre você e o dinheiro das suas cotas.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Step 1 */}
-              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
-                    <Zap className="w-6 h-6" />
-                  </div>
-                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 1</span>
-                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
-                    Você cria em 2 minutos
-                  </h3>
-                  <p className="text-[14px] text-[#475872] leading-[1.6]">
-                    Coloque o título do prêmio, a quantidade de cotas, o valor do número e sua chave PIX. Sem burocracia.
-                  </p>
-                </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
-                  ⚡ Rifa no ar na hora
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
-                    <MessageCircle className="w-6 h-6" />
-                  </div>
-                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 2</span>
-                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
-                    Você divulga no WhatsApp
-                  </h3>
-                  <p className="text-[14px] text-[#475872] leading-[1.6]">
-                    Copie seu link exclusivo e mande nos grupos, status do zap e redes sociais. O link abre rápido em qualquer celular.
-                  </p>
-                </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
-                  📲 Link pronto com 1 clique
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
-                    <QrCode className="w-6 h-6" />
-                  </div>
-                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 3</span>
-                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
-                    Seu cliente escolhe e paga
-                  </h3>
-                  <p className="text-[14px] text-[#475872] leading-[1.6]">
-                    Ele clica nos números da sorte, copia seu PIX, faz o pagamento e envia o comprovante direto no seu WhatsApp.
-                  </p>
-                </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
-                  💸 PIX direto pro seu banco
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div className="ora-card-soft rounded-[30px] p-7 flex flex-col justify-between space-y-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E5F7] text-[#0869f5] flex items-center justify-center shadow-sm">
-                    <Trophy className="w-6 h-6" />
-                  </div>
-                  <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider block">Passo 4</span>
-                  <h3 className="font-display font-bold text-[21px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
-                    Você recebe e confirma
-                  </h3>
-                  <p className="text-[14px] text-[#475872] leading-[1.6]">
-                    O dinheiro já está na sua conta bancária. Você confere no painel e confirma as cotas com 1 toque.
-                  </p>
-                </div>
-                <div className="bg-white rounded-[16px] p-3.5 border border-[#E0E9F7] text-xs font-semibold text-[#0869f5]">
-                  🏆 100% sob seu controle
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Section 3: How It Works (4 Practical Steps — Interactive Showcase) */}
+        <HowItWorksShowcase />
 
         {/* Section 4: Transparency & Direct PIX Highlight */}
         <section id="transparencia" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
