@@ -100,7 +100,7 @@ function StepStageVisual({
         <div
           className={`fr-hiw-pop fr-hiw-delay-3 inline-flex items-center gap-1.5 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] font-bold shadow-[0_10px_24px_rgba(0,168,104,0.14)] ${
             compact
-              ? 'px-2.5 py-1 text-[10.5px] mb-2'
+              ? 'px-2.5 py-0.5 text-[10px] mb-1.5'
               : 'px-3.5 py-1.5 text-xs absolute -top-4 right-2 z-20'
           }`}
         >
@@ -111,10 +111,10 @@ function StepStageVisual({
         {/* Mini card do criador Fast Rifa */}
         <div
           className={`bg-white rounded-[22px] border border-[#D9E5F7] shadow-[0_18px_42px_rgba(32,77,139,0.10)] ${
-            compact ? 'p-3.5 space-y-2.5' : 'p-5 space-y-3.5'
+            compact ? 'p-2.5 space-y-1.5' : 'p-5 space-y-3.5'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-[#EDF3FC] pb-2.5">
+          <div className={`flex items-center justify-between border-b border-[#EDF3FC] ${compact ? 'pb-1.5' : 'pb-2.5'}`}>
             <div className="flex items-center gap-2">
               <span className="w-7 h-7 rounded-xl bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center">
                 <Zap className="w-4 h-4" />
@@ -128,26 +128,26 @@ function StepStageVisual({
             </span>
           </div>
 
-          <div className="space-y-2">
-            <div className="fr-hiw-pop fr-hiw-delay-1 flex items-center justify-between bg-[#F5F9FF] border border-[#E0E9F7] rounded-[13px] px-3 py-2">
+          <div className={compact ? 'space-y-1.5' : 'space-y-2'}>
+            <div className={`fr-hiw-pop fr-hiw-delay-1 flex items-center justify-between bg-[#F5F9FF] border border-[#E0E9F7] rounded-[13px] px-3 ${compact ? 'py-1.5' : 'py-2'}`}>
               <span className="text-[11px] font-medium text-[#526480]">Prêmio</span>
               <span className="text-xs font-bold text-[#0D1729] truncate max-w-[190px]">
                 iPhone 16 Pro Max
               </span>
             </div>
 
-            <div className="fr-hiw-pop fr-hiw-delay-2 grid grid-cols-2 gap-2">
-              <div className="bg-[#F5F9FF] border border-[#E0E9F7] rounded-[13px] px-3 py-2 flex items-center justify-between">
+            <div className={`fr-hiw-pop fr-hiw-delay-2 grid grid-cols-2 ${compact ? 'gap-1.5' : 'gap-2'}`}>
+              <div className={`bg-[#F5F9FF] border border-[#E0E9F7] rounded-[13px] px-3 ${compact ? 'py-1.5' : 'py-2'} flex items-center justify-between`}>
                 <span className="text-[11px] font-medium text-[#526480]">Cotas</span>
                 <span className="text-xs font-bold text-[#0D1729] tabular-nums">100</span>
               </div>
-              <div className="bg-[#F5F9FF] border border-[#E0E9F7] rounded-[13px] px-3 py-2 flex items-center justify-between">
+              <div className={`bg-[#F5F9FF] border border-[#E0E9F7] rounded-[13px] px-3 ${compact ? 'py-1.5' : 'py-2'} flex items-center justify-between`}>
                 <span className="text-[11px] font-medium text-[#526480]">Valor</span>
                 <span className="text-xs font-bold text-[#0869F5] tabular-nums">R$ 15,00</span>
               </div>
             </div>
 
-            <div className="fr-hiw-pop fr-hiw-delay-3 flex items-center justify-between bg-[#F3FAF6] border border-[#C6EBD8] rounded-[13px] px-3 py-2">
+            <div className={`fr-hiw-pop fr-hiw-delay-3 flex items-center justify-between bg-[#F3FAF6] border border-[#C6EBD8] rounded-[13px] px-3 ${compact ? 'py-1.5' : 'py-2'}`}>
               <span className="text-[11px] font-medium text-[#475872]">Chave PIX</span>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#00A868]">
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -157,7 +157,7 @@ function StepStageVisual({
           </div>
 
           <div className="fr-hiw-pop fr-hiw-delay-4 pt-0.5">
-            <div className="ora-btn-primary rounded-[14px] w-full py-2.5 px-4 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 pointer-events-none">
+            <div className={`ora-btn-primary rounded-[14px] w-full ${compact ? 'py-2' : 'py-2.5'} px-4 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 pointer-events-none`}>
               <Zap className="w-4 h-4" />
               <span>Publicar Rifa Agora</span>
             </div>
@@ -192,7 +192,7 @@ function StepStageVisual({
         {/* Conversa estilo WhatsApp */}
         <div
           className={`bg-white rounded-[22px] border border-[#D9E5F7] shadow-[0_18px_42px_rgba(32,77,139,0.10)] ${
-            compact ? 'p-3 space-y-2' : 'p-4 sm:p-5 space-y-2.5'
+            compact ? 'p-2.5 space-y-1.5' : 'p-4 sm:p-5 space-y-2.5'
           }`}
         >
           <div className="flex items-center justify-between border-b border-[#EDF3FC] pb-2">
@@ -263,7 +263,7 @@ function StepStageVisual({
         {/* Mini grade de cotas */}
         <div
           className={`bg-white rounded-[22px] border border-[#D9E5F7] shadow-[0_18px_42px_rgba(32,77,139,0.10)] ${
-            compact ? 'p-3.5 space-y-2.5' : 'p-4 sm:p-5 space-y-3'
+            compact ? 'p-2.5 space-y-2' : 'p-4 sm:p-5 space-y-3'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ function StepStageVisual({
       {/* Painel do Organizador - Aprovação 1 toque */}
       <div
         className={`bg-white rounded-[22px] border border-[#D9E5F7] shadow-[0_18px_42px_rgba(32,77,139,0.10)] ${
-          compact ? 'p-3.5 space-y-2.5' : 'p-4 sm:p-5 space-y-3'
+          compact ? 'p-2.5 space-y-2' : 'p-4 sm:p-5 space-y-3'
         }`}
       >
         <div className="fr-hiw-pop fr-hiw-delay-2 flex items-center justify-between gap-2 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[15px] p-2.5 sm:p-3">
@@ -489,7 +489,7 @@ export default function HowItWorksShowcase() {
     <section
       ref={sectionRef}
       id="como-funciona"
-      className="ora-section-seam scroll-mt-20 py-8 sm:py-12 lg:py-14 px-4 sm:px-8"
+      className="ora-section-seam scroll-mt-20 py-4 sm:py-6 lg:py-8 min-h-[calc(100svh-75px)] flex flex-col justify-center px-4 sm:px-8"
     >
       <style>{`
         @keyframes frHiwStageIn {
@@ -546,17 +546,17 @@ export default function HowItWorksShowcase() {
         }
       `}</style>
 
-      <div className="max-w-[1340px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="max-w-[1340px] w-full mx-auto space-y-3 sm:space-y-4 lg:space-y-5">
         {/* Cabeçalho da Seção + Controles Desktop */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-6">
           <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
-            <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block mb-2 sm:mb-3">
+            <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block mb-1 sm:mb-1.5">
               Praticidade de Ponta a Ponta
             </span>
-            <h2 className="font-display font-bold text-[clamp(1.75rem,3.6vw,3.2rem)] leading-[1.05] tracking-[-0.045em] text-[#0D1729]">
+            <h2 className="font-display font-bold text-[clamp(1.45rem,3vw,2.65rem)] leading-[1.06] tracking-[-0.045em] text-[#0D1729]">
               Criar. Divulgar. Vender. Receber.
             </h2>
-            <p className="mt-2 sm:mt-3 text-[14px] sm:text-[16.5px] text-[#475872] leading-[1.52] sm:leading-[1.58]">
+            <p className="mt-1.5 text-[13px] sm:text-[15px] text-[#475872] leading-[1.45]">
               Desenvolvemos a FastRifa para eliminar qualquer perda de tempo entre você e o dinheiro das suas cotas.
             </p>
           </div>
@@ -604,13 +604,13 @@ export default function HowItWorksShowcase() {
         <div
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          className="hidden lg:grid lg:grid-cols-12 gap-6 items-stretch ora-card rounded-[32px] p-5 xl:p-7 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]"
+          className="hidden lg:grid lg:grid-cols-12 gap-5 items-stretch ora-card rounded-[28px] p-4 xl:p-5 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]"
         >
           {/* Coluna Esquerda: Stepper Interativo */}
           <div
             role="tablist"
             aria-label="Etapas de funcionamento da FastRifa"
-            className="lg:col-span-5 flex flex-col justify-between gap-2.5"
+            className="lg:col-span-5 flex flex-col justify-between gap-2"
           >
             {STEPS.map((step, index) => {
               const Icon = step.icon;
@@ -625,21 +625,21 @@ export default function HowItWorksShowcase() {
                   aria-controls={`panel-${step.id}`}
                   onClick={() => selectStep(index)}
                   onKeyDown={(e) => handleTabKeyDown(e, index)}
-                  className={`group relative w-full text-left rounded-[20px] transition-all duration-300 cursor-pointer overflow-hidden border ${
+                  className={`group relative w-full text-left rounded-[18px] transition-all duration-300 cursor-pointer overflow-hidden border ${
                     isActive
-                      ? 'bg-white border-[#B9D3F8] p-4 shadow-[0_14px_34px_rgba(8,105,245,0.10)]'
-                      : 'bg-[#F8FBFF]/80 border-[#E5EEFA] px-4 py-3 hover:bg-white hover:border-[#CDE0FC]'
+                      ? 'bg-white border-[#B9D3F8] p-3.5 shadow-[0_14px_34px_rgba(8,105,245,0.10)]'
+                      : 'bg-[#F8FBFF]/80 border-[#E5EEFA] px-3.5 py-2.5 hover:bg-white hover:border-[#CDE0FC]'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                         isActive
                           ? 'bg-gradient-to-br from-[#529BFF] to-[#0869F5] text-white shadow-[0_8px_20px_rgba(8,105,245,0.28)]'
                           : 'bg-white border border-[#D9E5F7] text-[#0869F5] group-hover:border-[#B9D3F8]'
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -648,7 +648,7 @@ export default function HowItWorksShowcase() {
                           {step.stepNumber}
                         </span>
                         {isActive && (
-                          <span className="text-[11px] font-semibold text-[#0869f5] bg-[#EDF5FF] px-2.5 py-0.5 rounded-full">
+                          <span className="text-[10.5px] font-semibold text-[#0869f5] bg-[#EDF5FF] px-2.5 py-0.5 rounded-full">
                             {step.highlight}
                           </span>
                         )}
@@ -657,15 +657,15 @@ export default function HowItWorksShowcase() {
                       <h3
                         className={`font-display font-bold tracking-[-0.03em] leading-[1.2] mt-0.5 transition-colors ${
                           isActive
-                            ? 'text-[18px] text-[#0D1729]'
-                            : 'text-[15.5px] text-[#334661] group-hover:text-[#0D1729]'
+                            ? 'text-[16.5px] text-[#0D1729]'
+                            : 'text-[14.5px] text-[#334661] group-hover:text-[#0D1729]'
                         }`}
                       >
                         {step.title}
                       </h3>
 
                       {isActive && (
-                        <p className="mt-1.5 text-[13.5px] text-[#475872] leading-[1.52] fr-hiw-pop">
+                        <p className="mt-1 text-[13px] text-[#475872] leading-[1.45] fr-hiw-pop">
                           {step.description}
                         </p>
                       )}
@@ -696,7 +696,7 @@ export default function HowItWorksShowcase() {
             id={`panel-${currentStep.id}`}
             role="tabpanel"
             aria-labelledby={`tab-${currentStep.id}`}
-            className="lg:col-span-7 relative rounded-[24px] bg-gradient-to-br from-[#F5F9FF] via-[#EDF5FF] to-[#E8F7F0]/75 border border-[#D9E5F7] p-5 xl:p-7 flex flex-col justify-between min-h-[385px] xl:min-h-[415px] overflow-hidden"
+            className="lg:col-span-7 relative rounded-[22px] bg-gradient-to-br from-[#F5F9FF] via-[#EDF5FF] to-[#E8F7F0]/75 border border-[#D9E5F7] p-4 xl:p-5 flex flex-col justify-between min-h-[330px] xl:min-h-[360px] overflow-hidden"
           >
             {/* Ambient Radial Glows */}
             <div
@@ -722,7 +722,7 @@ export default function HowItWorksShowcase() {
             </div>
 
             {/* Cena interativa centralizada */}
-            <div className="relative z-10 flex-1 flex items-center justify-center py-6">
+            <div className="relative z-10 flex-1 flex items-center justify-center py-2">
               <StepStageVisual stepIndex={activeStep} />
             </div>
 
@@ -754,12 +754,12 @@ export default function HowItWorksShowcase() {
         {/* ================================================================
             VERSÃO MOBILE / TABLET: Barra Segmentada + Card Único (Zero Empilhamento)
            ================================================================ */}
-        <div className="block lg:hidden space-y-3">
+        <div className="block lg:hidden space-y-2.5">
           {/* Barra segmentada com os 4 passos em 1 linha */}
           <div
             role="tablist"
             aria-label="Selecionar passo"
-            className="grid grid-cols-4 gap-1 p-1 ora-glass-pill rounded-[18px]"
+            className="grid grid-cols-4 gap-1 p-1 ora-glass-pill rounded-[16px]"
           >
             {STEPS.map((step, index) => {
               const isActive = index === activeStep;
@@ -770,7 +770,7 @@ export default function HowItWorksShowcase() {
                   type="button"
                   aria-selected={isActive}
                   onClick={() => selectStep(index)}
-                  className={`py-1.5 px-1 rounded-[13px] text-[11px] font-bold transition-all duration-200 flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                  className={`py-1.5 px-1 rounded-[12px] text-[11px] font-bold transition-all duration-200 flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                     isActive
                       ? 'bg-[#0869F5] text-white shadow-[0_6px_16px_rgba(8,105,245,0.28)]'
                       : 'text-[#475872] hover:text-[#0D1729]'
@@ -796,7 +796,7 @@ export default function HowItWorksShowcase() {
             className="ora-card rounded-[24px] overflow-hidden border border-[#D9E5F7] shadow-[0_18px_46px_rgba(32,77,139,0.09)] relative"
           >
             {/* Topo Visual Compacto */}
-            <div className="relative bg-gradient-to-br from-[#F5F9FF] via-[#EDF5FF] to-[#E8F7F0]/75 border-b border-[#D9E5F7] p-3.5 min-h-[195px] flex flex-col items-center justify-center overflow-hidden">
+            <div className="relative bg-gradient-to-br from-[#F5F9FF] via-[#EDF5FF] to-[#E8F7F0]/75 border-b border-[#D9E5F7] p-2.5 min-h-[168px] flex flex-col items-center justify-center overflow-hidden">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-[radial-gradient(circle,rgba(8,105,245,0.14)_0%,transparent_70%)] blur-xl"
@@ -805,26 +805,26 @@ export default function HowItWorksShowcase() {
             </div>
 
             {/* Corpo Editorial Compacto */}
-            <div className="p-4 bg-white space-y-2.5 relative">
+            <div className="p-3.5 bg-white space-y-1.5 relative">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-[#0869f5] uppercase tracking-wider">
                   {currentStep.stepNumber}
                 </span>
-                <span className="text-[11px] font-semibold text-[#0869f5] bg-[#EDF5FF] px-2.5 py-0.5 rounded-full">
+                <span className="text-[10.5px] font-semibold text-[#0869f5] bg-[#EDF5FF] px-2.5 py-0.5 rounded-full">
                   {currentStep.highlight}
                 </span>
               </div>
 
-              <h3 className="font-display font-bold text-[20px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
+              <h3 className="font-display font-bold text-[17.5px] text-[#0D1729] tracking-[-0.03em] leading-[1.2]">
                 {currentStep.title}
               </h3>
 
-              <p className="text-[13.5px] text-[#475872] leading-[1.55]">
+              <p className="text-[13px] text-[#475872] leading-[1.45]">
                 {currentStep.description}
               </p>
 
               {/* Navegação inferior compacta + dots */}
-              <div className="pt-2 border-t border-[#EDF3FC] flex items-center justify-between gap-3">
+              <div className="pt-1.5 border-t border-[#EDF3FC] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5">
                   {STEPS.map((s, idx) => (
                     <button

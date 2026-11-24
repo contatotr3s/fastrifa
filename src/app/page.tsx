@@ -180,47 +180,47 @@ export default function HomePage() {
         </section>
 
         {/* Section 2: Interactive Live Demo Stage (Ajustado à dimensão da tela) */}
-        <section id="campanha-ao-vivo" className="ora-section-seam py-8 sm:py-10 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-4 sm:px-8">
+        <section id="campanha-ao-vivo" className="ora-section-seam scroll-mt-20 py-3 sm:py-6 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-4 sm:px-8">
           <div className="max-w-[1280px] w-full mx-auto">
-            <div className="ora-demo-stage rounded-[30px] p-6 sm:p-8 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+            <div className="ora-demo-stage rounded-[24px] lg:rounded-[30px] p-4 sm:p-6 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
-                <div className="lg:col-span-5 space-y-4 text-center lg:text-left">
+                <div className="lg:col-span-5 space-y-2 sm:space-y-3 lg:space-y-4 text-center lg:text-left">
                   <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
                     Experiência do Comprador
                   </span>
-                  <h2 className="font-display font-bold text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.12] tracking-[-0.035em] text-[#0D1729]">
+                  <h2 className="font-display font-bold text-[1.35rem] sm:text-[1.7rem] lg:text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.12] tracking-[-0.035em] text-[#0D1729]">
                     Pro seu cliente é vapt-vupt: escolheu, pagou no PIX, confirmou.
                   </h2>
-                  <p className="text-[14.5px] sm:text-[15.5px] text-[#475872] leading-[1.55] max-w-xl mx-auto lg:mx-0">
+                  <p className="text-[12.5px] sm:text-[14px] lg:text-[15.5px] text-[#475872] leading-[1.42] lg:leading-[1.55] max-w-xl mx-auto lg:mx-0">
                     Zero atrito. O comprador não precisa baixar nenhum aplicativo e nem criar conta com senha. Ele abre o seu link no celular, escolhe os números da sorte em segundos e já te manda o comprovante no WhatsApp.
                   </p>
 
-                  <div className="space-y-2 pt-1 inline-flex flex-col items-start text-left mx-auto lg:mx-0">
-                    <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#14213A]">
-                      <span className="w-5 h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                  <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 pt-0.5 lg:pt-1 inline-flex flex-col items-start text-left mx-auto lg:mx-0">
+                    <div className="flex items-center gap-2 lg:gap-2.5 text-[12px] sm:text-[13.5px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
+                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[10px] lg:text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Grade interativa com números livres e ocupados em tempo real</span>
                     </div>
-                    <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#14213A]">
-                      <span className="w-5 h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                    <div className="flex items-center gap-2 lg:gap-2.5 text-[12px] sm:text-[13.5px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
+                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[10px] lg:text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Seleção rápida da sorte (+5, +10, +25, +50 cotas com um toque)</span>
                     </div>
-                    <div className="flex items-center gap-2.5 text-[14px] font-medium text-[#14213A]">
-                      <span className="w-5 h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                    <div className="flex items-center gap-2 lg:gap-2.5 text-[12px] sm:text-[13.5px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
+                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[10px] lg:text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Chave PIX copiada com 1 clique e envio do comprovante no zap</span>
                     </div>
                   </div>
 
-                  <div className="pt-2 flex justify-center lg:justify-start">
+                  <div className="pt-1 lg:pt-2 flex justify-center lg:justify-start">
                     <Link
                       href="/cadastro"
-                      className="ora-btn-primary rounded-[18px] px-6 py-3 text-[14.5px] font-bold inline-flex items-center gap-2"
+                      className="ora-btn-primary rounded-[18px] px-5 py-2.5 lg:px-6 lg:py-3 text-[13.5px] lg:text-[14.5px] font-bold inline-flex items-center gap-2"
                     >
                       <span>Criar Minha Rifa Agora</span>
                       <ArrowUpRight className="w-4 h-4" />
@@ -276,9 +276,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Section 5: FAQ Section (Oratry Sticky Split Layout) */}
-        <section id="perguntas" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
-          <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        {/* Section 5: FAQ Section (Oratry Sticky Split Layout + Mobile Stacking Deck) */}
+        <section id="perguntas" className="ora-section-seam scroll-mt-20 py-12 sm:py-16 lg:py-20 px-4 sm:px-8">
+          <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4 text-center lg:text-left max-w-xl mx-auto lg:mx-0 lg:max-w-none">
               <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
                 Tira-Dúvidas Rápido
@@ -291,16 +291,28 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="lg:col-span-7 space-y-4">
+            <div className="lg:col-span-7 space-y-6 lg:space-y-4 pb-6 lg:pb-0">
               {faqs.map((item, idx) => (
                 <div
                   key={idx}
-                  className="ora-card rounded-[24px] p-6 sm:p-7 space-y-2.5 hover:border-[#B9D3F8] transition"
+                  style={
+                    {
+                      '--faq-top': `${88 + idx * 14}px`,
+                      zIndex: idx + 1,
+                    } as React.CSSProperties
+                  }
+                  className="ora-card rounded-[24px] p-5 sm:p-6 lg:p-7 space-y-2.5 hover:border-[#B9D3F8] transition sticky top-[var(--faq-top)] lg:static lg:top-auto bg-white shadow-[0_-10px_28px_rgba(13,23,41,0.06),0_12px_30px_rgba(32,77,139,0.08)] lg:shadow-none"
                 >
-                  <h3 className="font-display font-bold text-[19px] text-[#0D1729] tracking-[-0.02em]">
+                  <div className="flex lg:hidden items-center justify-between text-[11px] font-bold text-[#0869f5] uppercase tracking-wider">
+                    <span>Dúvida 0{idx + 1}</span>
+                    <span className="text-[#8A9BB3] tabular-nums">
+                      0{idx + 1} / 0{faqs.length}
+                    </span>
+                  </div>
+                  <h3 className="font-display font-bold text-[17.5px] lg:text-[19px] text-[#0D1729] tracking-[-0.02em]">
                     {item.q}
                   </h3>
-                  <p className="text-[15px] text-[#475872] leading-[1.6]">
+                  <p className="text-[14px] lg:text-[15px] text-[#475872] leading-[1.6]">
                     {item.a}
                   </p>
                 </div>

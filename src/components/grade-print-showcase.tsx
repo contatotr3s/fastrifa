@@ -118,7 +118,7 @@ export default function GradePrintShowcase() {
       onPointerMove={handlePointerMove}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
-      className="relative flex items-center justify-center py-2 sm:py-4 select-none"
+      className="relative flex items-center justify-center py-0.5 sm:py-2 lg:py-4 select-none"
     >
       {/* Brilho atmosférico difuso atrás do print para integrar perfeitamente ao estágio */}
       <div
@@ -138,7 +138,7 @@ export default function GradePrintShowcase() {
             src="/demo-grade-print.jpg"
             alt="Demonstração da Grade Ágil de Cotas Interativas FastRifa"
             draggable={false}
-            className="w-full max-h-[min(420px,50vh)] object-contain block mx-auto ora-print-soft-mask"
+            className="w-full max-h-[205px] sm:max-h-[290px] lg:max-h-[min(420px,50vh)] object-contain block mx-auto ora-print-soft-mask"
           />
 
           {/* Reflexo luminoso suave ao passar o mouse */}
