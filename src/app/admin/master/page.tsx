@@ -12,9 +12,8 @@ import {
   updateRaffleByMaster,
   updateProfileByMaster,
   getAuditLogs,
+  cleanAllTestData,
 } from '@/lib/firebase/raffles';
-import { db } from '@/lib/firebase/config';
-import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
   MasterEditUserModal,
@@ -90,7 +89,7 @@ export default function AdminMasterPage() {
   async function handleCleanTestData() {
     if (
       !confirm(
-        'Deseja realmente limpar todos os perfis e dados de teste, mantendo apenas a conta master dancos3@gmail.com?'
+        'Deseja realmente limpar TODOS os dados de teste (contas criadas, rifas associadas ou órfãs, pedidos e logs de auditoria), mantendo apenas a conta master dancos3@gmail.com?'
       )
     ) {
       return;
@@ -100,27 +99,25 @@ export default function AdminMasterPage() {
     setCleanFeedback(null);
 
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('fastrifa_auth_accounts');
-      }
+      const result = await cleanAllTestData(user?.uid, MASTER_EMAIL);
 
-      try {
-        const snap = await getDocs(collection(db, 'profiles'));
-        for (const d of snap.docs) {
-          const data = d.data();
-          const pEmail = (data.email || '').toLowerCase().trim();
-          if (pEmail !== MASTER_EMAIL && d.id !== user?.uid) {
-            await deleteDoc(doc(db, 'profiles', d.id));
-          }
-        }
-      } catch (err) {
-        console.warn('Erro ao deletar perfis remotos:', err);
-      }
-
-      const [creatorsData, rafflesData] = await Promise.all([getAllCreators(), getAllRaffles()]);
-      setCreators(creatorsData.filter((c) => c.email === MASTER_EMAIL || c.profile.role === 'master'));
+      const [creatorsData, rafflesData, auditsData] = await Promise.all([
+        getAllCreators(),
+        getAllRaffles(),
+        getAuditLogs(),
+      ]);
+      setCreators(
+        creatorsData.filter(
+          (c) => c.email === MASTER_EMAIL || c.profile.role === 'master' || c.profile.id === user?.uid
+        )
+      );
       setRaffles(rafflesData);
-      setCleanFeedback('Base limpa com sucesso! Somente a conta master dancos3@gmail.com foi mantida.');
+      setAuditLogs(auditsData);
+
+      const summary = `Base limpa com sucesso! Removidos: ${result.deletedProfiles} conta(s), ${result.deletedRaffles} rifa(s), ${result.deletedOrders} pedido(s) e ${result.deletedAuditLogs} log(s). Somente a conta master dancos3@gmail.com foi mantida.`;
+      setCleanFeedback(
+        result.errors.length > 0 ? `${summary} Atenção: ${result.errors.join(' ')}` : summary
+      );
     } catch (e) {
       console.error(e);
       setCleanFeedback('Ocorreu um erro ao limpar dados de teste.');
@@ -141,9 +138,15 @@ export default function AdminMasterPage() {
     setDeletingUserId(userId);
     setCleanFeedback(null);
     try {
+      const deletedRaffleIds = new Set(
+        raffles.filter((r) => r.user_id === userId).map((r) => r.id)
+      );
       await deleteCreatorProfile(userId);
       setCreators((prev) => prev.filter((c) => c.profile.id !== userId));
       setRaffles((prev) => prev.filter((r) => r.user_id !== userId));
+      setAuditLogs((prev) =>
+        prev.filter((l) => l.user_id !== userId && !deletedRaffleIds.has(l.raffle_id))
+      );
       setCleanFeedback(`Usuário "${userName}" e suas rifas foram excluídos com sucesso. Ele agora pode criar a conta do zero.`);
     } catch (err) {
       console.error('Erro ao excluir usuário:', err);
@@ -167,6 +170,7 @@ export default function AdminMasterPage() {
     try {
       await deleteRaffle(raffleId);
       setRaffles((prev) => prev.filter((r) => r.id !== raffleId));
+      setAuditLogs((prev) => prev.filter((l) => l.raffle_id !== raffleId));
       setCleanFeedback(`Rifa "${raffleTitle}" excluída com sucesso.`);
     } catch (err) {
       console.error('Erro ao excluir rifa:', err);

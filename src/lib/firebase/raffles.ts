@@ -10,8 +10,12 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore';
-import { db, getPublicFirestore } from './config';
+import { auth, db, getPublicFirestore } from './config';
 import type { Raffle, Order, OccupiedTicket, Profile, AuditLog } from '@/types/database.types';
+
+async function getActiveDb() {
+  return auth.currentUser ? db : await getPublicFirestore();
+}
 
 const LOCAL_RAFFLES_KEY = 'fastrifa_local_raffles';
 const LOCAL_ORDERS_KEY = 'fastrifa_local_orders';
@@ -99,12 +103,14 @@ function saveLocalOrders(orders: Order[]) {
 export async function getUserRaffles(userId: string): Promise<Raffle[]> {
   const localList = getLocalRaffles();
   let remoteList: Raffle[] = [];
+  let remoteQuerySucceeded = false;
 
   try {
-    const activeDb = await getPublicFirestore();
+    const activeDb = await getActiveDb();
     // Sem orderBy composto para não exigir índice composto manual no Firestore
     const q = query(collection(activeDb, 'raffles'), where('user_id', '==', userId));
     const snap = await getDocs(q);
+    remoteQuerySucceeded = true;
     if (!snap.empty) {
       remoteList = snap.docs
         .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
@@ -116,67 +122,84 @@ export async function getUserRaffles(userId: string): Promise<Raffle[]> {
 
   const remoteSlugs = new Set(remoteList.map((r) => r.slug));
 
-  // Auto-sincroniza para o Firestore caso exista alguma rifa criada localmente (raf_) que ainda não subiu
-  for (const loc of localList) {
-    if (
-      loc.user_id === userId &&
-      loc.id.startsWith('raf_') &&
-      !remoteSlugs.has(loc.slug)
-    ) {
-      try {
-        const activeDb = await getPublicFirestore();
-        const { id: oldLocalId, ...payload } = loc;
-        const docRef = await addDoc(collection(activeDb, 'raffles'), payload);
-        const synced = { ...loc, id: docRef.id };
-        remoteList.push(synced);
-        remoteSlugs.add(loc.slug);
-        const updatedLocal = getLocalRaffles().map((r) =>
-          r.id === oldLocalId ? synced : r
-        );
-        saveLocalRaffles(updatedLocal);
-      } catch {}
+  // Auto-sincroniza apenas se a consulta remota funcionou e existe rifa offline (raf_) ainda não enviada
+  if (remoteQuerySucceeded) {
+    for (const loc of localList) {
+      if (
+        loc.user_id === userId &&
+        loc.id.startsWith('raf_') &&
+        !remoteSlugs.has(loc.slug)
+      ) {
+        try {
+          const activeDb = await getActiveDb();
+          const { id: oldLocalId, ...payload } = loc;
+          const docRef = await addDoc(collection(activeDb, 'raffles'), payload);
+          const synced = { ...loc, id: docRef.id };
+          remoteList.push(synced);
+          remoteSlugs.add(loc.slug);
+          const updatedLocal = getLocalRaffles().map((r) =>
+            r.id === oldLocalId ? synced : r
+          );
+          saveLocalRaffles(updatedLocal);
+        } catch {}
+      }
     }
   }
 
-  // Merge remote and local without duplicate IDs or slugs
-  const mapBySlug = new Map<string, Raffle>();
+  // Quando o Firestore respondeu, ele é a fonte de verdade:
+  // remove do cache local qualquer rifa oficial deste usuário que já foi deletada remotamente
+  if (remoteQuerySucceeded) {
+    const remoteIds = new Set(remoteList.map((r) => r.id));
+    const currentLocal = getLocalRaffles();
+    const othersAndPendingOffline = currentLocal.filter((r) => {
+      if (r.user_id !== userId) return true;
+      return r.id.startsWith('raf_') && !remoteSlugs.has(r.slug) && !remoteIds.has(r.id);
+    });
+    saveLocalRaffles([...remoteList, ...othersAndPendingOffline]);
 
-  for (const r of localList) {
-    if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
-      mapBySlug.set(r.slug, r);
-    }
+    const userMerged = [
+      ...remoteList,
+      ...othersAndPendingOffline.filter((r) => r.user_id === userId),
+    ];
+
+    userMerged.sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    return userMerged;
   }
 
-  // Remote takes precedence over local so official Firestore IDs are always used
-  for (const r of remoteList) {
-    if (r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max') {
-      mapBySlug.set(r.slug, r);
-    }
-  }
-
-  const allMerged = Array.from(mapBySlug.values()).filter(
-    (r) => r.user_id === userId
-  );
-
-  allMerged.sort((a, b) => {
+  // Fallback offline quando o Firestore não respondeu
+  const offlineUserRaffles = localList.filter((r) => r.user_id === userId);
+  offlineUserRaffles.sort((a, b) => {
     const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
     const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
     return timeB - timeA;
   });
 
-  return allMerged;
+  return offlineUserRaffles;
 }
 
 export async function getAllRaffles(): Promise<Raffle[]> {
   try {
-    const activeDb = await getPublicFirestore();
+    const activeDb = await getActiveDb();
     const q = query(collection(activeDb, 'raffles'), orderBy('created_at', 'desc'));
     const snap = await getDocs(q);
-    if (!snap.empty) {
-      return snap.docs
-        .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
-        .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
-    }
+    const remoteRaffles = snap.docs
+      .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
+      .filter((r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max');
+
+    // Sincroniza cache local mantendo apenas o que existe no Firestore + eventuais rifas offline raf_
+    const remoteIds = new Set(remoteRaffles.map((r) => r.id));
+    const remoteSlugs = new Set(remoteRaffles.map((r) => r.slug));
+    const offlineOnly = getLocalRaffles().filter(
+      (r) => r.id.startsWith('raf_') && !remoteIds.has(r.id) && !remoteSlugs.has(r.slug)
+    );
+    saveLocalRaffles([...remoteRaffles, ...offlineOnly]);
+
+    return [...remoteRaffles, ...offlineOnly];
   } catch (err) {
     console.warn('Error fetching all raffles:', err);
   }
@@ -373,29 +396,43 @@ export async function createRaffle(
 
 export async function getRaffleOrders(raffleId: string): Promise<Order[]> {
   const mergedMap = new Map<string, Order>();
+  const localAll = getLocalOrders();
+  let remoteOrders: Order[] = [];
+  let remoteQuerySucceeded = false;
 
-  // 1. Add local orders for this raffle
-  const localOrders = getLocalOrders().filter((o) => o.raffle_id === raffleId);
-  for (const loc of localOrders) {
-    mergedMap.set(loc.id, loc);
-  }
-
-  // 2. Fetch remote orders from Firestore (sem orderBy composto para não exigir índice manual)
+  // Fetch remote orders from Firestore (sem orderBy composto para não exigir índice manual)
   try {
-    const activeDb = await getPublicFirestore();
+    const activeDb = await getActiveDb();
     const q = query(
       collection(activeDb, 'orders'),
       where('raffle_id', '==', raffleId)
     );
     const snap = await getDocs(q);
-    if (!snap.empty) {
-      snap.docs.forEach((d) => {
-        const ord = { id: d.id, ...(d.data() as Omit<Order, 'id'>) };
-        mergedMap.set(ord.id, ord);
-      });
-    }
+    remoteQuerySucceeded = true;
+    remoteOrders = snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<Order, 'id'>),
+    }));
   } catch (err) {
     console.warn('Error fetching orders from Firestore:', err);
+  }
+
+  if (remoteQuerySucceeded) {
+    const remoteIds = new Set(remoteOrders.map((o) => o.id));
+    const othersAndOffline = localAll.filter((o) => {
+      if (o.raffle_id !== raffleId) return true;
+      return o.id.startsWith('ord_') && !remoteIds.has(o.id);
+    });
+    saveLocalOrders([...remoteOrders, ...othersAndOffline]);
+
+    for (const o of remoteOrders) mergedMap.set(o.id, o);
+    for (const o of othersAndOffline) {
+      if (o.raffle_id === raffleId) mergedMap.set(o.id, o);
+    }
+  } else {
+    for (const loc of localAll) {
+      if (loc.raffle_id === raffleId) mergedMap.set(loc.id, loc);
+    }
   }
 
   const list = Array.from(mergedMap.values());
@@ -534,11 +571,37 @@ export async function finishRaffle(
 }
 
 export async function deleteRaffle(raffleId: string): Promise<boolean> {
-  const current = getLocalRaffles();
-  saveLocalRaffles(current.filter((r) => r.id !== raffleId));
+  // 1. Remove rifa, pedidos e logs vinculados do cache local
+  saveLocalRaffles(getLocalRaffles().filter((r) => r.id !== raffleId));
+  saveLocalOrders(getLocalOrders().filter((o) => o.raffle_id !== raffleId));
+  saveLocalAuditLogs(getLocalAuditLogs().filter((l) => l.raffle_id !== raffleId));
 
+  // 2. Remove no Firestore (rifa + pedidos + logs de auditoria vinculados)
   try {
-    const activeDb = await getPublicFirestore();
+    const activeDb = await getActiveDb();
+
+    try {
+      const ordersSnap = await getDocs(
+        query(collection(activeDb, 'orders'), where('raffle_id', '==', raffleId))
+      );
+      for (const od of ordersSnap.docs) {
+        await deleteDoc(doc(activeDb, 'orders', od.id));
+      }
+    } catch (err) {
+      console.warn('Error deleting remote orders for raffle:', err);
+    }
+
+    try {
+      const logsSnap = await getDocs(
+        query(collection(activeDb, 'audit_logs'), where('raffle_id', '==', raffleId))
+      );
+      for (const ld of logsSnap.docs) {
+        await deleteDoc(doc(activeDb, 'audit_logs', ld.id));
+      }
+    } catch (err) {
+      console.warn('Error deleting remote audit_logs for raffle:', err);
+    }
+
     await deleteDoc(doc(activeDb, 'raffles', raffleId));
   } catch (err) {
     console.warn('Error deleting remote raffle from Firestore:', err);
@@ -548,6 +611,75 @@ export async function deleteRaffle(raffleId: string): Promise<boolean> {
 }
 
 export async function deleteCreatorProfile(userId: string): Promise<boolean> {
+  const localRaffles = getLocalRaffles();
+  const raffleIds = new Set<string>(
+    localRaffles.filter((r) => r.user_id === userId).map((r) => r.id)
+  );
+
+  // 1. Remove documentos remotos no Firestore: rifas do usuário, pedidos dessas rifas, logs e perfil
+  try {
+    const activeDb = await getActiveDb();
+    const q = query(collection(activeDb, 'raffles'), where('user_id', '==', userId));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      raffleIds.add(d.id);
+    }
+
+    for (const rId of raffleIds) {
+      try {
+        const ordersSnap = await getDocs(
+          query(collection(activeDb, 'orders'), where('raffle_id', '==', rId))
+        );
+        for (const od of ordersSnap.docs) {
+          await deleteDoc(doc(activeDb, 'orders', od.id));
+        }
+      } catch (err) {
+        console.warn('Error deleting remote orders for creator raffle:', err);
+      }
+
+      try {
+        await deleteDoc(doc(activeDb, 'raffles', rId));
+      } catch (err) {
+        console.warn('Error deleting remote raffle for creator:', err);
+      }
+    }
+
+    // Remove logs por user_id e por raffle_id
+    try {
+      const userLogsSnap = await getDocs(
+        query(collection(activeDb, 'audit_logs'), where('user_id', '==', userId))
+      );
+      for (const ld of userLogsSnap.docs) {
+        await deleteDoc(doc(activeDb, 'audit_logs', ld.id));
+      }
+      for (const rId of raffleIds) {
+        const raffleLogsSnap = await getDocs(
+          query(collection(activeDb, 'audit_logs'), where('raffle_id', '==', rId))
+        );
+        for (const ld of raffleLogsSnap.docs) {
+          await deleteDoc(doc(activeDb, 'audit_logs', ld.id));
+        }
+      }
+    } catch (err) {
+      console.warn('Error deleting remote audit_logs for creator:', err);
+    }
+
+    await deleteDoc(doc(activeDb, 'profiles', userId));
+  } catch (err) {
+    console.warn('Error deleting remote creator from Firestore:', err);
+  }
+
+  // 2. Limpa todos os caches locais do usuário e suas rifas/pedidos/logs
+  saveLocalRaffles(
+    localRaffles.filter((r) => r.user_id !== userId && !raffleIds.has(r.id))
+  );
+  saveLocalOrders(getLocalOrders().filter((o) => !raffleIds.has(o.raffle_id)));
+  saveLocalAuditLogs(
+    getLocalAuditLogs().filter(
+      (l) => l.user_id !== userId && !raffleIds.has(l.raffle_id)
+    )
+  );
+
   if (typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem('fastrifa_auth_accounts');
@@ -558,35 +690,209 @@ export async function deleteCreatorProfile(userId: string): Promise<boolean> {
         );
         localStorage.setItem('fastrifa_auth_accounts', JSON.stringify(filtered));
       }
-      const curUser = localStorage.getItem('fastrifa_local_user');
-      if (curUser) {
-        const u = JSON.parse(curUser);
-        if (u?.uid === userId) {
-          localStorage.removeItem('fastrifa_local_user');
-          localStorage.removeItem('fastrifa_local_profile');
+      for (const [userKey, profileKey] of [
+        ['fastrifa_local_user', 'fastrifa_local_profile'],
+        ['fastrifa_auth_user', 'fastrifa_auth_profile'],
+      ]) {
+        const curUser = localStorage.getItem(userKey);
+        if (curUser) {
+          const u = JSON.parse(curUser);
+          if (u?.uid === userId) {
+            localStorage.removeItem(userKey);
+            localStorage.removeItem(profileKey);
+          }
         }
       }
+      localStorage.removeItem(`fastrifa_theme_${userId}`);
     } catch (e) {
       console.warn('Error cleaning local creator storage:', e);
     }
   }
 
-  const currentRaffles = getLocalRaffles();
-  saveLocalRaffles(currentRaffles.filter((r) => r.user_id !== userId));
+  return true;
+}
 
+export interface CleanTestDataResult {
+  deletedProfiles: number;
+  deletedRaffles: number;
+  deletedOrders: number;
+  deletedAuditLogs: number;
+  errors: string[];
+}
+
+/**
+ * Limpa integralmente todos os dados de teste do sistema (perfis, rifas vinculadas e órfãs,
+ * pedidos, logs de auditoria e cache local), preservando exclusivamente a(s) conta(s) Master.
+ */
+export async function cleanAllTestData(
+  masterUid?: string | null,
+  masterEmail = 'dancos3@gmail.com'
+): Promise<CleanTestDataResult> {
+  const normalizedMasterEmail = masterEmail.toLowerCase().trim();
+  const masterUserIds = new Set<string>();
+  if (masterUid) masterUserIds.add(masterUid);
+
+  const keptMasterRaffleIds = new Set<string>();
+  const deletedRaffleIds = new Set<string>();
+  const result: CleanTestDataResult = {
+    deletedProfiles: 0,
+    deletedRaffles: 0,
+    deletedOrders: 0,
+    deletedAuditLogs: 0,
+    errors: [],
+  };
+
+  const activeDb = await getActiveDb();
+  let rafflesScanSucceeded = false;
+
+  // 1. Identificar e limpar perfis não-master
   try {
-    const activeDb = await getPublicFirestore();
-    const q = query(collection(activeDb, 'raffles'), where('user_id', '==', userId));
-    const snap = await getDocs(q);
-    for (const d of snap.docs) {
-      await deleteDoc(doc(activeDb, 'raffles', d.id));
+    const profilesSnap = await getDocs(collection(activeDb, 'profiles'));
+    for (const d of profilesSnap.docs) {
+      const data = d.data() as Profile & { email?: string };
+      const pEmail = (data.email || '').toLowerCase().trim();
+
+      if (
+        d.id === masterUid ||
+        pEmail === normalizedMasterEmail ||
+        data.role === 'master'
+      ) {
+        masterUserIds.add(d.id);
+        continue;
+      }
+
+      if (pEmail === 'leitor.publico@fastrifa.com') {
+        continue;
+      }
+
+      await deleteDoc(doc(activeDb, 'profiles', d.id));
+      result.deletedProfiles++;
     }
-    await deleteDoc(doc(activeDb, 'profiles', userId));
   } catch (err) {
-    console.warn('Error deleting remote creator from Firestore:', err);
+    console.warn('Erro ao limpar perfis no Firestore:', err);
+    result.errors.push('Não foi possível limpar todos os perfis remotos.');
   }
 
-  return true;
+  // 2. Limpar TODAS as rifas que não pertencem ao Master (incluindo rifas órfãs antigas)
+  try {
+    const rafflesSnap = await getDocs(collection(activeDb, 'raffles'));
+    rafflesScanSucceeded = true;
+    for (const d of rafflesSnap.docs) {
+      const data = d.data() as Partial<Raffle>;
+      const ownerId = (data.user_id || '').trim();
+
+      if (ownerId && masterUserIds.has(ownerId)) {
+        keptMasterRaffleIds.add(d.id);
+      } else {
+        await deleteDoc(doc(activeDb, 'raffles', d.id));
+        deletedRaffleIds.add(d.id);
+        result.deletedRaffles++;
+      }
+    }
+  } catch (err) {
+    console.warn('Erro ao limpar rifas no Firestore:', err);
+    result.errors.push('Não foi possível excluir todas as rifas remotas.');
+  }
+
+  // 3. Limpar pedidos (orders) das rifas apagadas ou órfãos
+  try {
+    const ordersSnap = await getDocs(collection(activeDb, 'orders'));
+    for (const d of ordersSnap.docs) {
+      const data = d.data() as Partial<Order>;
+      const rId = (data.raffle_id || '').trim();
+      const shouldDelete =
+        !rId ||
+        deletedRaffleIds.has(rId) ||
+        (rafflesScanSucceeded && !keptMasterRaffleIds.has(rId));
+
+      if (shouldDelete) {
+        await deleteDoc(doc(activeDb, 'orders', d.id));
+        result.deletedOrders++;
+      }
+    }
+  } catch (err) {
+    console.warn('Erro ao limpar pedidos no Firestore:', err);
+    result.errors.push('Não foi possível excluir todos os pedidos remotos.');
+  }
+
+  // 4. Limpar logs de auditoria de usuários não-master ou rifas apagadas/órfãs
+  try {
+    const logsSnap = await getDocs(collection(activeDb, 'audit_logs'));
+    for (const d of logsSnap.docs) {
+      const data = d.data() as Partial<AuditLog>;
+      const logUserId = (data.user_id || '').trim();
+      const logRaffleId = (data.raffle_id || '').trim();
+      const notMasterUser = !logUserId || !masterUserIds.has(logUserId);
+      const deletedOrOrphanRaffle =
+        !!logRaffleId &&
+        (deletedRaffleIds.has(logRaffleId) ||
+          (rafflesScanSucceeded && !keptMasterRaffleIds.has(logRaffleId)));
+
+      if (notMasterUser || deletedOrOrphanRaffle) {
+        await deleteDoc(doc(activeDb, 'audit_logs', d.id));
+        result.deletedAuditLogs++;
+      }
+    }
+  } catch (err) {
+    console.warn('Erro ao limpar logs de auditoria no Firestore:', err);
+    result.errors.push(
+      'Logs de auditoria remotos não puderam ser removidos (verifique as regras do Firestore para audit_logs).'
+    );
+  }
+
+  // 5. Limpar integralmente o cache local (mantendo somente dados do Master)
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('fastrifa_auth_accounts');
+      localStorage.removeItem('fastrifa_local_user');
+      localStorage.removeItem('fastrifa_local_profile');
+
+      // Remove preferências individuais de tema de usuários excluídos
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('fastrifa_theme_')) {
+          const uidFromKey = key.replace('fastrifa_theme_', '');
+          if (!masterUserIds.has(uidFromKey)) {
+            keysToRemove.push(key);
+          }
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+      const remainingLocalRaffles = getLocalRaffles().filter(
+        (r) =>
+          masterUserIds.has(r.user_id) &&
+          (!rafflesScanSucceeded ||
+            keptMasterRaffleIds.has(r.id) ||
+            r.id.startsWith('raf_'))
+      );
+      saveLocalRaffles(remainingLocalRaffles);
+
+      const allowedLocalRaffleIds = new Set(remainingLocalRaffles.map((r) => r.id));
+      saveLocalOrders(
+        getLocalOrders().filter(
+          (o) =>
+            keptMasterRaffleIds.has(o.raffle_id) ||
+            allowedLocalRaffleIds.has(o.raffle_id)
+        )
+      );
+
+      saveLocalAuditLogs(
+        getLocalAuditLogs().filter(
+          (l) =>
+            masterUserIds.has(l.user_id) &&
+            (!l.raffle_id ||
+              keptMasterRaffleIds.has(l.raffle_id) ||
+              allowedLocalRaffleIds.has(l.raffle_id))
+        )
+      );
+    } catch (err) {
+      console.warn('Erro ao limpar cache local:', err);
+    }
+  }
+
+  return result;
 }
 
 export async function updateRaffleByMaster(
@@ -840,28 +1146,45 @@ export async function updateRaffleWithAudit({
  */
 export async function getAuditLogs(raffleId?: string): Promise<AuditLog[]> {
   const mergedMap = new Map<string, AuditLog>();
+  const localAll = getLocalAuditLogs();
+  let remoteLogs: AuditLog[] = [];
+  let remoteQuerySucceeded = false;
 
-  // 1. Logs locais
-  for (const log of getLocalAuditLogs()) {
-    if (!raffleId || log.raffle_id === raffleId) {
-      mergedMap.set(log.id, log);
-    }
-  }
-
-  // 2. Logs remotos do Firestore
+  // Logs remotos do Firestore
   try {
-    const activeDb = await getPublicFirestore();
+    const activeDb = await getActiveDb();
     let q = query(collection(activeDb, 'audit_logs'));
     if (raffleId) {
       q = query(collection(activeDb, 'audit_logs'), where('raffle_id', '==', raffleId));
     }
     const snap = await getDocs(q);
-    snap.forEach((d) => {
-      const data = { id: d.id, ...(d.data() as Omit<AuditLog, 'id'>) };
-      mergedMap.set(data.id, data);
-    });
+    remoteQuerySucceeded = true;
+    remoteLogs = snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<AuditLog, 'id'>),
+    }));
   } catch (err) {
     console.warn('Error fetching audit logs from Firestore:', err);
+  }
+
+  if (remoteQuerySucceeded) {
+    const remoteIds = new Set(remoteLogs.map((l) => l.id));
+    const keptLocal = localAll.filter((l) => {
+      if (raffleId && l.raffle_id !== raffleId) return true;
+      return l.id.startsWith('log_') && !remoteIds.has(l.id);
+    });
+    saveLocalAuditLogs([...remoteLogs, ...keptLocal]);
+
+    for (const l of remoteLogs) mergedMap.set(l.id, l);
+    for (const l of keptLocal) {
+      if (!raffleId || l.raffle_id === raffleId) mergedMap.set(l.id, l);
+    }
+  } else {
+    for (const log of localAll) {
+      if (!raffleId || log.raffle_id === raffleId) {
+        mergedMap.set(log.id, log);
+      }
+    }
   }
 
   const list = Array.from(mergedMap.values());

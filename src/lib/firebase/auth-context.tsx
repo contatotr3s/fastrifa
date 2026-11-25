@@ -110,10 +110,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 loadedProfile.role = 'master';
                 loadedProfile.brand_name = 'FastRifa';
                 loadedProfile.brand_initials = 'FR';
+                loadedProfile.email = currentUser.email?.toLowerCase().trim() || MASTER_EMAIL;
                 loadedProfile.onboarding_completed = true;
                 setProfile(loadedProfile);
-                await setDoc(profileRef, { role: 'master', brand_name: 'FastRifa', onboarding_completed: true }, { merge: true });
+                await setDoc(
+                  profileRef,
+                  {
+                    role: 'master',
+                    brand_name: 'FastRifa',
+                    email: loadedProfile.email,
+                    onboarding_completed: true,
+                  },
+                  { merge: true }
+                );
               } else {
+                if (!loadedProfile.email && currentUser.email) {
+                  loadedProfile.email = currentUser.email.toLowerCase().trim();
+                }
                 setProfile(loadedProfile);
               }
 
@@ -127,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const initialProfile: Profile = {
                 id: currentUser.uid,
                 full_name: currentUser.displayName || (isMaster ? 'Danilo' : 'Organizador'),
+                email: (currentUser.email || '').toLowerCase().trim() || undefined,
                 phone_whatsapp: currentUser.phoneNumber || '',
                 brand_name: isMaster ? 'FastRifa' : '',
                 brand_initials: isMaster ? 'FR' : '',
@@ -255,6 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newProfile: Profile = {
         id: cred.user.uid,
         full_name: name.trim(),
+        email: cleanEmail,
         phone_whatsapp: cleanPhone,
         brand_name: isMasterUser ? 'FastRifa' : '', // Novo organizador começa sem marca para configurar no onboarding
         brand_initials: isMasterUser ? 'FR' : '',
@@ -334,6 +349,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userProfile = {
             id: googleUser.uid,
             full_name: googleUser.displayName || (isMasterUser ? 'Danilo' : 'Organizador'),
+            email: email || undefined,
             phone_whatsapp: googleUser.phoneNumber || '',
             brand_name: isMasterUser ? 'FastRifa' : '', // Começa sem marca para forçar o onboarding
             brand_initials: isMasterUser ? 'FR' : '',
@@ -353,6 +369,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userProfile = {
           id: googleUser.uid,
           full_name: googleUser.displayName || (isMasterUser ? 'Danilo' : 'Organizador'),
+          email: email || undefined,
           phone_whatsapp: '',
           brand_name: isMasterUser ? 'FastRifa' : '',
           brand_initials: isMasterUser ? 'FR' : '',
@@ -439,6 +456,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const updatedProfile: Profile = {
       ...current,
       ...updates,
+      email: current.email || user.email?.toLowerCase().trim() || undefined,
       role: isMasterUser ? 'master' : (updates.role || current.role || 'organizer'),
       updated_at: new Date().toISOString(),
     };
