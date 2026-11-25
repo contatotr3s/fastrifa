@@ -39,6 +39,13 @@ interface AuthContextType {
 const LOCAL_USER_KEY = 'fastrifa_auth_user';
 const LOCAL_PROFILE_KEY = 'fastrifa_auth_profile';
 
+function detectAuthProvider(fbUser: User | null | undefined): 'google' | 'password' {
+  if (!fbUser?.providerData) return 'password';
+  return fbUser.providerData.some((p) => p?.providerId === 'google.com')
+    ? 'google'
+    : 'password';
+}
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
@@ -106,11 +113,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (profileDoc.exists()) {
               const loadedProfile = profileDoc.data() as Profile;
+              const detectedProvider = detectAuthProvider(currentUser);
               if (isMaster) {
                 loadedProfile.role = 'master';
                 loadedProfile.brand_name = 'FastRifa';
                 loadedProfile.brand_initials = 'FR';
                 loadedProfile.email = currentUser.email?.toLowerCase().trim() || MASTER_EMAIL;
+                loadedProfile.auth_provider = loadedProfile.auth_provider || detectedProvider;
                 loadedProfile.onboarding_completed = true;
                 setProfile(loadedProfile);
                 await setDoc(
@@ -119,13 +128,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     role: 'master',
                     brand_name: 'FastRifa',
                     email: loadedProfile.email,
+                    auth_provider: loadedProfile.auth_provider,
                     onboarding_completed: true,
                   },
                   { merge: true }
                 );
               } else {
+                const patch: Partial<Profile> = {};
                 if (!loadedProfile.email && currentUser.email) {
                   loadedProfile.email = currentUser.email.toLowerCase().trim();
+                  patch.email = loadedProfile.email;
+                }
+                if (!loadedProfile.auth_provider) {
+                  loadedProfile.auth_provider = detectedProvider;
+                  patch.auth_provider = detectedProvider;
+                }
+                if (Object.keys(patch).length > 0) {
+                  setDoc(profileRef, patch, { merge: true }).catch(() => {});
                 }
                 setProfile(loadedProfile);
               }
@@ -141,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: currentUser.uid,
                 full_name: currentUser.displayName || (isMaster ? 'Danilo' : 'Organizador'),
                 email: (currentUser.email || '').toLowerCase().trim() || undefined,
+                auth_provider: detectAuthProvider(currentUser),
                 phone_whatsapp: currentUser.phoneNumber || '',
                 brand_name: isMaster ? 'FastRifa' : '',
                 brand_initials: isMaster ? 'FR' : '',
@@ -222,6 +242,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const activeProfile: Profile = userProfile || {
         id: cred.user.uid,
         full_name: isMasterUser ? 'Danilo' : 'Organizador',
+        email: normalizedEmail,
+        auth_provider: detectAuthProvider(cred.user),
         phone_whatsapp: isMasterUser ? '11999999999' : '',
         brand_name: isMasterUser ? 'FastRifa' : '',
         brand_initials: isMasterUser ? 'FR' : '',
@@ -230,6 +252,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
+      if (userProfile) {
+        if (!activeProfile.email) activeProfile.email = normalizedEmail;
+        if (!activeProfile.auth_provider) activeProfile.auth_provider = detectAuthProvider(cred.user);
+      }
 
       if (typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(cred.user));
@@ -270,6 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: cred.user.uid,
         full_name: name.trim(),
         email: cleanEmail,
+        auth_provider: 'password',
         phone_whatsapp: cleanPhone,
         brand_name: isMasterUser ? 'FastRifa' : '', // Novo organizador começa sem marca para configurar no onboarding
         brand_initials: isMasterUser ? 'FR' : '',
@@ -350,6 +377,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: googleUser.uid,
             full_name: googleUser.displayName || (isMasterUser ? 'Danilo' : 'Organizador'),
             email: email || undefined,
+            auth_provider: 'google',
             phone_whatsapp: googleUser.phoneNumber || '',
             brand_name: isMasterUser ? 'FastRifa' : '', // Começa sem marca para forçar o onboarding
             brand_initials: isMasterUser ? 'FR' : '',
@@ -370,6 +398,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: googleUser.uid,
           full_name: googleUser.displayName || (isMasterUser ? 'Danilo' : 'Organizador'),
           email: email || undefined,
+          auth_provider: 'google',
           phone_whatsapp: '',
           brand_name: isMasterUser ? 'FastRifa' : '',
           brand_initials: isMasterUser ? 'FR' : '',

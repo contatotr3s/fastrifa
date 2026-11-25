@@ -1,8 +1,7 @@
-import Link from 'next/link';
-import { Mail, Sparkles } from 'lucide-react';
 import AdminHeader from './admin-header';
 import AdminGuard from '@/components/admin-guard';
 import DynamicFavicon from '@/components/dynamic-favicon';
+import ScrollToTopButton from '@/components/scroll-to-top-button';
 
 export default function AdminLayout({
   children,
@@ -36,22 +35,9 @@ export default function AdminLayout({
               </div>
             </div>
 
-            {/* Links & Support */}
-            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-[#526480]">
-              <Link href="/admin" className="hover:text-[#0869F5] transition">
-                Painel
-              </Link>
-              <Link href="/admin/rifas/nova" className="hover:text-[#0869F5] transition">
-                Nova Rifa
-              </Link>
-              <a
-                href="mailto:contatotr3s@gmail.com"
-                className="hover:text-[#0869F5] transition inline-flex items-center gap-1"
-                title="Suporte por e-mail"
-              >
-                <Mail className="w-3.5 h-3.5 text-[#0869F5]" />
-                <span>contatotr3s@gmail.com</span>
-              </a>
+            {/* Botão único de retornar ao topo */}
+            <div className="flex items-center justify-center sm:justify-end">
+              <ScrollToTopButton />
             </div>
           </div>
         </footer>

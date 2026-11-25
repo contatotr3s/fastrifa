@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
-import { getUserRaffles } from '@/lib/firebase/raffles';
+import { getUserRaffles, subscribeToUserRaffles } from '@/lib/firebase/raffles';
 import BrandOnboardingModal from '@/components/brand-onboarding-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
@@ -47,6 +47,13 @@ export default function AdminDashboardPage() {
         .then((data) => setRaffles(data))
         .catch((err) => console.error('Erro ao buscar rifas:', err))
         .finally(() => setLoading(false));
+
+      const unsubscribe = subscribeToUserRaffles(user.uid, (liveRaffles) => {
+        setRaffles(liveRaffles);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
     }
   }, [user, authLoading, router, isMaster]);
 
@@ -61,6 +68,10 @@ export default function AdminDashboardPage() {
   const totalRaffles = raffles.length;
   const activeRaffles = raffles.filter((r) => r.status === 'active').length;
   const completedRaffles = raffles.filter((r) => r.status === 'completed').length;
+  const totalTicketsCreated = raffles.reduce(
+    (acc, r) => acc + (Number(r.total_tickets) || 0),
+    0
+  );
 
   return (
     <div className="space-y-10">
@@ -143,79 +154,111 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Brand Identity Banner (apenas para organizadores) */}
+      {/* Brand Identity Banner (apenas exibição informativa; edição fica no botão único "Minha Marca") */}
       {!isMaster && (
-        <div className="ora-card-soft rounded-[22px] sm:rounded-[25px] p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5 sm:gap-4 text-center sm:text-left">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[16px] sm:rounded-[18px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
-              {profile?.brand_logo_url ? (
-                <img
-                  src={profile.brand_logo_url}
-                  alt={profile.brand_name || 'Logo'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-lg sm:text-xl">
-                  {profile?.brand_initials || generateBrandInitials(profile?.brand_name || 'FR')}
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <strong className="font-display font-bold text-base sm:text-lg text-[#0D1729]">
-                  {profile?.brand_name || 'Sua Marca'}
-                </strong>
-                <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-[#EDF5FF] text-[#0869F5] border border-[#CDE0FC]">
-                  Ativa
-                </span>
+        <div className="ora-card-soft rounded-[22px] sm:rounded-[25px] p-4 sm:p-6 flex items-center gap-3.5 sm:gap-4 text-left">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[16px] sm:rounded-[18px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
+            {profile?.brand_logo_url ? (
+              <img
+                src={profile.brand_logo_url}
+                alt={profile.brand_name || 'Logo'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-lg sm:text-xl">
+                {profile?.brand_initials || generateBrandInitials(profile?.brand_name || 'FR')}
               </div>
-              <p className="text-[11px] sm:text-xs text-[#526480] mt-0.5">
-                Sua marca e logotipo aparecem no topo de todas as suas campanhas públicas para os seus clientes.
-              </p>
-            </div>
+            )}
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsBrandModalOpen(true)}
-            className="ora-btn-secondary w-full sm:w-auto rounded-full px-4 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-          >
-            <Store className="w-3.5 h-3.5 text-[#0869F5]" />
-            <span>Editar Identidade</span>
-          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <strong className="font-display font-bold text-base sm:text-lg text-[#0D1729]">
+                {profile?.brand_name || 'Sua Marca'}
+              </strong>
+              <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-[#EDF5FF] text-[#0869F5] border border-[#CDE0FC]">
+                Marca Ativa
+              </span>
+            </div>
+            <p className="text-[11px] sm:text-xs text-[#526480] mt-0.5">
+              Sua marca e logotipo aparecem no topo de todas as suas campanhas públicas para os seus clientes.
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Overview Summary Strip (Compactada em grade de 3 colunas no celular) */}
+      {/* Overview Summary Strip (3 cards ricos e coerentes em grade responsiva) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-5 tabular-nums">
-        <div className="ora-card rounded-[18px] sm:rounded-[25px] p-3 sm:p-6 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#475872] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">
-            <span className="truncate">Total</span>
-            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#F2F7FF] text-[#0869F5] flex items-center justify-center flex-shrink-0">
-              <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </span>
+        <div className="ora-card rounded-[20px] sm:rounded-[26px] overflow-hidden flex flex-col justify-between bg-white">
+          <div className="h-1 w-full bg-gradient-to-r from-[#529BFF] to-[#0869F5]" />
+          <div className="p-3 sm:p-6 flex-1 flex flex-col justify-between gap-2 sm:gap-3">
+            <div className="flex items-center justify-between gap-1 text-[#475872] text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+              <span className="truncate">
+                <span className="hidden sm:inline">Total de Rifas</span>
+                <span className="sm:hidden">Total Rifas</span>
+              </span>
+              <span className="w-6 h-6 sm:w-9 sm:h-9 rounded-full bg-[#F2F7FF] border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center flex-shrink-0">
+                <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </span>
+            </div>
+            <div>
+              <div className="font-display font-bold text-2xl sm:text-4xl text-[#0D1729] leading-none">
+                {totalRaffles}
+              </div>
+              <p className="text-[10px] sm:text-xs text-[#526480] font-medium mt-1.5 truncate">
+                {totalTicketsCreated > 0
+                  ? `${totalTicketsCreated.toLocaleString('pt-BR')} cotas criadas`
+                  : 'Crie sua 1ª campanha'}
+              </p>
+            </div>
           </div>
-          <div className="font-display font-bold text-xl sm:text-3xl text-[#0D1729]">{totalRaffles}</div>
         </div>
 
-        <div className="ora-card rounded-[18px] sm:rounded-[25px] p-3 sm:p-6 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#475872] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">
-            <span className="truncate">Ativas</span>
-            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#EDF5FF] text-[#0869F5] flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </span>
+        <div className="ora-card rounded-[20px] sm:rounded-[26px] overflow-hidden flex flex-col justify-between bg-white">
+          <div className="h-1 w-full bg-gradient-to-r from-[#10B981] to-[#00A868]" />
+          <div className="p-3 sm:p-6 flex-1 flex flex-col justify-between gap-2 sm:gap-3">
+            <div className="flex items-center justify-between gap-1 text-[#475872] text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 truncate">
+                {activeRaffles > 0 && (
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#00A868] animate-pulse shrink-0" />
+                )}
+                <span className="truncate">
+                  <span className="hidden sm:inline">Rifas Ativas</span>
+                  <span className="sm:hidden">Ativas</span>
+                </span>
+              </span>
+              <span className="w-6 h-6 sm:w-9 sm:h-9 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </span>
+            </div>
+            <div>
+              <div className="font-display font-bold text-2xl sm:text-4xl text-[#0869F5] leading-none">
+                {activeRaffles}
+              </div>
+              <p className="text-[10px] sm:text-xs text-[#526480] font-medium mt-1.5 truncate">
+                {activeRaffles > 0 ? 'Recebendo no PIX' : 'Nenhuma em andamento'}
+              </p>
+            </div>
           </div>
-          <div className="font-display font-bold text-xl sm:text-3xl text-[#0869F5]">{activeRaffles}</div>
         </div>
 
-        <div className="ora-card rounded-[18px] sm:rounded-[25px] p-3 sm:p-6 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#475872] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2">
-            <span className="truncate">Fim</span>
-            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#FFF8EB] text-[#9A6700] flex items-center justify-center flex-shrink-0">
-              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </span>
+        <div className="ora-card rounded-[20px] sm:rounded-[26px] overflow-hidden flex flex-col justify-between bg-white">
+          <div className="h-1 w-full bg-gradient-to-r from-[#F59E0B] to-[#FBBF24]" />
+          <div className="p-3 sm:p-6 flex-1 flex flex-col justify-between gap-2 sm:gap-3">
+            <div className="flex items-center justify-between gap-1 text-[#475872] text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+              <span className="truncate">Concluídas</span>
+              <span className="w-6 h-6 sm:w-9 sm:h-9 rounded-full bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </span>
+            </div>
+            <div>
+              <div className="font-display font-bold text-2xl sm:text-4xl text-[#0D1729] leading-none">
+                {completedRaffles}
+              </div>
+              <p className="text-[10px] sm:text-xs text-[#526480] font-medium mt-1.5 truncate">
+                {completedRaffles > 0 ? 'Sorteios finalizados' : 'Nenhum sorteio ainda'}
+              </p>
+            </div>
           </div>
-          <div className="font-display font-bold text-xl sm:text-3xl text-[#0D1729]">{completedRaffles}</div>
         </div>
       </div>
 

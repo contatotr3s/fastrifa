@@ -10,6 +10,7 @@ export interface Profile {
   id: string; // Firebase Auth UID
   full_name: string;
   email?: string;
+  auth_provider?: 'google' | 'password';
   phone_whatsapp: string;
   pix_key?: string | null;
   pix_key_type?: PixKeyType | null;

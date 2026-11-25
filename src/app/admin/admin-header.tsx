@@ -1,19 +1,16 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import ThemeSwitcher from '@/components/theme-switcher';
-import BrandOnboardingModal from '@/components/brand-onboarding-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
-import { PlusCircle, LogOut, Store, ShieldCheck } from 'lucide-react';
+import { LogOut, ShieldCheck } from 'lucide-react';
 
 export default function AdminHeader() {
   const { user, profile, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
 
   async function handleLogout() {
     await logout();
@@ -116,24 +113,14 @@ export default function AdminHeader() {
                     <span>Painel Master</span>
                   </Link>
                 ) : (
-                  <>
-                    <Link
-                      href="/admin"
-                      className={`hover:text-[#0869F5] font-semibold transition ${
-                        pathname === '/admin' ? 'text-[#0869F5]' : 'text-[#0D1729]'
-                      }`}
-                    >
-                      Minhas Campanhas
-                    </Link>
-                    <Link
-                      href="/admin/rifas/nova"
-                      className={`hover:text-[#052498] font-semibold transition ${
-                        pathname === '/admin/rifas/nova' ? 'text-[#0869F5]' : 'text-[#0869F5]'
-                      }`}
-                    >
-                      + Nova Rifa
-                    </Link>
-                  </>
+                  <Link
+                    href="/admin"
+                    className={`hover:text-[#0869F5] font-semibold transition ${
+                      pathname === '/admin' ? 'text-[#0869F5]' : 'text-[#0D1729]'
+                    }`}
+                  >
+                    Minhas Campanhas
+                  </Link>
                 )}
               </nav>
             )}
@@ -141,19 +128,6 @@ export default function AdminHeader() {
 
           <div className="flex items-center gap-2.5 sm:gap-3">
             <ThemeSwitcher variant="compact" />
-
-            {/* Se NÃO for Master e NÃO estiver no onboarding, permite editar a marca (oculto no mobile para evitar redundância e desalinhamento) */}
-            {!isMaster && !isOnboarding && (
-              <button
-                type="button"
-                onClick={() => setIsBrandModalOpen(true)}
-                className="hidden sm:flex px-3 py-1.5 rounded-full text-xs font-bold text-[#475872] hover:text-[#0869F5] hover:bg-[#F2F7FF] border border-transparent hover:border-[#CDE0FC] transition items-center gap-1.5 cursor-pointer"
-                title="Personalizar identidade da sua marca"
-              >
-                <Store className="w-4 h-4 text-[#0869F5]" />
-                <span>Minha Marca</span>
-              </button>
-            )}
 
             {/* Se for Master, link direto para Painel Master no cabeçalho mobile */}
             {isMaster && (
@@ -163,17 +137,6 @@ export default function AdminHeader() {
                 title="Painel Master"
               >
                 <ShieldCheck className="w-4 h-4" />
-              </Link>
-            )}
-
-            {/* Nova Rifa: visível no desktop, oculto no mobile pois já existe com destaque no topo do painel */}
-            {!isOnboarding && (
-              <Link
-                href="/admin/rifas/nova"
-                className="hidden sm:inline-flex ora-btn-primary rounded-full px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-bold items-center gap-2"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Nova Rifa</span>
               </Link>
             )}
 
@@ -189,15 +152,6 @@ export default function AdminHeader() {
           </div>
         </div>
       </header>
-
-      {/* Brand Modal para edição posterior */}
-      {!isMaster && (
-        <BrandOnboardingModal
-          isOpen={isBrandModalOpen}
-          onClose={() => setIsBrandModalOpen(false)}
-          isEditMode={true}
-        />
-      )}
     </>
   );
 }

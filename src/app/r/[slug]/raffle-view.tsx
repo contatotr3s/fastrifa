@@ -25,9 +25,14 @@ import {
   Pencil,
   Eye,
   AlertTriangle,
-  ArrowRight,
+  MinusCircle,
 } from 'lucide-react';
-import { createOrder } from '@/lib/firebase/raffles';
+import {
+  createOrder,
+  subscribeToRaffle,
+  subscribeToRaffleOrders,
+  computeOccupiedTicketsFromOrders,
+} from '@/lib/firebase/raffles';
 import { generateBrandInitials } from '@/lib/image-processor';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { generatePixBrCode } from '@/lib/pix-brcode';
@@ -130,6 +135,43 @@ export default function RafflePublicView({
   const [pixQrCodeUrl, setPixQrCodeUrl] = useState<string>('');
   const [showPhysicalCardModal, setShowPhysicalCardModal] = useState(false);
   const [quickPickFeedback, setQuickPickFeedback] = useState<string | null>(null);
+  const [isRemoveMode, setIsRemoveMode] = useState(false);
+
+  // Sincronização em tempo real da rifa e cotas ocupadas (reservas e aprovações ao vivo)
+  useEffect(() => {
+    const unsubRaffle = subscribeToRaffle(raffle.id, (liveRaffle) => {
+      if (liveRaffle) {
+        setCurrentRaffle((prev) => ({
+          ...liveRaffle,
+          brand_color: prev.brand_color ?? liveRaffle.brand_color,
+          brand_logo_url: prev.brand_logo_url ?? liveRaffle.brand_logo_url,
+          brand_name: prev.brand_name ?? liveRaffle.brand_name,
+        }));
+      }
+    });
+
+    const unsubOrders = subscribeToRaffleOrders(raffle.id, (liveOrders) => {
+      const liveOccupied = computeOccupiedTicketsFromOrders(liveOrders);
+      setOccupiedTickets(liveOccupied);
+
+      const liveOccupiedSet = new Set(liveOccupied.map((t) => t.ticket_number));
+      setSelectedTickets((prev) => {
+        const filtered = prev.filter((num) => !liveOccupiedSet.has(num));
+        if (filtered.length !== prev.length) {
+          setQuickPickFeedback(
+            'Algumas cotas selecionadas acabaram de ser reservadas por outro participante.'
+          );
+          setTimeout(() => setQuickPickFeedback(null), 3500);
+        }
+        return filtered;
+      });
+    });
+
+    return () => {
+      unsubRaffle();
+      unsubOrders();
+    };
+  }, [raffle.id]);
 
   // Set of occupied numbers
   const occupiedMap = useMemo(() => {
@@ -274,6 +316,15 @@ export default function RafflePublicView({
     setSelectedTickets((prev) => [...prev, ...toAdd].sort((a, b) => a - b));
     fireCelebrationConfetti('quick');
     setQuickPickFeedback(`+${toAdd.length} cotas da sorte adicionadas!`);
+    setTimeout(() => setQuickPickFeedback(null), 2400);
+  }
+
+  // Quick Remove: remove up to N selected numbers
+  function removeSelectedTickets(count: number) {
+    if (raffle.status !== 'active' || selectedTickets.length === 0) return;
+    const removedCount = Math.min(count, selectedTickets.length);
+    setSelectedTickets((prev) => prev.slice(0, Math.max(0, prev.length - count)));
+    setQuickPickFeedback(`-${removedCount} cota(s) removida(s) da sua seleção!`);
     setTimeout(() => setQuickPickFeedback(null), 2400);
   }
 
@@ -725,11 +776,16 @@ export default function RafflePublicView({
 
           {/* Quick Pick Buttons (apenas quando ativa) */}
           {raffle.status === 'active' && (
-            <div className="p-5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[24px] space-y-3">
+            <div className="p-4 sm:p-5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[24px] space-y-3.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#475872] block">
-                  Seleção Rápida Automática
-                </span>
+                <div className="space-y-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#475872] block">
+                    Seleção Rápida Automática
+                  </span>
+                  <p className="text-xs text-[#475872] leading-relaxed">
+                    Os botões abaixo selecionam a quantidade <strong>aleatoriamente</strong> entre as cotas livres. Você pode clicar várias vezes no mesmo botão para somar mais cotas.
+                  </p>
+                </div>
                 {quickPickFeedback && (
                   <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-xs font-bold animate-bounce">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -737,20 +793,52 @@ export default function RafflePublicView({
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2.5 tabular-nums">
-                {[5, 10, 25, 50, 100].map((qty) => (
-                  <button
-                    key={qty}
-                    type="button"
-                    onClick={() => addRandomTickets(qty)}
-                    disabled={allAvailableNumbers.length < qty}
-                    className="px-4 py-2.5 bg-white hover:bg-[#EDF5FF] active:bg-[#D9ECFF] active:scale-95 border border-[#CDE0FC] hover:border-[#0869F5] text-[#0755DE] text-xs sm:text-sm font-display font-bold rounded-[14px] shadow-[0_4px_12px_rgba(36,97,184,0.06)] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
-                  >
-                    <Dices className="w-4 h-4 text-[#0869F5]" />
-                    <span>+{qty} cotas</span>
-                  </button>
-                ))}
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 tabular-nums">
+                {[5, 10, 25, 50].map((qty) => {
+                  const disabled = isRemoveMode
+                    ? selectedTickets.length === 0
+                    : allAvailableNumbers.length < qty;
+                  return (
+                    <button
+                      key={qty}
+                      type="button"
+                      onClick={() =>
+                        isRemoveMode
+                          ? removeSelectedTickets(qty)
+                          : addRandomTickets(qty)
+                      }
+                      disabled={disabled}
+                      className={`px-4 py-2.5 border text-xs sm:text-sm font-display font-bold rounded-[14px] shadow-[0_4px_12px_rgba(36,97,184,0.06)] transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer ${
+                        isRemoveMode
+                          ? 'bg-[#FFF1F2] hover:bg-[#FFE4E6] border-[#FECDD3] hover:border-[#FDA4AF] text-[#BE123C]'
+                          : 'bg-white hover:bg-[#EDF5FF] active:bg-[#D9ECFF] border-[#CDE0FC] hover:border-[#0869F5] text-[#0755DE]'
+                      }`}
+                    >
+                      {isRemoveMode ? (
+                        <MinusCircle className="w-4 h-4 text-[#BE123C]" />
+                      ) : (
+                        <Dices className="w-4 h-4 text-[#0869F5]" />
+                      )}
+                      <span>
+                        {isRemoveMode ? `-${qty} cotas` : `+${qty} cotas`}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+
+              <label className="inline-flex items-center gap-2.5 pt-1 text-xs font-semibold text-[#14213A] cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isRemoveMode}
+                  onChange={(e) => setIsRemoveMode(e.target.checked)}
+                  className="w-4 h-4 rounded accent-[#BE123C] cursor-pointer"
+                />
+                <span>
+                  Remover cotas: marque esta caixa e clique nos botões acima para retirar a quantidade selecionada
+                </span>
+              </label>
             </div>
           )}
 
@@ -854,9 +942,9 @@ export default function RafflePublicView({
           </div>
         </section>
 
-        {/* Footer Brand, FastRifa Attribution & CTA Crie Sua Rifa */}
-        <footer className="pt-8 pb-4 text-center text-xs text-[#526480] space-y-3.5 relative z-10 max-w-xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        {/* Footer Brand & FastRifa Attribution */}
+        <footer className="pt-8 pb-4 text-center text-xs text-[#526480] space-y-3 relative z-10 max-w-xl mx-auto px-4">
+          <div className="flex items-center justify-center">
             <Link
               href="/"
               className="inline-flex items-center gap-2 group hover:opacity-90 transition"
@@ -865,21 +953,8 @@ export default function RafflePublicView({
               <img
                 src="/logo-fastrifa.png"
                 alt="FastRifa"
-                className="h-6 w-auto object-contain hidden sm:block opacity-90 group-hover:opacity-100"
+                className="h-6 w-auto object-contain opacity-90 group-hover:opacity-100"
               />
-              <img
-                src="/icone-mobile-fastrifa.png"
-                alt="FastRifa"
-                className="h-6 w-auto object-contain block sm:hidden"
-              />
-            </Link>
-
-            <Link
-              href="/"
-              className="ora-btn-secondary rounded-full px-4 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 shadow-xs"
-            >
-              <span>Crie sua rifa</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[var(--ora-blue,#00A868)]" />
             </Link>
           </div>
 

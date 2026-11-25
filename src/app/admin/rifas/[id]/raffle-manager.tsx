@@ -29,7 +29,13 @@ import {
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { useTheme } from '@/lib/theme-context';
-import { updateOrderStatus, finishRaffle, deleteRaffle } from '@/lib/firebase/raffles';
+import {
+  updateOrderStatus,
+  finishRaffle,
+  deleteRaffle,
+  subscribeToRaffle,
+  subscribeToRaffleOrders,
+} from '@/lib/firebase/raffles';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
 import PhysicalCardModal from '@/components/physical-card-modal';
@@ -98,6 +104,22 @@ export default function RaffleManager({ raffle: initialRaffle, initialOrders }: 
       }
     }
   }, []);
+
+  // Sincronização em tempo real dos pedidos e da rifa via Firestore onSnapshot
+  useEffect(() => {
+    const unsubRaffle = subscribeToRaffle(raffle.id, (liveRaffle) => {
+      if (liveRaffle) {
+        setCurrentRaffle(liveRaffle);
+      }
+    });
+    const unsubOrders = subscribeToRaffleOrders(raffle.id, (liveOrders) => {
+      setOrders(liveOrders);
+    });
+    return () => {
+      unsubRaffle();
+      unsubOrders();
+    };
+  }, [raffle.id]);
 
   const publicUrl =
     typeof window !== 'undefined' &&
@@ -578,9 +600,18 @@ Entre em contato para combinarmos a entrega do seu prêmio.
       <div className="ora-card rounded-[28px] p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="font-display font-bold text-xl sm:text-2xl text-[#0D1729] tracking-[-0.03em]">
-              Pedidos e Comprovantes
-            </h2>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="font-display font-bold text-xl sm:text-2xl text-[#0D1729] tracking-[-0.03em]">
+                Pedidos e Comprovantes
+              </h2>
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] text-[10.5px] font-bold uppercase tracking-wider"
+                title="Novas reservas e atualizações aparecem automaticamente sem precisar recarregar a página"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00A868] animate-pulse" />
+                <span>Tempo real ativo</span>
+              </span>
+            </div>
             <p className="text-xs text-[#475872] mt-0.5">
               Confirme os comprovantes recebidos no WhatsApp e notifique os compradores instantaneamente.
             </p>

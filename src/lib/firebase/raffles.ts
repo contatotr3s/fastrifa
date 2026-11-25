@@ -9,6 +9,7 @@ import {
   query,
   where,
   orderBy,
+  onSnapshot,
 } from 'firebase/firestore';
 import { auth, db, getPublicFirestore } from './config';
 import type { Raffle, Order, OccupiedTicket, Profile, AuditLog } from '@/types/database.types';
@@ -445,10 +446,9 @@ export async function getRaffleOrders(raffleId: string): Promise<Order[]> {
   return list;
 }
 
-export async function getOccupiedTickets(
-  raffleId: string
-): Promise<OccupiedTicket[]> {
-  const orders = await getRaffleOrders(raffleId);
+export function computeOccupiedTicketsFromOrders(
+  orders: Order[]
+): OccupiedTicket[] {
   const occupiedMap = new Map<number, 'pending' | 'paid'>();
 
   orders
@@ -467,6 +467,13 @@ export async function getOccupiedTickets(
     ticket_number,
     status,
   }));
+}
+
+export async function getOccupiedTickets(
+  raffleId: string
+): Promise<OccupiedTicket[]> {
+  const orders = await getRaffleOrders(raffleId);
+  return computeOccupiedTicketsFromOrders(orders);
 }
 
 export async function createOrder(
@@ -1195,4 +1202,176 @@ export async function getAuditLogs(raffleId?: string): Promise<AuditLog[]> {
   });
 
   return list;
+}
+
+
+/**
+ * Escuta alterações em tempo real de uma rifa específica no Firestore.
+ */
+export function subscribeToRaffle(
+  raffleId: string,
+  onUpdate: (raffle: Raffle | null) => void
+): () => void {
+  let cancelled = false;
+  let unsubscribeSnapshot: (() => void) | null = null;
+
+  getActiveDb()
+    .then((activeDb) => {
+      if (cancelled) return;
+      unsubscribeSnapshot = onSnapshot(
+        doc(activeDb, 'raffles', raffleId),
+        (snap) => {
+          if (cancelled) return;
+          if (!snap.exists()) {
+            onUpdate(null);
+            return;
+          }
+          onUpdate({ id: snap.id, ...(snap.data() as Omit<Raffle, 'id'>) });
+        },
+        (err) => {
+          console.warn('Erro no listener em tempo real da rifa:', err);
+        }
+      );
+    })
+    .catch((err) => {
+      console.warn('Falha ao iniciar listener da rifa:', err);
+    });
+
+  return () => {
+    cancelled = true;
+    if (unsubscribeSnapshot) {
+      unsubscribeSnapshot();
+    }
+  };
+}
+
+/**
+ * Escuta pedidos de uma rifa em tempo real (novas reservas, aprovações e liberações).
+ */
+export function subscribeToRaffleOrders(
+  raffleId: string,
+  onUpdate: (orders: Order[]) => void
+): () => void {
+  let cancelled = false;
+  let unsubscribeSnapshot: (() => void) | null = null;
+
+  getActiveDb()
+    .then((activeDb) => {
+      if (cancelled) return;
+      const q = query(
+        collection(activeDb, 'orders'),
+        where('raffle_id', '==', raffleId)
+      );
+      unsubscribeSnapshot = onSnapshot(
+        q,
+        (snap) => {
+          if (cancelled) return;
+          const remoteOrders: Order[] = snap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<Order, 'id'>),
+          }));
+
+          const remoteIds = new Set(remoteOrders.map((o) => o.id));
+          const othersAndOffline = getLocalOrders().filter((o) => {
+            if (o.raffle_id !== raffleId) return true;
+            return o.id.startsWith('ord_') && !remoteIds.has(o.id);
+          });
+          saveLocalOrders([...remoteOrders, ...othersAndOffline]);
+
+          const merged = new Map<string, Order>();
+          for (const o of remoteOrders) merged.set(o.id, o);
+          for (const o of othersAndOffline) {
+            if (o.raffle_id === raffleId) merged.set(o.id, o);
+          }
+
+          const sorted = Array.from(merged.values()).sort((a, b) => {
+            const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return tB - tA;
+          });
+
+          onUpdate(sorted);
+        },
+        (err) => {
+          console.warn('Erro no listener em tempo real dos pedidos:', err);
+        }
+      );
+    })
+    .catch((err) => {
+      console.warn('Falha ao iniciar listener dos pedidos:', err);
+    });
+
+  return () => {
+    cancelled = true;
+    if (unsubscribeSnapshot) {
+      unsubscribeSnapshot();
+    }
+  };
+}
+
+/**
+ * Escuta em tempo real todas as rifas de um criador no painel principal.
+ */
+export function subscribeToUserRaffles(
+  userId: string,
+  onUpdate: (raffles: Raffle[]) => void
+): () => void {
+  let cancelled = false;
+  let unsubscribeSnapshot: (() => void) | null = null;
+
+  getActiveDb()
+    .then((activeDb) => {
+      if (cancelled) return;
+      const q = query(
+        collection(activeDb, 'raffles'),
+        where('user_id', '==', userId)
+      );
+      unsubscribeSnapshot = onSnapshot(
+        q,
+        (snap) => {
+          if (cancelled) return;
+          const remoteRaffles = snap.docs
+            .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
+            .filter(
+              (r) => r.id !== 'demo-raffle-01' && r.slug !== 'iphone-16-pro-max'
+            );
+
+          const remoteIds = new Set(remoteRaffles.map((r) => r.id));
+          const remoteSlugs = new Set(remoteRaffles.map((r) => r.slug));
+          const othersAndPendingOffline = getLocalRaffles().filter((r) => {
+            if (r.user_id !== userId) return true;
+            return (
+              r.id.startsWith('raf_') &&
+              !remoteIds.has(r.id) &&
+              !remoteSlugs.has(r.slug)
+            );
+          });
+          saveLocalRaffles([...remoteRaffles, ...othersAndPendingOffline]);
+
+          const merged = [
+            ...remoteRaffles,
+            ...othersAndPendingOffline.filter((r) => r.user_id === userId),
+          ].sort((a, b) => {
+            const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return tB - tA;
+          });
+
+          onUpdate(merged);
+        },
+        (err) => {
+          console.warn('Erro no listener em tempo real das rifas do usuário:', err);
+        }
+      );
+    })
+    .catch((err) => {
+      console.warn('Falha ao iniciar listener das rifas do usuário:', err);
+    });
+
+  return () => {
+    cancelled = true;
+    if (unsubscribeSnapshot) {
+      unsubscribeSnapshot();
+    }
+  };
 }

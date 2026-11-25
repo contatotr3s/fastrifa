@@ -1,18 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { processLogoImage, generateBrandInitials } from '@/lib/image-processor';
 import {
   Sparkles,
   Upload,
-  CheckCircle2,
   X,
   Store,
   QrCode,
   Phone,
   ArrowRight,
   Loader2,
+  Mail,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface BrandOnboardingModalProps {
@@ -26,7 +27,7 @@ export default function BrandOnboardingModal({
   onClose,
   isEditMode = false,
 }: BrandOnboardingModalProps) {
-  const { profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
 
   const [brandName, setBrandName] = useState(
     profile?.brand_name || profile?.full_name || ''
@@ -42,7 +43,36 @@ export default function BrandOnboardingModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sincroniza campos sempre que o modal abrir ou o perfil atualizar
+  useEffect(() => {
+    if (isOpen && profile) {
+      setBrandName(profile.brand_name || profile.full_name || '');
+      setPhone(profile.phone_whatsapp || '');
+      setPixKey(profile.pix_key || '');
+      setLogoPreview(profile.brand_logo_url || null);
+      setError(null);
+    }
+  }, [isOpen, profile]);
+
+  // Trava rolagem do fundo para que o modal role naturalmente como página inteira
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const accountEmail = user?.email || profile?.email || 'E-mail não identificado';
+  const providerData = (
+    user as { providerData?: Array<{ providerId?: string }> } | null
+  )?.providerData;
+  const isGoogleSignup =
+    profile?.auth_provider === 'google' ||
+    Boolean(providerData?.some((p) => p?.providerId === 'google.com'));
 
   const currentInitials = generateBrandInitials(brandName || 'Sua Rifa');
 
@@ -102,32 +132,85 @@ export default function BrandOnboardingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[620px] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.22)] border border-[#E0E9F7] max-h-[92vh] overflow-y-auto">
-        {/* Close button if in edit mode */}
-        {isEditMode && onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-full text-[#526480] hover:text-[#0D1729] hover:bg-[#F2F7FF] transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0D1729]/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-6">
+        <div className="relative w-full max-w-[620px] my-4 sm:my-6 bg-white rounded-[24px] sm:rounded-[32px] p-5 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.22)] border border-[#E0E9F7]">
+          {/* Close button if in edit mode */}
+          {isEditMode && onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar modal da marca"
+              className="absolute top-5 right-5 p-2 rounded-full text-[#526480] hover:text-[#0D1729] hover:bg-[#F2F7FF] transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
 
-        {/* Modal Header */}
-        <div className="space-y-2 mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0869F5] text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{isEditMode ? 'Personalização da Marca' : 'Boas-vindas ao FastRifa'}</span>
+          {/* Modal Header */}
+          <div className="space-y-2 mb-5 pr-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDF5FF] text-[#0869F5] text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isEditMode ? 'Personalização da Marca' : 'Boas-vindas ao FastRifa'}</span>
+            </div>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
+              {isEditMode ? 'Editar Sua Marca' : 'Identidade do seu Negócio'}
+            </h2>
+            <p className="text-sm text-[#475872]">
+              Dê o seu nome e a sua marca para o painel e para todas as páginas de rifas que você criar.
+            </p>
           </div>
-          <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
-            {isEditMode ? 'Editar Sua Marca' : 'Identidade do seu Negócio'}
-          </h2>
-          <p className="text-sm text-[#475872]">
-            Dê o seu nome e a sua marca para o painel e para todas as páginas de rifas que você criar.
-          </p>
-        </div>
+
+          {/* Dados da Conta Cadastrada (E-mail + Método de Cadastro) */}
+          <div className="mb-6 p-3.5 sm:p-4 rounded-[18px] bg-[#F5F9FF] border border-[#DCE8F8] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-white border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center flex-shrink-0 shadow-xs">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#526480]">
+                  E-mail cadastrado
+                </span>
+                <strong className="block text-xs sm:text-sm font-bold text-[#0D1729] truncate">
+                  {accountEmail}
+                </strong>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:items-end gap-0.5 flex-shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#526480]">
+                Tipo de cadastro
+              </span>
+              {isGoogleSignup ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D9E5F7] text-[#0D1729] text-xs font-bold shadow-xs w-fit">
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.3 0 6.08-1.09 8.11-2.96l-3.88-3.05c-1.1.74-2.51 1.18-4.23 1.18-3.25 0-6.01-2.19-7-5.15H1v3.14C3.03 21.2 7.21 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5 14.02c-.25-.74-.39-1.54-.39-2.36s.14-1.62.39-2.36V6.16H1C.36 7.44 0 8.87 0 10.36c0 1.49.36 2.92 1 4.2l4-2.54z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.8 0 3.41.62 4.68 1.84l3.51-3.51C18.07 1.19 15.3 0 12 0 7.21 0 3.03 2.8 1 6.86l4 3.14c.99-2.96 3.75-5.25 7-5.25z"
+                    />
+                  </svg>
+                  <span>Via Google</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D9E5F7] text-[#0869F5] text-xs font-bold shadow-xs w-fit">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Via E-mail e Senha</span>
+                </span>
+              )}
+            </div>
+          </div>
 
         {error && (
           <div className="mb-5 p-3.5 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-xs rounded-[16px] font-medium">
@@ -303,6 +386,7 @@ export default function BrandOnboardingModal({
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
