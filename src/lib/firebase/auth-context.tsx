@@ -178,7 +178,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
           const isMaster = currentUser.email?.toLowerCase().trim() === MASTER_EMAIL;
-          setUser(currentUser);
+          setLoading(true);
+          let resolvedProfile: Profile | null = null;
 
           try {
             const profileRef = doc(db, 'profiles', currentUser.uid);
@@ -194,8 +195,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 loadedProfile.email = currentUser.email?.toLowerCase().trim() || MASTER_EMAIL;
                 loadedProfile.auth_provider = loadedProfile.auth_provider || detectedProvider;
                 loadedProfile.onboarding_completed = true;
-                setProfile(loadedProfile);
-                await setDoc(
+                resolvedProfile = loadedProfile;
+                setDoc(
                   profileRef,
                   {
                     role: 'master',
@@ -205,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     onboarding_completed: true,
                   },
                   { merge: true }
-                );
+                ).catch(() => {});
               } else {
                 const patch: Partial<Profile> = {};
                 if (!loadedProfile.email && currentUser.email) {
@@ -219,12 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (Object.keys(patch).length > 0) {
                   setDoc(profileRef, patch, { merge: true }).catch(() => {});
                 }
-                setProfile(loadedProfile);
-              }
-
-              if (typeof window !== 'undefined') {
-                localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(currentUser));
-                localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(loadedProfile));
+                resolvedProfile = loadedProfile;
               }
             } else {
               // Documento ainda não existia: cria novo perfil herdando o tema global do Master
@@ -250,18 +246,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.warn('Could not set initial profile in firestore:', e);
               }
 
-              setProfile(initialProfile);
-              if (typeof window !== 'undefined') {
-                localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(currentUser));
-                localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(initialProfile));
-              }
+              resolvedProfile = initialProfile;
             }
           } catch (err) {
             console.warn('Error reading/syncing profile:', err);
             if (isMaster) {
-              const fallbackMaster: Profile = {
+              resolvedProfile = {
                 id: currentUser.uid,
                 full_name: 'Danilo',
+                email: currentUser.email?.toLowerCase().trim() || MASTER_EMAIL,
+                auth_provider: detectAuthProvider(currentUser),
                 phone_whatsapp: '11999999999',
                 role: 'master',
                 brand_name: 'FastRifa',
@@ -270,8 +264,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               };
-              setProfile(fallbackMaster);
+            } else if (typeof window !== 'undefined') {
+              try {
+                const cachedRaw = localStorage.getItem(LOCAL_PROFILE_KEY);
+                const cached = cachedRaw ? (JSON.parse(cachedRaw) as Profile) : null;
+                if (cached && cached.id === currentUser.uid) {
+                  resolvedProfile = cached;
+                }
+              } catch {}
             }
+          }
+
+          if (typeof window !== 'undefined' && resolvedProfile) {
+            try {
+              localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(currentUser));
+              localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(resolvedProfile));
+            } catch {}
+          }
+
+          setUser(currentUser);
+          if (resolvedProfile) {
+            setProfile(resolvedProfile);
           }
           setLoading(false);
         } else {

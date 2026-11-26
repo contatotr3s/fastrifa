@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import {
   ArrowRight,
   Loader2,
@@ -38,14 +38,23 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && user) {
-      if (profile?.role === 'master') {
-        router.replace('/admin/master');
-      } else if (profile?.onboarding_completed) {
-        router.replace('/admin');
-      } else {
-        router.replace('/admin/onboarding');
-      }
+    if (authLoading || !user) return;
+
+    const userEmail = user.email?.toLowerCase().trim() || '';
+    const isMasterUser = userEmail === MASTER_EMAIL || profile?.role === 'master';
+
+    if (isMasterUser) {
+      router.replace('/admin/master');
+      return;
+    }
+
+    // Aguarda o perfil do Firestore carregar antes de decidir entre Painel e Onboarding
+    if (!profile) return;
+
+    if (profile.onboarding_completed && profile.brand_name?.trim()) {
+      router.replace('/admin');
+    } else {
+      router.replace('/admin/onboarding');
     }
   }, [user, profile, authLoading, router]);
 
