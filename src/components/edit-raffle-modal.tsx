@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Phone,
   Key,
+  AlertCircle,
 } from 'lucide-react';
 import PrizeImageUploader from '@/components/prize-image-uploader';
 import DiscountConfigEditor from '@/components/discount-config-editor';
@@ -72,6 +73,12 @@ export default function EditRaffleModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    title?: string;
+    ticketPrice?: string;
+    phoneWhatsapp?: string;
+    pixKey?: string;
+  }>({});
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -82,36 +89,45 @@ export default function EditRaffleModal({
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+
     if (!user) {
       setError('Sessão expirada. Faça login novamente.');
       return;
     }
 
+    const nextErrors: {
+      title?: string;
+      ticketPrice?: string;
+      phoneWhatsapp?: string;
+      pixKey?: string;
+    } = {};
+
     if (!title.trim()) {
-      setError('O título da rifa não pode ficar vazio.');
-      return;
+      nextErrors.title = 'O título da rifa não pode ficar vazio.';
     }
 
     if (newPrice < 0.01) {
-      setError('O valor unitário por cota deve ser de no mínimo R$ 0,01.');
-      return;
+      nextErrors.ticketPrice = 'O valor unitário por cota deve ser de no mínimo R$ 0,01.';
     }
 
     const pixCheck = validatePixKey(pixKey, pixKeyType);
     if (!pixCheck.valid) {
-      setError(pixCheck.error || 'Chave PIX inválida.');
-      return;
+      nextErrors.pixKey = pixCheck.error || 'Chave PIX inválida.';
     }
 
     if (phoneWhatsapp.trim()) {
       const phoneErr = getBrazilMobileError(phoneWhatsapp);
       if (phoneErr) {
-        setError(phoneErr);
-        return;
+        nextErrors.phoneWhatsapp = phoneErr;
       }
     }
 
-    setError(null);
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -204,7 +220,7 @@ export default function EditRaffleModal({
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-5">
+        <form onSubmit={handleSave} noValidate className="space-y-5">
           {/* Título */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#14213A] mb-1.5">
@@ -213,10 +229,25 @@ export default function EditRaffleModal({
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (fieldErrors.title) {
+                  setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                }
+              }}
               required
-              className="w-full px-4 py-3 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-sm font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+              className={`w-full px-4 py-3 rounded-2xl text-sm font-semibold text-[#0D1729] focus:outline-none focus:bg-white ${
+                fieldErrors.title
+                  ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                  : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5]'
+              }`}
             />
+            {fieldErrors.title && (
+              <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.title}</span>
+              </p>
+            )}
           </div>
 
           {/* Descrição */}
@@ -264,10 +295,25 @@ export default function EditRaffleModal({
               step="0.01"
               min="0.01"
               value={ticketPrice}
-              onChange={(e) => setTicketPrice(e.target.value)}
+              onChange={(e) => {
+                setTicketPrice(e.target.value);
+                if (fieldErrors.ticketPrice) {
+                  setFieldErrors((prev) => ({ ...prev, ticketPrice: undefined }));
+                }
+              }}
               required
-              className="w-full px-4 py-3 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-base font-display font-bold text-[#0D1729] tabular-nums focus:outline-none focus:bg-white focus:border-[#0869F5]"
+              className={`w-full px-4 py-3 rounded-2xl text-base font-display font-bold text-[#0D1729] tabular-nums focus:outline-none focus:bg-white ${
+                fieldErrors.ticketPrice
+                  ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                  : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5]'
+              }`}
             />
+            {fieldErrors.ticketPrice && (
+              <p className="text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.ticketPrice}</span>
+              </p>
+            )}
 
             {hasPaidOrders && priceChanged && (
               <div className="p-3 bg-[#FFF8EB] border border-[#F5D08A] rounded-2xl flex items-start gap-2.5 text-xs text-[#92400E]">
@@ -304,10 +350,33 @@ export default function EditRaffleModal({
                 inputMode="numeric"
                 maxLength={15}
                 value={phoneWhatsapp}
-                onChange={(e) => setPhoneWhatsapp(formatBrazilMobile(e.target.value))}
+                onChange={(e) => {
+                  setPhoneWhatsapp(formatBrazilMobile(e.target.value));
+                  if (fieldErrors.phoneWhatsapp) {
+                    setFieldErrors((prev) => ({ ...prev, phoneWhatsapp: undefined }));
+                  }
+                }}
+                onBlur={() => {
+                  if (phoneWhatsapp.trim()) {
+                    const phoneErr = getBrazilMobileError(phoneWhatsapp);
+                    if (phoneErr) {
+                      setFieldErrors((prev) => ({ ...prev, phoneWhatsapp: phoneErr }));
+                    }
+                  }
+                }}
                 placeholder="(11) 99999-9999"
-                className="w-full px-4 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+                className={`w-full px-4 py-2.5 rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white ${
+                  fieldErrors.phoneWhatsapp
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5]'
+                }`}
               />
+              {fieldErrors.phoneWhatsapp && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.phoneWhatsapp}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -333,6 +402,9 @@ export default function EditRaffleModal({
                     }
                     return prev;
                   });
+                  if (fieldErrors.pixKey) {
+                    setFieldErrors((prev) => ({ ...prev, pixKey: undefined }));
+                  }
                 }}
                 className="w-full px-3 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
               >
@@ -357,7 +429,20 @@ export default function EditRaffleModal({
                     : 'text'
                 }
                 value={pixKey}
-                onChange={(e) => setPixKey(formatPixKeyInput(e.target.value, pixKeyType))}
+                onChange={(e) => {
+                  setPixKey(formatPixKeyInput(e.target.value, pixKeyType));
+                  if (fieldErrors.pixKey) {
+                    setFieldErrors((prev) => ({ ...prev, pixKey: undefined }));
+                  }
+                }}
+                onBlur={() => {
+                  if (pixKey.trim()) {
+                    const pixCheck = validatePixKey(pixKey, pixKeyType);
+                    if (!pixCheck.valid && pixCheck.error) {
+                      setFieldErrors((prev) => ({ ...prev, pixKey: pixCheck.error }));
+                    }
+                  }
+                }}
                 placeholder={
                   pixKeyType === 'cpf'
                     ? '000.000.000-00'
@@ -370,8 +455,18 @@ export default function EditRaffleModal({
                     : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
                 }
                 required
-                className="w-full px-4 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+                className={`w-full px-4 py-2.5 rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white ${
+                  fieldErrors.pixKey
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5]'
+                }`}
               />
+              {fieldErrors.pixKey && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.pixKey}</span>
+                </p>
+              )}
             </div>
           </div>
 

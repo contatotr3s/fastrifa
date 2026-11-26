@@ -26,6 +26,7 @@ import {
   Mail,
   ShieldCheck,
   FileText,
+  AlertCircle,
 } from 'lucide-react';
 import type { PixKeyType } from '@/types/database.types';
 
@@ -33,6 +34,13 @@ interface BrandOnboardingModalProps {
   isOpen: boolean;
   onClose?: () => void;
   isEditMode?: boolean;
+}
+
+interface BrandFieldErrors {
+  brandName?: string;
+  cpf?: string;
+  phone?: string;
+  pixKey?: string;
 }
 
 export default function BrandOnboardingModal({
@@ -63,6 +71,7 @@ export default function BrandOnboardingModal({
   const [isProcessingLogo, setIsProcessingLogo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<BrandFieldErrors>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +88,7 @@ export default function BrandOnboardingModal({
       setPixKey(formatPixKeyInput(profile.pix_key || '', resolvedPixType));
       setLogoPreview(profile.brand_logo_url || null);
       setError(null);
+      setFieldErrors({});
     }
   }, [isOpen, profile]);
 
@@ -130,25 +140,26 @@ export default function BrandOnboardingModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+
+    const nextErrors: BrandFieldErrors = {};
     const cleanBrand = brandName.trim();
     if (!cleanBrand || cleanBrand.length < 3) {
-      setError('Por favor, informe o nome da sua marca ou negócio (mínimo 3 caracteres).');
-      return;
+      nextErrors.brandName =
+        'Informe o nome da sua marca ou negócio (mínimo 3 caracteres).';
     }
 
     if (cpf.trim() || !isEditMode) {
       const cpfErr = getCpfError(cpf);
       if (cpfErr) {
-        setError(cpfErr);
-        return;
+        nextErrors.cpf = cpfErr;
       }
     }
 
     if (phone.trim()) {
       const phoneErr = getBrazilMobileError(phone);
       if (phoneErr) {
-        setError(phoneErr);
-        return;
+        nextErrors.phone = phoneErr;
       }
     }
 
@@ -158,17 +169,21 @@ export default function BrandOnboardingModal({
     if (pixKey.trim()) {
       const pixCheck = validatePixKey(pixKey, pixKeyType);
       if (!pixCheck.valid) {
-        setError(pixCheck.error || 'Chave PIX inválida.');
-        return;
+        nextErrors.pixKey = pixCheck.error || 'Chave PIX inválida.';
+      } else {
+        pixNormalized = pixCheck.normalizedValue;
+        pixResolvedType = pixCheck.resolvedType;
       }
-      pixNormalized = pixCheck.normalizedValue;
-      pixResolvedType = pixCheck.resolvedType;
     } else {
       pixNormalized = null;
     }
 
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
     setIsSaving(true);
-    setError(null);
 
     try {
       await updateProfile({
@@ -282,7 +297,7 @@ export default function BrandOnboardingModal({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Brand Name Input */}
           <div className="space-y-1.5">
             <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
@@ -295,10 +310,25 @@ export default function BrandOnboardingModal({
                 required
                 placeholder="Ex: Freire Rifas, Prêmios do Silva..."
                 value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[18px] text-sm font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5] transition"
+                onChange={(e) => {
+                  setBrandName(e.target.value);
+                  if (fieldErrors.brandName) {
+                    setFieldErrors((prev) => ({ ...prev, brandName: undefined }));
+                  }
+                }}
+                className={`w-full pl-12 pr-4 py-3 rounded-[18px] text-sm font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none transition ${
+                  fieldErrors.brandName
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                    : 'bg-[#F5F9FF] border border-[#E0E9F7] focus:border-[#0869F5]'
+                }`}
               />
             </div>
+            {fieldErrors.brandName && (
+              <p className="text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.brandName}</span>
+              </p>
+            )}
             <p className="text-[11px] text-[#526480]">
               Este nome aparecerá no cabeçalho das suas campanhas como o organizador oficial.
             </p>
@@ -387,11 +417,31 @@ export default function BrandOnboardingModal({
                     value={cpf}
                     onChange={(e) => {
                       setCpf(formatCpf(e.target.value));
-                      if (error) setError(null);
+                      if (fieldErrors.cpf) {
+                        setFieldErrors((prev) => ({ ...prev, cpf: undefined }));
+                      }
                     }}
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                    onBlur={() => {
+                      if (cpf.trim()) {
+                        const cpfErr = getCpfError(cpf);
+                        if (cpfErr) {
+                          setFieldErrors((prev) => ({ ...prev, cpf: cpfErr }));
+                        }
+                      }
+                    }}
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none ${
+                      fieldErrors.cpf
+                        ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                        : 'bg-[#F5F9FF] border border-[#E0E9F7] focus:border-[#0869F5]'
+                    }`}
                   />
                 </div>
+                {fieldErrors.cpf && (
+                  <p className="text-[11px] font-semibold text-[#BE123C] flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{fieldErrors.cpf}</span>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -408,11 +458,31 @@ export default function BrandOnboardingModal({
                     value={phone}
                     onChange={(e) => {
                       setPhone(formatBrazilMobile(e.target.value));
-                      if (error) setError(null);
+                      if (fieldErrors.phone) {
+                        setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                      }
                     }}
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                    onBlur={() => {
+                      if (phone.trim()) {
+                        const phoneErr = getBrazilMobileError(phone);
+                        if (phoneErr) {
+                          setFieldErrors((prev) => ({ ...prev, phone: phoneErr }));
+                        }
+                      }
+                    }}
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none ${
+                      fieldErrors.phone
+                        ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                        : 'bg-[#F5F9FF] border border-[#E0E9F7] focus:border-[#0869F5]'
+                    }`}
                   />
                 </div>
+                {fieldErrors.phone && (
+                  <p className="text-[11px] font-semibold text-[#BE123C] flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{fieldErrors.phone}</span>
+                  </p>
+                )}
               </div>
             </div>
 
@@ -427,7 +497,9 @@ export default function BrandOnboardingModal({
                     const nextType = e.target.value as PixKeyType;
                     setPixKeyType(nextType);
                     setPixKey((prev) => formatPixKeyInput(prev, nextType));
-                    if (error) setError(null);
+                    if (fieldErrors.pixKey) {
+                      setFieldErrors((prev) => ({ ...prev, pixKey: undefined }));
+                    }
                   }}
                   className="w-full px-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] focus:bg-white focus:outline-none focus:border-[#0869F5]"
                 >
@@ -468,11 +540,31 @@ export default function BrandOnboardingModal({
                     value={pixKey}
                     onChange={(e) => {
                       setPixKey(formatPixKeyInput(e.target.value, pixKeyType));
-                      if (error) setError(null);
+                      if (fieldErrors.pixKey) {
+                        setFieldErrors((prev) => ({ ...prev, pixKey: undefined }));
+                      }
                     }}
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                    onBlur={() => {
+                      if (pixKey.trim()) {
+                        const pixCheck = validatePixKey(pixKey, pixKeyType);
+                        if (!pixCheck.valid && pixCheck.error) {
+                          setFieldErrors((prev) => ({ ...prev, pixKey: pixCheck.error }));
+                        }
+                      }
+                    }}
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none ${
+                      fieldErrors.pixKey
+                        ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                        : 'bg-[#F5F9FF] border border-[#E0E9F7] focus:border-[#0869F5]'
+                    }`}
                   />
                 </div>
+                {fieldErrors.pixKey && (
+                  <p className="text-[11px] font-semibold text-[#BE123C] flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{fieldErrors.pixKey}</span>
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -25,7 +25,7 @@ import {
   detectPixKeyType,
   onlyDigits,
 } from '@/lib/validators';
-import { ArrowLeft, Info, Link2, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Info, Link2, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import type { PixKeyType, RaffleDiscountConfig } from '@/types/database.types';
 
 export default function NewRafflePage() {
@@ -34,6 +34,14 @@ export default function NewRafflePage() {
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    title?: string;
+    prizeKeyword?: string;
+    ticketPrice?: string;
+    pixKey?: string;
+    phoneWhatsapp?: string;
+    terms?: string;
+  }>({});
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
@@ -98,46 +106,75 @@ export default function NewRafflePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+
     if (!user) {
       setError('Você precisa estar autenticado.');
       return;
     }
 
     const cleanKeyword = sanitizePrizeKeyword(prizeKeyword);
+    const nextErrors: {
+      title?: string;
+      prizeKeyword?: string;
+      ticketPrice?: string;
+      pixKey?: string;
+      phoneWhatsapp?: string;
+      terms?: string;
+    } = {};
 
-    if (!title || !pixKey || isNaN(numericPrice) || isNaN(totalTickets)) {
-      setError('Preencha todos os campos obrigatórios.');
-      return;
+    if (!title.trim() || title.trim().length < 3) {
+      nextErrors.title = 'Informe o título do prêmio ou campanha (mínimo 3 caracteres).';
     }
 
     if (!/^[a-z]{2,12}$/.test(cleanKeyword)) {
-      setError('Informe a palavra-chave do prêmio usando apenas letras (entre 2 e 12 letras, sem espaços ou números).');
-      return;
+      nextErrors.prizeKeyword =
+        'Informe a palavra-chave usando apenas letras (entre 2 e 12 letras, sem espaços ou números).';
     }
 
-    if (numericPrice < 0.01) {
-      setError('O valor da cota deve ser no mínimo R$ 0,01 (um centavo de real).');
-      return;
+    if (isNaN(numericPrice) || numericPrice < 0.01) {
+      nextErrors.ticketPrice =
+        'O valor da cota deve ser no mínimo R$ 0,01 (um centavo de real).';
     }
 
     const pixCheck = validatePixKey(pixKey, pixKeyType);
     if (!pixCheck.valid) {
-      setError(pixCheck.error || 'Chave PIX inválida.');
-      return;
+      nextErrors.pixKey = pixCheck.error || 'Chave PIX inválida.';
     }
 
     const phoneErr = getBrazilMobileError(phoneWhatsapp);
     if (phoneErr) {
-      setError(phoneErr);
-      return;
+      nextErrors.phoneWhatsapp = phoneErr;
     }
 
     if (!acceptedTerms) {
-      setError('É obrigatório ler e concordar com os Termos de Criação e Responsabilidade da Campanha para continuar.');
+      nextErrors.terms =
+        'É obrigatório ler e concordar com os Termos de Criação e Responsabilidade da Campanha.';
+    }
+
+    setFieldErrors(nextErrors);
+
+    const firstInvalidId = nextErrors.title
+      ? 'title'
+      : nextErrors.prizeKeyword
+      ? 'prizeKeyword'
+      : nextErrors.ticketPrice
+      ? 'ticketPrice'
+      : nextErrors.pixKey
+      ? 'pixKey'
+      : nextErrors.phoneWhatsapp
+      ? 'phoneWhatsapp'
+      : null;
+
+    if (Object.keys(nextErrors).length > 0) {
+      if (firstInvalidId && typeof document !== 'undefined') {
+        const el = document.getElementById(firstInvalidId);
+        el?.focus();
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
-    setError(null);
     setLoading(true);
 
     try {
@@ -209,7 +246,7 @@ export default function NewRafflePage() {
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="ora-card rounded-[28px] p-6 sm:p-9 space-y-8">
+      <form onSubmit={handleSubmit} noValidate className="ora-card rounded-[28px] p-6 sm:p-9 space-y-8">
         {/* Prêmio */}
         <div className="space-y-4">
           <h2 className="font-display font-bold text-lg text-[#0D1729] tracking-[-0.02em]">
@@ -234,10 +271,23 @@ export default function NewRafflePage() {
                 if (!keywordTouched) {
                   setPrizeKeyword(suggestPrizeKeyword(nextTitle));
                 }
+                if (fieldErrors.title) {
+                  setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                }
               }}
               placeholder="Ex: iPhone 16 Pro Max 256GB Lacrado"
-              className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
+              className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white text-[15px] transition ${
+                fieldErrors.title
+                  ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                  : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+              }`}
             />
+            {fieldErrors.title && (
+              <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.title}</span>
+              </p>
+            )}
           </div>
 
           <div>
@@ -261,10 +311,23 @@ export default function NewRafflePage() {
               onChange={(e) => {
                 setKeywordTouched(true);
                 setPrizeKeyword(sanitizePrizeKeyword(e.target.value));
+                if (fieldErrors.prizeKeyword) {
+                  setFieldErrors((prev) => ({ ...prev, prizeKeyword: undefined }));
+                }
               }}
               placeholder="Ex: iphone (apenas letras, máx. 12)"
-              className="w-full px-4 py-3 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[14px] font-mono transition"
+              className={`w-full px-4 py-3 rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white text-[14px] font-mono transition ${
+                fieldErrors.prizeKeyword
+                  ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                  : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+              }`}
             />
+            {fieldErrors.prizeKeyword && (
+              <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.prizeKeyword}</span>
+              </p>
+            )}
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#526480]">
               <span>Aceita somente letras (sem acentos, números ou espaços).</span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] font-mono font-bold">
@@ -393,11 +456,26 @@ export default function NewRafflePage() {
                 min="0.01"
                 required
                 value={ticketPrice}
-                onChange={(e) => setTicketPrice(e.target.value)}
+                onChange={(e) => {
+                  setTicketPrice(e.target.value);
+                  if (fieldErrors.ticketPrice) {
+                    setFieldErrors((prev) => ({ ...prev, ticketPrice: undefined }));
+                  }
+                }}
                 placeholder="0.01"
-                className="w-full pl-11 pr-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[16px] font-bold tabular-nums transition"
+                className={`w-full pl-11 pr-4 py-3.5 rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white text-[16px] font-bold tabular-nums transition ${
+                  fieldErrors.ticketPrice
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                }`}
               />
             </div>
+            {fieldErrors.ticketPrice && (
+              <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.ticketPrice}</span>
+              </p>
+            )}
 
             {/* Valor Por Extenso em Destaque */}
             {priceInWords && (
@@ -469,6 +547,9 @@ export default function NewRafflePage() {
                     }
                     return prev;
                   });
+                  if (fieldErrors.pixKey) {
+                    setFieldErrors((prev) => ({ ...prev, pixKey: undefined }));
+                  }
                 }}
                 className="w-full px-3.5 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5] text-[15px] transition"
               >
@@ -499,7 +580,20 @@ export default function NewRafflePage() {
                 }
                 required
                 value={pixKey}
-                onChange={(e) => setPixKey(formatPixKeyInput(e.target.value, pixKeyType))}
+                onChange={(e) => {
+                  setPixKey(formatPixKeyInput(e.target.value, pixKeyType));
+                  if (fieldErrors.pixKey) {
+                    setFieldErrors((prev) => ({ ...prev, pixKey: undefined }));
+                  }
+                }}
+                onBlur={() => {
+                  if (pixKey.trim()) {
+                    const pixCheck = validatePixKey(pixKey, pixKeyType);
+                    if (!pixCheck.valid && pixCheck.error) {
+                      setFieldErrors((prev) => ({ ...prev, pixKey: pixCheck.error }));
+                    }
+                  }
+                }}
                 placeholder={
                   pixKeyType === 'cpf'
                     ? '000.000.000-00'
@@ -511,8 +605,18 @@ export default function NewRafflePage() {
                     ? 'seu@email.com'
                     : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
                 }
-                className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
+                className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white text-[15px] transition ${
+                  fieldErrors.pixKey
+                    ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                    : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+                }`}
               />
+              {fieldErrors.pixKey && (
+                <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.pixKey}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -530,18 +634,41 @@ export default function NewRafflePage() {
               maxLength={15}
               required
               value={phoneWhatsapp}
-              onChange={(e) => setPhoneWhatsapp(formatBrazilMobile(e.target.value))}
+              onChange={(e) => {
+                setPhoneWhatsapp(formatBrazilMobile(e.target.value));
+                if (fieldErrors.phoneWhatsapp) {
+                  setFieldErrors((prev) => ({ ...prev, phoneWhatsapp: undefined }));
+                }
+              }}
+              onBlur={() => {
+                if (phoneWhatsapp.trim()) {
+                  const phoneErr = getBrazilMobileError(phoneWhatsapp);
+                  if (phoneErr) {
+                    setFieldErrors((prev) => ({ ...prev, phoneWhatsapp: phoneErr }));
+                  }
+                }
+              }}
               placeholder="(11) 99999-9999"
-              className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
+              className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white text-[15px] transition ${
+                fieldErrors.phoneWhatsapp
+                  ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                  : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
+              }`}
             />
+            {fieldErrors.phoneWhatsapp && (
+              <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.phoneWhatsapp}</span>
+              </p>
+            )}
           </div>
         </div>
 
         {/* Termo de Uso e Responsabilidade da Campanha */}
         <div
           className={`p-4 rounded-[20px] transition border ${
-            error && !acceptedTerms
-              ? 'bg-[#FFF5F6] border-[#BE123C] ring-2 ring-[#BE123C]/20'
+            fieldErrors.terms
+              ? 'bg-[#FFF5F6] border-2 border-[#BE123C]'
               : 'bg-[#F5F9FF] border-[#D9E5F7]'
           }`}
         >
@@ -551,7 +678,9 @@ export default function NewRafflePage() {
               checked={acceptedTerms}
               onChange={(e) => {
                 setAcceptedTerms(e.target.checked);
-                if (error) setError(null);
+                if (fieldErrors.terms) {
+                  setFieldErrors((prev) => ({ ...prev, terms: undefined }));
+                }
               }}
               className="mt-0.5 w-5 h-5 rounded-[6px] text-[#0869F5] border-[#D9E5F7] focus:ring-[#0869F5] cursor-pointer flex-shrink-0"
             />
@@ -569,6 +698,12 @@ export default function NewRafflePage() {
               </span>
             </div>
           </label>
+          {fieldErrors.terms && (
+            <p className="mt-2 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{fieldErrors.terms}</span>
+            </p>
+          )}
         </div>
 
         {/* Modal de Leitura Completa dos Termos */}
@@ -577,7 +712,9 @@ export default function NewRafflePage() {
           onClose={() => setIsTermsModalOpen(false)}
           onAccept={() => {
             setAcceptedTerms(true);
-            if (error) setError(null);
+            if (fieldErrors.terms) {
+              setFieldErrors((prev) => ({ ...prev, terms: undefined }));
+            }
           }}
         />
 

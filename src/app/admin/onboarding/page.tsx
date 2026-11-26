@@ -171,15 +171,24 @@ export default function OnboardingPage() {
 
     setFieldErrors(nextErrors);
 
-    const firstError =
-      nextErrors.brandName ||
-      nextErrors.cpf ||
-      nextErrors.email ||
-      nextErrors.phone ||
-      nextErrors.pixKey;
+    const firstInvalidId = nextErrors.brandName
+      ? 'onboarding-brand'
+      : nextErrors.cpf
+      ? 'onboarding-cpf'
+      : nextErrors.email
+      ? 'onboarding-email'
+      : nextErrors.phone
+      ? 'onboarding-phone'
+      : nextErrors.pixKey
+      ? 'onboarding-pix'
+      : null;
 
-    if (firstError) {
-      setError(firstError);
+    if (firstInvalidId) {
+      if (typeof document !== 'undefined') {
+        const el = document.getElementById(firstInvalidId);
+        el?.focus();
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -299,6 +308,14 @@ export default function OnboardingPage() {
                   setCpf(formatCpf(e.target.value));
                   clearFieldError('cpf');
                 }}
+                onBlur={() => {
+                  if (cpf.trim()) {
+                    const cpfErr = getCpfError(cpf);
+                    if (cpfErr) {
+                      setFieldErrors((prev) => ({ ...prev, cpf: cpfErr }));
+                    }
+                  }
+                }}
                 placeholder="000.000.000-00"
                 className={getInputStateClass(fieldErrors.cpf)}
               />
@@ -332,6 +349,14 @@ export default function OnboardingPage() {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   clearFieldError('email');
+                }}
+                onBlur={() => {
+                  if (email.trim()) {
+                    const emailErr = getEmailError(email);
+                    if (emailErr) {
+                      setFieldErrors((prev) => ({ ...prev, email: emailErr }));
+                    }
+                  }
                 }}
                 placeholder="seu@email.com"
                 className={getInputStateClass(fieldErrors.email)}
@@ -368,6 +393,14 @@ export default function OnboardingPage() {
                 onChange={(e) => {
                   setPhone(formatBrazilMobile(e.target.value));
                   clearFieldError('phone');
+                }}
+                onBlur={() => {
+                  if (phone.trim()) {
+                    const phoneErr = getBrazilMobileError(phone);
+                    if (phoneErr) {
+                      setFieldErrors((prev) => ({ ...prev, phone: phoneErr }));
+                    }
+                  }
                 }}
                 placeholder="(11) 99999-9999"
                 className={getInputStateClass(fieldErrors.phone)}
@@ -430,6 +463,14 @@ export default function OnboardingPage() {
                 onChange={(e) => {
                   setPixKey(formatPixKeyInput(e.target.value, pixType));
                   clearFieldError('pixKey');
+                }}
+                onBlur={() => {
+                  if (pixKey.trim()) {
+                    const pixCheck = validatePixKey(pixKey, pixType);
+                    if (!pixCheck.valid && pixCheck.error) {
+                      setFieldErrors((prev) => ({ ...prev, pixKey: pixCheck.error }));
+                    }
+                  }
                 }}
                 placeholder={
                   pixType === 'random'

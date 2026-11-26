@@ -302,6 +302,14 @@ export default function SignupPage() {
                   }
                   if (error) setError(null);
                 }}
+                onBlur={() => {
+                  if (phone.trim()) {
+                    const phoneErr = getBrazilMobileError(phone);
+                    if (phoneErr) {
+                      setFieldErrors((prev) => ({ ...prev, phone: phoneErr }));
+                    }
+                  }
+                }}
                 placeholder="(11) 99999-9999"
                 className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
                   fieldErrors.phone
@@ -335,6 +343,14 @@ export default function SignupPage() {
                     setFieldErrors((prev) => ({ ...prev, email: undefined }));
                   }
                   if (error) setError(null);
+                }}
+                onBlur={() => {
+                  if (email.trim()) {
+                    const emailErr = getEmailError(email);
+                    if (emailErr) {
+                      setFieldErrors((prev) => ({ ...prev, email: emailErr }));
+                    }
+                  }
                 }}
                 autoComplete="email"
                 placeholder="seu@email.com"

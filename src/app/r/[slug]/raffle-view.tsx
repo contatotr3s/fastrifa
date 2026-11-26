@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
 import QRCode from 'qrcode';
 import {
   Trophy,
   Check,
+  CheckCircle2,
   Copy,
   MessageCircle,
   Dices,
@@ -24,6 +25,7 @@ import {
   Sliders,
   Pencil,
   Eye,
+  AlertCircle,
   AlertTriangle,
   MinusCircle,
   Percent,
@@ -148,10 +150,47 @@ export default function RafflePublicView({
   const [pixBrCodePayload, setPixBrCodePayload] = useState<string>('');
   const [pixQrCodeUrl, setPixQrCodeUrl] = useState<string>('');
   const [showPhysicalCardModal, setShowPhysicalCardModal] = useState(false);
-  const [quickPickFeedback, setQuickPickFeedback] = useState<string | null>(null);
+  const [quickPickFeedback, setQuickPickFeedback] = useState<{
+    text: string;
+    type: 'add' | 'remove' | 'info';
+  } | null>(null);
+  const [isFeedbackFading, setIsFeedbackFading] = useState(false);
+  const feedbackFadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const feedbackClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [buyerFieldErrors, setBuyerFieldErrors] = useState<{
+    name?: string;
+    phone?: string;
+  }>({});
   const [isRemoveMode, setIsRemoveMode] = useState(false);
   const [showDiscountRoulette, setShowDiscountRoulette] = useState(false);
   const [rouletteWonPercent, setRouletteWonPercent] = useState<number | null>(null);
+
+  function triggerQuickPickFeedback(
+    text: string,
+    type: 'add' | 'remove' | 'info' = 'add'
+  ) {
+    if (feedbackFadeTimerRef.current) clearTimeout(feedbackFadeTimerRef.current);
+    if (feedbackClearTimerRef.current) clearTimeout(feedbackClearTimerRef.current);
+
+    setIsFeedbackFading(false);
+    setQuickPickFeedback({ text, type });
+
+    feedbackFadeTimerRef.current = setTimeout(() => {
+      setIsFeedbackFading(true);
+    }, 1800);
+
+    feedbackClearTimerRef.current = setTimeout(() => {
+      setQuickPickFeedback(null);
+      setIsFeedbackFading(false);
+    }, 2300);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (feedbackFadeTimerRef.current) clearTimeout(feedbackFadeTimerRef.current);
+      if (feedbackClearTimerRef.current) clearTimeout(feedbackClearTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -196,10 +235,10 @@ export default function RafflePublicView({
       setSelectedTickets((prev) => {
         const filtered = prev.filter((num) => !liveOccupiedSet.has(num));
         if (filtered.length !== prev.length) {
-          setQuickPickFeedback(
-            'Algumas cotas selecionadas acabaram de ser reservadas por outro participante.'
+          triggerQuickPickFeedback(
+            'Algumas cotas selecionadas acabaram de ser reservadas por outro participante.',
+            'info'
           );
-          setTimeout(() => setQuickPickFeedback(null), 3500);
         }
         return filtered;
       });
@@ -367,8 +406,7 @@ export default function RafflePublicView({
 
     setSelectedTickets((prev) => [...prev, ...toAdd].sort((a, b) => a - b));
     fireCelebrationConfetti('quick');
-    setQuickPickFeedback(`+${toAdd.length} cotas da sorte adicionadas!`);
-    setTimeout(() => setQuickPickFeedback(null), 2400);
+    triggerQuickPickFeedback(`+${toAdd.length} cotas da sorte adicionadas!`, 'add');
   }
 
   // Quick Remove: remove up to N selected numbers
@@ -376,8 +414,10 @@ export default function RafflePublicView({
     if (raffle.status !== 'active' || selectedTickets.length === 0) return;
     const removedCount = Math.min(count, selectedTickets.length);
     setSelectedTickets((prev) => prev.slice(0, Math.max(0, prev.length - count)));
-    setQuickPickFeedback(`-${removedCount} cota(s) removida(s) da sua seleção!`);
-    setTimeout(() => setQuickPickFeedback(null), 2400);
+    triggerQuickPickFeedback(
+      `-${removedCount} cota(s) removida(s) da sua seleção!`,
+      'remove'
+    );
   }
 
   function clearSelection() {
@@ -457,15 +497,19 @@ export default function RafflePublicView({
     e.preventDefault();
     setOrderError(null);
 
+    const nextFieldErrors: { name?: string; phone?: string } = {};
     const cleanBuyerName = buyerName.trim();
     if (cleanBuyerName.length < 2) {
-      setOrderError('Informe seu nome completo para reservar suas cotas.');
-      return;
+      nextFieldErrors.name = 'Informe seu nome completo para reservar suas cotas.';
     }
 
     const phoneErr = getBrazilMobileError(buyerPhone);
     if (phoneErr) {
-      setOrderError(phoneErr);
+      nextFieldErrors.phone = phoneErr;
+    }
+
+    setBuyerFieldErrors(nextFieldErrors);
+    if (nextFieldErrors.name || nextFieldErrors.phone) {
       return;
     }
 
@@ -851,8 +895,10 @@ export default function RafflePublicView({
             </p>
           </div>
 
-          {/* Banner CTA Promocional de Desconto (quando ativado pelo criador) */}
-          {raffle.status === 'active' && normalizedDiscount.mode !== 'none' && (
+          {/* Banner CTA Promocional de Desconto (antes de selecionar cotas; ao selecionar, tudo centraliza no checkout) */}
+          {raffle.status === 'active' &&
+            normalizedDiscount.mode !== 'none' &&
+            selectedTickets.length === 0 && (
             <div className="p-4 sm:p-5 rounded-[24px] bg-gradient-to-r from-[#E8F7F0] via-[#F3FAF6] to-[#EDF5FF] border border-[#B9E7D2] space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-start gap-2.5">
@@ -881,67 +927,21 @@ export default function RafflePublicView({
                     </p>
                   </div>
                 </div>
-
-                {/* Status / Gatilho dinâmico */}
-                {normalizedDiscount.mode === 'roulette' ? (
-                  rouletteWonPercent ? (
-                    <span className="self-start sm:self-center shrink-0 px-3 py-1.5 rounded-full bg-[#00A868] text-white text-xs font-bold shadow-xs">
-                      🎉 {rouletteWonPercent}% OFF ativo!
-                    </span>
-                  ) : pricing.canSpinRoulette ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowDiscountRoulette(true)}
-                      className="ora-btn-primary self-start sm:self-center shrink-0 px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
-                    >
-                      <Dices className="w-4 h-4" />
-                      <span>Girar Roleta Agora</span>
-                    </button>
-                  ) : (
-                    <span className="self-start sm:self-center shrink-0 px-3 py-1 rounded-full bg-white border border-[#B9E7D2] text-[#0D1729] text-[11px] font-bold tabular-nums">
-                      Faltam {pricing.needsMoreForRoulette} cota(s) p/ Roleta
-                    </span>
-                  )
-                ) : pricing.discountPercent > 0 ? (
-                  <span className="self-start sm:self-center shrink-0 px-3 py-1 rounded-full bg-[#00A868] text-white text-[11px] font-bold tabular-nums shadow-xs">
-                    🎉 {pricing.discountPercent}% OFF aplicado!
-                  </span>
-                ) : pricing.nextTier ? (
-                  <span className="self-start sm:self-center shrink-0 px-3 py-1 rounded-full bg-white border border-[#B9E7D2] text-[#00A868] text-[11px] font-bold tabular-nums">
-                    +{pricing.nextTier.remaining} cota(s) → {pricing.nextTier.percent}% OFF
-                  </span>
-                ) : null}
               </div>
 
               {/* Faixas visíveis no modo Progressivo */}
               {normalizedDiscount.mode === 'progressive' && normalizedDiscount.tiers && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-0.5 tabular-nums">
-                  {normalizedDiscount.tiers.map((tier) => {
-                    const reached = selectedTickets.length >= tier.min_tickets;
-                    const isBestActive =
-                      pricing.activeTier?.min_tickets === tier.min_tickets;
-                    return (
-                      <span
-                        key={tier.min_tickets}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border transition ${
-                          isBestActive
-                            ? 'bg-[#00A868] border-[#00A868] text-white shadow-xs'
-                            : reached
-                              ? 'bg-[#E8F7F0] border-[#00A868] text-[#00A868]'
-                              : 'bg-white border-[#D9E5F7] text-[#475872]'
-                        }`}
-                      >
-                        <span>{tier.min_tickets}+ cotas</span>
-                        <span>•</span>
-                        <span>{tier.percent}% OFF</span>
-                      </span>
-                    );
-                  })}
-                  {pricing.nextTier && pricing.discountPercent > 0 && (
-                    <span className="text-[11px] font-bold text-[#0869F5] ml-1">
-                      Adicione mais {pricing.nextTier.remaining} e suba para {pricing.nextTier.percent}% OFF!
+                  {normalizedDiscount.tiers.map((tier) => (
+                    <span
+                      key={tier.min_tickets}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-white border-[#D9E5F7] text-[#475872]"
+                    >
+                      <span>{tier.min_tickets}+ cotas</span>
+                      <span>•</span>
+                      <span>{tier.percent}% OFF</span>
                     </span>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
@@ -950,21 +950,13 @@ export default function RafflePublicView({
           {/* Quick Pick Buttons (apenas quando ativa) */}
           {raffle.status === 'active' && (
             <div className="p-4 sm:p-5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[24px] space-y-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#475872] block">
-                    Seleção Rápida Automática
-                  </span>
-                  <p className="text-xs text-[#475872] leading-relaxed">
-                    Os botões abaixo selecionam a quantidade <strong>aleatoriamente</strong> entre as cotas livres. Você pode clicar várias vezes no mesmo botão para somar mais cotas.
-                  </p>
-                </div>
-                {quickPickFeedback && (
-                  <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-xs font-bold animate-bounce">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>{quickPickFeedback}</span>
-                  </span>
-                )}
+              <div className="space-y-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#475872] block">
+                  Seleção Rápida Automática
+                </span>
+                <p className="text-xs text-[#475872] leading-relaxed">
+                  Os botões abaixo selecionam a quantidade <strong>aleatoriamente</strong> entre as cotas livres. Você pode clicar várias vezes no mesmo botão para somar mais cotas.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 tabular-nums">
@@ -1151,68 +1143,149 @@ export default function RafflePublicView({
       </main>
 
       {/* Floating Bottom Capsule (Active when tickets are selected) */}
-      {raffle.status === 'active' && selectedTickets.length > 0 && (
-        <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
-          <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[24px] px-3.5 py-2.5 sm:px-5 sm:py-4 shadow-[0_20px_50px_rgba(0,168,104,0.18)] flex items-center justify-between gap-2.5 sm:gap-4 tabular-nums">
-            <div className="space-y-0.5 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-display font-bold text-[#0D1729] truncate">
-                  {selectedTickets.length} cota(s)
-                </span>
-                <button
-                  type="button"
-                  onClick={clearSelection}
-                  className="text-[11px] sm:text-xs font-bold text-[#BE123C] hover:underline cursor-pointer flex-shrink-0"
-                >
-                  Limpar
-                </button>
-              </div>
-              <div className="flex flex-wrap items-baseline gap-2">
-                {pricing.discountPercent > 0 && (
-                  <span className="text-xs sm:text-sm text-[#8A9BB3] line-through font-semibold">
-                    R$ {pricing.originalAmount.toFixed(2)}
-                  </span>
-                )}
-                <div className="font-display font-bold text-base sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
-                  Total: R$ {totalPrice}
-                </div>
-                {pricing.discountPercent > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10px] font-bold">
-                    -{pricing.discountPercent}% OFF
-                  </span>
-                )}
-              </div>
-            </div>
+      {raffle.status === 'active' && selectedTickets.length > 0 && (() => {
+        const rouletteMaxPct = Math.max(...(normalizedDiscount.roulette_options || [20]));
+        const feedbackBanner = quickPickFeedback ? (
+          <div
+            className={`px-3.5 py-2 sm:px-5 sm:py-2.5 border-b flex items-center gap-2 text-xs sm:text-[13px] font-bold transition-all duration-500 ease-out ${
+              isFeedbackFading
+                ? 'opacity-0 -translate-y-1'
+                : 'opacity-100 translate-y-0'
+            } ${
+              quickPickFeedback.type === 'add'
+                ? 'bg-gradient-to-r from-[#E8F7F0] via-[#DCFCE7] to-[#EDF5FF] border-[#A7F3D0] text-[#065F46]'
+                : quickPickFeedback.type === 'remove'
+                  ? 'bg-[#FFF1F2] border-[#FECDD3] text-[#BE123C]'
+                  : 'bg-[#FFF8EB] border-[#F5D08A] text-[#92400E]'
+            }`}
+          >
+            {quickPickFeedback.type === 'add' ? (
+              <CheckCircle2 className="w-4 h-4 text-[#00A868] shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0" />
+            )}
+            <span className="leading-snug">{quickPickFeedback.text}</span>
+          </div>
+        ) : null;
 
-            <div className="flex items-center gap-2 shrink-0">
-              {pricing.canSpinRoulette && (
-                <button
-                  type="button"
-                  onClick={() => setShowDiscountRoulette(true)}
-                  className="px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-[16px] sm:rounded-[18px] bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer hover:bg-[#FEF3C7] transition"
-                >
-                  <Dices className="w-4 h-4" />
-                  <span className="hidden sm:inline">Girar Roleta</span>
-                  <span className="sm:hidden">Roleta</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setIsCheckoutOpen(true)}
-                className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-[16px] sm:rounded-[18px] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
-              >
-                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Reservar Agora</span>
-              </button>
+        const discountBanner = !quickPickFeedback && normalizedDiscount.mode !== 'none' ? (
+          normalizedDiscount.mode === 'roulette' ? (
+            pricing.canSpinRoulette ? (
+              <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-[#FFF8EB] via-[#FEF3C7] to-[#FFFBEB] border-b border-[#F5D08A] text-[#92400E] flex items-center gap-2 text-xs sm:text-[13px] font-bold animate-in fade-in duration-300">
+                <Dices className="w-4 h-4 text-[#D97706] shrink-0" />
+                <span className="leading-snug">
+                  Roleta da Sorte Promocional desbloqueada! Gire para ganhar até {rouletteMaxPct}% OFF!
+                </span>
+              </div>
+            ) : pricing.discountPercent > 0 ? (
+              <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-[#E8F7F0] to-[#EDF5FF] border-b border-[#B9E7D2] text-[#065F46] flex items-center gap-2 text-xs sm:text-[13px] font-bold animate-in fade-in duration-300">
+                <Tag className="w-4 h-4 text-[#00A868] shrink-0" />
+                <span className="leading-snug">
+                  Roleta da Sorte: {pricing.discountPercent}% OFF concedido! Economia de R$ {pricing.discountAmount.toFixed(2)}
+                </span>
+              </div>
+            ) : pricing.needsMoreForRoulette > 0 ? (
+              <div className="px-3.5 py-2 sm:px-5 sm:py-2 bg-[#F5F9FF] border-b border-[#D9E5F7] text-[#334661] flex items-center gap-2 text-[11px] sm:text-xs font-semibold animate-in fade-in duration-300">
+                <Dices className="w-3.5 h-3.5 text-[#0869F5] shrink-0" />
+                <span className="leading-snug">
+                  Adicione +{pricing.needsMoreForRoulette} cota(s) para desbloquear a Roleta da Sorte (até {rouletteMaxPct}% OFF).
+                </span>
+              </div>
+            ) : null
+          ) : pricing.discountPercent > 0 ? (
+            <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-[#E8F7F0] to-[#EDF5FF] border-b border-[#B9E7D2] text-[#065F46] flex items-center gap-2 text-xs sm:text-[13px] font-bold animate-in fade-in duration-300">
+              <Percent className="w-4 h-4 text-[#00A868] shrink-0" />
+              <span className="leading-snug">
+                {normalizedDiscount.mode === 'progressive'
+                  ? 'Desconto Progressivo'
+                  : 'Desconto Especial'}
+                : {pricing.discountPercent}% OFF concedido! Economia de R$ {pricing.discountAmount.toFixed(2)}
+                {pricing.nextTier
+                  ? ` · +${pricing.nextTier.remaining} cota(s) → ${pricing.nextTier.percent}% OFF`
+                  : ''}
+              </span>
+            </div>
+          ) : pricing.nextTier ? (
+            <div className="px-3.5 py-2 sm:px-5 sm:py-2 bg-[#F5F9FF] border-b border-[#D9E5F7] text-[#334661] flex items-center gap-2 text-[11px] sm:text-xs font-semibold animate-in fade-in duration-300">
+              <Percent className="w-3.5 h-3.5 text-[#00A868] shrink-0" />
+              <span className="leading-snug">
+                Adicione +{pricing.nextTier.remaining} cota(s) para desbloquear {pricing.nextTier.percent}% OFF automático!
+              </span>
+            </div>
+          ) : null
+        ) : null;
+
+        return (
+          <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
+            <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[24px] overflow-hidden shadow-[0_20px_50px_rgba(0,168,104,0.18)] tabular-nums">
+              {feedbackBanner || discountBanner}
+
+              <div className="px-3.5 py-2.5 sm:px-5 sm:py-3.5 flex items-center justify-between gap-2.5 sm:gap-4">
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-display font-bold text-[#0D1729] truncate">
+                      {selectedTickets.length} cota(s)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearSelection}
+                      className="text-[11px] sm:text-xs font-bold text-[#BE123C] hover:underline cursor-pointer flex-shrink-0"
+                    >
+                      Limpar
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    {pricing.discountPercent > 0 && (
+                      <span className="text-xs sm:text-sm text-[#8A9BB3] line-through font-semibold">
+                        R$ {pricing.originalAmount.toFixed(2)}
+                      </span>
+                    )}
+                    <div className="font-display font-bold text-base sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
+                      Total: R$ {totalPrice}
+                    </div>
+                    {pricing.discountPercent > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10px] font-bold">
+                        -{pricing.discountPercent}% OFF
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center shrink-0">
+                  {pricing.canSpinRoulette ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowDiscountRoulette(true)}
+                      className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-[16px] sm:rounded-[18px] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
+                    >
+                      <Dices className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span>Girar Roleta</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBuyerFieldErrors({});
+                        setOrderError(null);
+                        setIsCheckoutOpen(true);
+                      }}
+                      className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-[16px] sm:rounded-[18px] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span>Reservar Agora</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Checkout Modal */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 bg-[#0D1729]/45 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="ora-card rounded-[24px] sm:rounded-[28px] max-w-md w-full p-4 sm:p-8 space-y-4 sm:space-y-6 relative my-auto max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-150">
+          <div className="ora-card rounded-[24px] sm:rounded-[28px] max-w-md w-full p-4 sm:p-8 space-y-4 sm:space-y-5 relative my-auto max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-150">
             <button
               type="button"
               aria-label="Fechar modal"
@@ -1330,15 +1403,21 @@ export default function RafflePublicView({
                   );
                 })}
               </div>
+
               {pricing.canSpinRoulette && (
-                <button
-                  type="button"
-                  onClick={() => setShowDiscountRoulette(true)}
-                  className="w-full py-2.5 px-3 rounded-[14px] bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#FEF3C7] transition"
-                >
-                  <Dices className="w-4 h-4" />
-                  <span>Você liberou a Roleta da Sorte! Clique para girar antes do PIX</span>
-                </button>
+                <div className="p-3 rounded-[14px] bg-[#FFF8EB] border border-[#F5D08A] text-[#92400E] text-xs font-bold flex items-center gap-2">
+                  <Dices className="w-4 h-4 text-[#D97706] shrink-0" />
+                  <span>Roleta da Sorte Promocional desbloqueada! Gire antes de gerar o PIX.</span>
+                </div>
+              )}
+
+              {pricing.discountPercent > 0 && (
+                <div className="p-2.5 rounded-[14px] bg-[#E8F7F0] border border-[#B9E7D2] text-[#065F46] text-xs font-bold flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-[#00A868] shrink-0" />
+                  <span>
+                    {pricing.discountLabel || `Desconto de ${pricing.discountPercent}% OFF`} aplicado!
+                  </span>
+                </div>
               )}
 
               <div className="pt-2.5 border-t border-[#E0E9F7] space-y-1">
@@ -1364,7 +1443,7 @@ export default function RafflePublicView({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleOrderSubmit} className="space-y-4">
+            <form onSubmit={handleOrderSubmit} noValidate className="space-y-4">
               <div>
                 <label
                   className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
@@ -1378,9 +1457,24 @@ export default function RafflePublicView({
                   required
                   placeholder="Digite seu nome completo"
                   value={buyerName}
-                  onChange={(e) => setBuyerName(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5]"
+                  onChange={(e) => {
+                    setBuyerName(e.target.value);
+                    if (buyerFieldErrors.name) {
+                      setBuyerFieldErrors((prev) => ({ ...prev, name: undefined }));
+                    }
+                  }}
+                  className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white ${
+                    buyerFieldErrors.name
+                      ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                      : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5]'
+                  }`}
                 />
+                {buyerFieldErrors.name && (
+                  <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{buyerFieldErrors.name}</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1398,67 +1492,104 @@ export default function RafflePublicView({
                   required
                   placeholder="(11) 99999-9999"
                   value={buyerPhone}
-                  onChange={(e) => setBuyerPhone(formatBrazilMobile(e.target.value))}
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5]"
+                  onChange={(e) => {
+                    setBuyerPhone(formatBrazilMobile(e.target.value));
+                    if (buyerFieldErrors.phone) {
+                      setBuyerFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                    }
+                  }}
+                  onBlur={() => {
+                    if (buyerPhone.trim()) {
+                      const phoneErr = getBrazilMobileError(buyerPhone);
+                      if (phoneErr) {
+                        setBuyerFieldErrors((prev) => ({ ...prev, phone: phoneErr }));
+                      }
+                    }
+                  }}
+                  className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white ${
+                    buyerFieldErrors.phone
+                      ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                      : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[#0869F5]'
+                  }`}
                 />
+                {buyerFieldErrors.phone && (
+                  <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{buyerFieldErrors.phone}</span>
+                  </p>
+                )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="ora-btn-primary w-full py-4 font-bold rounded-[18px] flex items-center justify-center gap-2 text-[15px] disabled:opacity-50 active:scale-[0.98] transition cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Reservando cotas...</span>
-                  </>
-                ) : (
-                  <>
-                    <PixIcon className="w-4 h-4" />
-                    <span>Confirmar e Gerar PIX</span>
-                  </>
-                )}
-              </button>
+              {pricing.canSpinRoulette ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDiscountRoulette(true)}
+                  className="ora-btn-primary w-full py-4 font-bold rounded-[18px] flex items-center justify-center gap-2 text-[15px] active:scale-[0.98] transition cursor-pointer"
+                >
+                  <Dices className="w-5 h-5" />
+                  <span>Girar Roleta da Sorte</span>
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="ora-btn-primary w-full py-4 font-bold rounded-[18px] flex items-center justify-center gap-2 text-[15px] disabled:opacity-50 active:scale-[0.98] transition cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Reservando cotas...</span>
+                    </>
+                  ) : (
+                    <>
+                      <PixIcon className="w-4 h-4" />
+                      <span>Confirmar e Gerar PIX</span>
+                    </>
+                  )}
+                </button>
+              )}
             </form>
           </div>
         </div>
       )}
 
-      {/* Payment Screen Modal (Com QR Code PIX já no Valor Somado + Confetes) */}
+      {/* Payment Screen Modal (Cabe em 1 tela sem barra de rolagem em Desktop e Mobile) */}
       {confirmedOrder && (
-        <div className="fixed inset-0 z-50 bg-[#0D1729]/55 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="ora-card rounded-[24px] sm:rounded-[32px] max-w-lg w-full p-4 sm:p-8 space-y-4 sm:space-y-5 relative text-center my-auto max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-[#ECFDF5] border border-[#A7F3D0] rounded-full flex items-center justify-center mx-auto text-[#059669] shadow-sm">
-              <Check className="w-8 h-8" />
+        <div className="fixed inset-0 z-50 bg-[#0D1729]/55 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4">
+          <div className="ora-card rounded-[24px] sm:rounded-[28px] max-w-md w-full p-4 sm:p-5 space-y-2.5 sm:space-y-3 relative text-center animate-in zoom-in-95 duration-200">
+            {/* Cabeçalho em linha com ícone verde ao lado dos textos */}
+            <div className="flex items-center gap-3 text-left">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 bg-[#ECFDF5] border border-[#A7F3D0] rounded-2xl flex items-center justify-center text-[#059669] shadow-xs shrink-0">
+                <Check className="w-6 h-6" />
+              </div>
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EDF5FF] text-[#0869F5] text-[10px] font-bold uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3" />
+                  Reserva Confirmada
+                </span>
+                <h3 className="font-display font-bold text-lg sm:text-xl text-[#0D1729] tracking-[-0.03em] leading-tight mt-0.5">
+                  Cotas Reservadas com Sucesso!
+                </h3>
+              </div>
             </div>
 
-            <div>
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#EDF5FF] text-[#0869F5] text-[11px] font-bold uppercase tracking-wider mb-1.5">
-                <Sparkles className="w-3 h-3" />
-                Reserva Confirmada
-              </span>
-              <h3 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
-                Cotas Reservadas com Sucesso!
-              </h3>
-              <p className="text-xs sm:text-sm text-[#475872] mt-1">
-                O QR Code e o código PIX abaixo já estão configurados com o valor exato de{' '}
-                <strong className="text-[#0869F5]">
-                  R$ {confirmedOrder.total.toFixed(2)}
-                </strong>
-                {confirmedOrder.discountPercent && confirmedOrder.discountPercent > 0 ? (
-                  <span className="inline-flex items-center gap-1 ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10.5px] font-bold">
-                    <Tag className="w-3 h-3" />
-                    Economia de R$ {(confirmedOrder.discountAmount || 0).toFixed(2)} ({confirmedOrder.discountPercent}% OFF)
-                  </span>
-                ) : null}
-                .
-              </p>
-            </div>
+            <p className="text-xs text-[#475872] leading-snug">
+              PIX configurado no valor exato de{' '}
+              <strong className="text-[#0869F5]">
+                R$ {confirmedOrder.total.toFixed(2)}
+              </strong>
+              {confirmedOrder.discountPercent && confirmedOrder.discountPercent > 0 ? (
+                <span className="inline-flex items-center gap-1 ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10.5px] font-bold">
+                  <Tag className="w-3 h-3" />
+                  Economia de R$ {(confirmedOrder.discountAmount || 0).toFixed(2)} ({confirmedOrder.discountPercent}% OFF)
+                </span>
+              ) : null}
+              .
+            </p>
 
             {/* QR Code PIX Oficial com Valor Somado */}
             {pixQrCodeUrl && (
-              <div className="mx-auto w-48 h-48 p-3 bg-white rounded-[22px] border-2 border-[#CDE0FC] shadow-[0_12px_28px_rgba(8,105,245,0.12)] flex items-center justify-center">
+              <div className="mx-auto w-32 h-32 sm:w-36 sm:h-36 p-2 bg-white rounded-[18px] border-2 border-[#CDE0FC] shadow-[0_8px_20px_rgba(8,105,245,0.10)] flex items-center justify-center">
                 <img
                   src={pixQrCodeUrl}
                   alt="QR Code PIX com valor da rifa"
@@ -1472,7 +1603,7 @@ export default function RafflePublicView({
               <button
                 type="button"
                 onClick={copyPixBrCode}
-                className={`w-full py-3.5 px-5 rounded-[18px] font-bold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer shadow-md ${
+                className={`w-full py-2.5 sm:py-3 px-4 rounded-[16px] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer shadow-sm ${
                   copiedBrCode
                     ? 'bg-[#059669] text-white'
                     : 'ora-btn-primary'
@@ -1496,26 +1627,18 @@ export default function RafflePublicView({
               </button>
             )}
 
-            {/* Mensagem de Atenção e Envio de Comprovante */}
-            <div className="text-left bg-[#FFFBEB] border border-[#FDE68A] rounded-[22px] p-4 sm:p-5 space-y-2.5 shadow-xs">
-              <div className="flex items-center gap-2 text-[#92400E] font-display font-bold text-xs sm:text-sm">
-                <span className="text-base">📸</span>
+            {/* Mensagem compacta de Atenção e Envio de Comprovante */}
+            <div className="text-left bg-[#FFFBEB] border border-[#FDE68A] rounded-[16px] p-3 space-y-1 shadow-xs">
+              <div className="flex items-center gap-1.5 text-[#92400E] font-display font-bold text-[11px] sm:text-xs">
+                <span>📸</span>
                 <span>ATENÇÃO: COMPROVANTE DE PAGAMENTO</span>
               </div>
-              <p className="text-xs sm:text-[13px] text-[#78350F] leading-relaxed">
-                Após realizar o Pix, <strong>salve o comprovante no seu celular</strong>.
+              <p className="text-[11px] sm:text-xs text-[#78350F] leading-snug">
+                Após fazer o Pix, <strong>salve o comprovante</strong> e clique abaixo para enviá-lo no WhatsApp.
               </p>
-              <p className="text-xs sm:text-[13px] text-[#78350F] leading-relaxed">
-                Em seguida, clique no botão abaixo para abrir o WhatsApp e <strong>anexe o comprovante à mensagem</strong>.
+              <p className="pt-1 border-t border-[#FDE68A]/70 text-[11px] text-[#065F46] font-medium leading-snug">
+                ✅ Seus números serão confirmados após a conferência. 🍀 Boa sorte!
               </p>
-              <div className="pt-2 border-t border-[#FDE68A]/70 flex items-start gap-2 text-xs sm:text-[13px] text-[#065F46] font-medium leading-snug">
-                <span>✅</span>
-                <span>Seus números serão confirmados após a conferência do pagamento.</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-[#065F46] font-medium pt-0.5">
-                <span>🍀</span>
-                <span>Obrigado(a) por participar e boa sorte!</span>
-              </div>
             </div>
 
             {/* WhatsApp Receipt Button */}
@@ -1538,14 +1661,14 @@ export default function RafflePublicView({
               )}`;
 
               return (
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-4 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-[18px] flex items-center justify-center gap-2 text-sm sm:text-base shadow-sm transition active:scale-[0.98]"
+                    className="w-full py-3 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-[16px] flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm transition active:scale-[0.98]"
                   >
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Enviar Notificação e Comprovante no WhatsApp</span>
                   </a>
 

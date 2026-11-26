@@ -33,6 +33,7 @@ import {
   RotateCcw,
   UserCheck,
   X,
+  AlertCircle,
 } from 'lucide-react';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
 
@@ -81,6 +82,10 @@ export default function PhysicalCartelaPixView({
   // Dados do comprador para concluir a reserva dos números verificados
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
+  const [buyerFieldErrors, setBuyerFieldErrors] = useState<{
+    name?: string;
+    phone?: string;
+  }>({});
   const [reserveError, setReserveError] = useState<string | null>(null);
   const [isSubmittingReservation, setIsSubmittingReservation] = useState(false);
 
@@ -337,14 +342,18 @@ export default function PhysicalCartelaPixView({
     setReserveError(null);
 
     const trimmedName = buyerName.trim();
+    const nextFieldErrors: { name?: string; phone?: string } = {};
 
     if (trimmedName.length < 2) {
-      setReserveError('Informe o nome do comprador para registrar a reserva.');
-      return;
+      nextFieldErrors.name = 'Informe o nome do comprador para registrar a reserva.';
     }
     const phoneErr = getBrazilMobileError(buyerPhone);
     if (phoneErr) {
-      setReserveError(phoneErr);
+      nextFieldErrors.phone = phoneErr;
+    }
+
+    setBuyerFieldErrors(nextFieldErrors);
+    if (nextFieldErrors.name || nextFieldErrors.phone) {
       return;
     }
 
@@ -980,6 +989,7 @@ export default function PhysicalCartelaPixView({
 
             <form
               onSubmit={handleConfirmReservationAndGeneratePix}
+              noValidate
               className="space-y-4"
             >
               <div>
@@ -991,9 +1001,24 @@ export default function PhysicalCartelaPixView({
                   required
                   placeholder="Nome completo do cliente"
                   value={buyerName}
-                  onChange={(e) => setBuyerName(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[var(--ora-blue,#00A868)]"
+                  onChange={(e) => {
+                    setBuyerName(e.target.value);
+                    if (buyerFieldErrors.name) {
+                      setBuyerFieldErrors((prev) => ({ ...prev, name: undefined }));
+                    }
+                  }}
+                  className={`w-full px-4 py-3.5 rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white ${
+                    buyerFieldErrors.name
+                      ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                      : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[var(--ora-blue,#00A868)]'
+                  }`}
                 />
+                {buyerFieldErrors.name && (
+                  <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{buyerFieldErrors.name}</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1007,9 +1032,32 @@ export default function PhysicalCartelaPixView({
                   required
                   placeholder="(11) 99999-9999"
                   value={buyerPhone}
-                  onChange={(e) => setBuyerPhone(formatBrazilMobile(e.target.value))}
-                  className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[var(--ora-blue,#00A868)]"
+                  onChange={(e) => {
+                    setBuyerPhone(formatBrazilMobile(e.target.value));
+                    if (buyerFieldErrors.phone) {
+                      setBuyerFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                    }
+                  }}
+                  onBlur={() => {
+                    if (buyerPhone.trim()) {
+                      const phoneErr = getBrazilMobileError(buyerPhone);
+                      if (phoneErr) {
+                        setBuyerFieldErrors((prev) => ({ ...prev, phone: phoneErr }));
+                      }
+                    }
+                  }}
+                  className={`w-full px-4 py-3.5 rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white ${
+                    buyerFieldErrors.phone
+                      ? 'bg-[#FFF5F6] border-2 border-[#BE123C] focus:border-[#BE123C]'
+                      : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:border-[var(--ora-blue,#00A868)]'
+                  }`}
                 />
+                {buyerFieldErrors.phone && (
+                  <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{buyerFieldErrors.phone}</span>
+                  </p>
+                )}
               </div>
 
               <button
