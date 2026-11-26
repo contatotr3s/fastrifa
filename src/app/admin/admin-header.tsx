@@ -78,9 +78,9 @@ export default function AdminHeader() {
                 {isMaster ? (
                   <>
                     <img
-                      src="/icone-mobile-fastrifa.png"
+                      src="/logo-fastrifa.png"
                       alt="Fast Rifa"
-                      className="h-7 w-auto object-contain flex-shrink-0 block sm:hidden"
+                      className="h-6 w-auto object-contain flex-shrink-0 block sm:hidden"
                     />
                     <img
                       src="/icone-isolado.png"
@@ -105,9 +105,9 @@ export default function AdminHeader() {
                 ) : (
                   <>
                     <img
-                      src="/icone-mobile-fastrifa.png"
+                      src="/logo-fastrifa.png"
                       alt="Fast Rifa"
-                      className="h-7 w-auto object-contain flex-shrink-0 block sm:hidden"
+                      className="h-6 w-auto object-contain flex-shrink-0 block sm:hidden"
                     />
                     <img
                       src="/icone-isolado.png"
@@ -117,7 +117,11 @@ export default function AdminHeader() {
                   </>
                 )}
                 <div className="flex flex-col text-left max-w-[110px] sm:max-w-[200px] md:max-w-none">
-                  <span className="font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight truncate">
+                  <span
+                    className={`font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight truncate ${
+                      isMaster || !profile?.brand_name ? 'hidden sm:inline' : ''
+                    }`}
+                  >
                     {isMaster ? (
                       <>
                         Fast<span className="text-[#0869F5]">Rifa</span>

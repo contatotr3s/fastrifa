@@ -612,23 +612,59 @@ export default function RafflePublicView({
           </div>
 
           <div className="flex items-center gap-2">
-            {user ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/admin/rifas/nova"
-                  className="ora-btn-primary rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5 shadow-sm"
-                >
-                  <span>Criar Minha Rifa</span>
-                  <ArrowUpRight className="w-4 h-4 text-white" />
-                </Link>
-                <Link
-                  href={profile?.role === 'master' ? '/admin/master' : '/admin'}
-                  className="ora-btn-secondary rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 text-[#475872] hover:text-[#0D1729]"
-                >
-                  <span>Painel</span>
-                </Link>
-              </div>
-            ) : (
+            {user ? (() => {
+              const hasCompletedOnboarding = Boolean(
+                profile?.onboarding_completed && profile?.brand_name?.trim()
+              );
+              const panelHref = isMaster
+                ? '/admin/master'
+                : hasCompletedOnboarding
+                ? '/admin'
+                : '/admin/onboarding';
+              const userBrandName = isMaster
+                ? 'FastRifa'
+                : profile?.brand_name?.trim() || 'Minha Marca';
+              const userBrandInitials =
+                profile?.brand_initials || generateBrandInitials(userBrandName);
+
+              return (
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={isMaster || hasCompletedOnboarding ? '/admin/rifas/nova' : '/admin/onboarding'}
+                    className="ora-btn-primary rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5 shadow-sm"
+                  >
+                    <span>Criar Minha Rifa</span>
+                    <ArrowUpRight className="w-4 h-4 text-white" />
+                  </Link>
+                  <Link
+                    href={panelHref}
+                    className="ora-btn-secondary rounded-full pl-1.5 pr-3.5 sm:pl-2 sm:pr-4 py-1.5 text-xs sm:text-sm font-semibold inline-flex items-center gap-2 text-[#0D1729]"
+                    title={`Acessar Painel — ${userBrandName}`}
+                  >
+                    <span className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-[#D9E5F7] bg-white shadow-xs">
+                      {!isMaster && profile?.brand_logo_url ? (
+                        <img
+                          src={profile.brand_logo_url}
+                          alt={userBrandName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : !isMaster && profile?.brand_name?.trim() ? (
+                        <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-[9px]">
+                          {userBrandInitials}
+                        </span>
+                      ) : (
+                        <img
+                          src="/icone-isolado.png"
+                          alt="Fast Rifa"
+                          className="w-4 h-4 object-contain"
+                        />
+                      )}
+                    </span>
+                    <span>Painel</span>
+                  </Link>
+                </div>
+              );
+            })() : (
               <Link
                 href="/cadastro"
                 className="ora-btn-secondary rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5"

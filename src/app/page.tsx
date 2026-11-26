@@ -4,11 +4,11 @@ import GradePrintShowcase from '@/components/grade-print-showcase';
 import HowItWorksShowcase from '@/components/how-it-works-showcase';
 import ScrollToTopButton from '@/components/scroll-to-top-button';
 import FacildanTextoDinamico from '@/components/facildan-texto-dinamico';
+import HomeHeaderActions from '@/components/home-header-actions';
 import {
   ArrowUpRight,
   ArrowRight,
   CheckCircle2,
-  UserCheck,
   Mail,
 } from 'lucide-react';
 
@@ -81,21 +81,7 @@ export default function HomePage() {
           </nav>
 
           {/* Right Action Pills */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <Link
-              href="/login"
-              className="ora-btn-secondary rounded-full h-11 sm:h-12 px-3.5 sm:px-5 text-[13.5px] sm:text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 sm:gap-2"
-            >
-              <UserCheck className="w-4 h-4 text-[#0869F5]" />
-              <span>Entrar</span>
-            </Link>
-            <Link
-              href="/cadastro"
-              className="ora-btn-primary rounded-full h-11 sm:h-12 px-4 sm:px-6 text-[13.5px] sm:text-[14px] font-bold inline-flex items-center justify-center"
-            >
-              <span>Criar rifa</span>
-            </Link>
-          </div>
+          <HomeHeaderActions />
         </div>
       </header>
 

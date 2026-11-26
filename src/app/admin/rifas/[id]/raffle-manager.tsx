@@ -513,19 +513,13 @@ Entre em contato para combinarmos a entrega do seu prêmio.
       )}
 
       {/* Banner de Cartela Física (Até 200 números) ou Aviso Somente Virtual (> 200 números) */}
-      <div
-        className={`ora-card rounded-[24px] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border ${
-          isVirtualOnly
-            ? 'bg-gradient-to-r from-[#FFF8EB] via-[#FFFBF2] to-white border-[#F5D08A]'
-            : 'bg-gradient-to-r from-[#EDF5FF] via-[#F5F9FF] to-white border-[#CDE0FC]'
-        }`}
-      >
-        <div className="flex items-start sm:items-center gap-3.5">
+      <div className="ora-card rounded-[24px] p-4 sm:p-5 bg-white border border-[#D9E5F7] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 min-w-0 max-w-2xl">
           <span
-            className={`w-11 h-11 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm border ${
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
               isVirtualOnly
-                ? 'border-[#F5D08A] text-[#9A6700]'
-                : 'border-[#CDE0FC] text-[#0869F5]'
+                ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#B45309]'
+                : 'bg-[#F2F7FF] border-[#CDE0FC] text-[#0869F5]'
             }`}
           >
             {isVirtualOnly ? (
@@ -534,63 +528,59 @@ Entre em contato para combinarmos a entrega do seu prêmio.
               <Printer className="w-5 h-5" />
             )}
           </span>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <strong className="font-display font-bold text-sm sm:text-base text-[#0D1729]">
-                {isVirtualOnly
-                  ? 'Campanha Exclusivamente Virtual (Online)'
-                  : 'Cartela Física Pronta para Impressão (PDF A4 — 2 Páginas)'}
-              </strong>
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  isVirtualOnly
-                    ? 'bg-[#9A6700] text-white'
-                    : 'bg-[#0869F5] text-white'
-                }`}
-              >
-                {isVirtualOnly ? 'Somente Virtual' : 'Físico + Virtual'}
-              </span>
-            </div>
-            <p className="text-xs text-[#475872] mt-0.5">
+          <div className="min-w-0">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
+                isVirtualOnly
+                  ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
+                  : 'bg-[#EDF5FF] border-[#CDE0FC] text-[#0869F5]'
+              }`}
+            >
               {isVirtualOnly
-                ? `Esta rifa possui ${raffle.total_tickets} números (acima do limite de 200 cotas para impressão A4). Por isso, opera somente no modo virtual (online) e não permite a emissão de cartela física.`
-                : `Como sua rifa possui até 200 números (${raffle.total_tickets} cotas), você pode gerar a cartela física estilizada com QR Code da rifa e folha de controle presencial com calculadora PIX automática.`}
+                ? `Somente Virtual · ${raffle.total_tickets} cotas`
+                : `Físico + Virtual · ${raffle.total_tickets} cotas`}
+            </span>
+            <h3 className="font-display font-bold text-[15px] sm:text-base text-[#0D1729] tracking-[-0.02em] mt-1">
+              {isVirtualOnly
+                ? 'Campanha Exclusivamente Online'
+                : 'Cartela Física para Impressão (PDF A4)'}
+            </h3>
+            <p className="text-xs text-[#526480] leading-relaxed mt-0.5">
+              {isVirtualOnly
+                ? 'Campanhas acima de 200 números operam exclusivamente no modo digital. A emissão de cartela impressa A4 está disponível para rifas de até 200 cotas.'
+                : 'Gere a cartela física estilizada em PDF (2 páginas) com QR Code da rifa e acompanhe vendas presenciais em tempo real no Checador Físico.'}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
-          {!isVirtualOnly && (
-            <Link
-              href={getRafflePixPath(raffle)}
-              target="_blank"
-              className="ora-btn-secondary px-4 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-sm hover:border-[#0869F5]"
-            >
-              <ExternalLink className="w-4 h-4 text-[#0869F5]" />
-              <span>Abrir Checador Físico</span>
-            </Link>
-          )}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {isVirtualOnly ? (
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] text-xs font-semibold">
+              <Printer className="w-3.5 h-3.5 opacity-60" />
+              <span>Impressão até 200 cotas</span>
+            </span>
+          ) : (
+            <>
+              <Link
+                href={getRafflePixPath(raffle)}
+                target="_blank"
+                className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-[#0869F5]" />
+                <span>Abrir Checador Físico</span>
+              </Link>
 
-          <button
-            type="button"
-            disabled={isVirtualOnly}
-            onClick={() => {
-              if (!isVirtualOnly) setShowPhysicalCardModal(true);
-            }}
-            title={
-              isVirtualOnly
-                ? 'Cartela física indisponível para rifas com mais de 200 números (somente virtual)'
-                : 'Gerar cartela física em PDF (2 páginas A4)'
-            }
-            className={`px-5 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-sm ${
-              isVirtualOnly
-                ? 'bg-[#F1F5F9] border border-[#CBD5E1] text-[#64748B] cursor-not-allowed opacity-75'
-                : 'ora-btn-primary cursor-pointer'
-            }`}
-          >
-            <Printer className="w-4 h-4" />
-            <span>{isVirtualOnly ? 'Cartela Indisponível (> 200)' : 'Gerar Cartela'}</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => setShowPhysicalCardModal(true)}
+                title="Gerar cartela física em PDF (2 páginas A4)"
+                className="ora-btn-primary rounded-full px-5 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Gerar Cartela</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

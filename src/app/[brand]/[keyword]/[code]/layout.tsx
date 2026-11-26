@@ -35,7 +35,7 @@ export async function generateMetadata({
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://fastrifa.vercel.app');
 
   const imageUrl = `${host}/api/raffle/${raffle.slug}/logo`;
-  const faviconUrl = raffle.brand_logo_url || `${host}/icone-mobile-fastrifa.png`;
+  const faviconUrl = raffle.brand_logo_url || `${host}/logo-fastrifa.png`;
   const publicPath = getRafflePublicPath(raffle);
 
   return {

@@ -10,7 +10,7 @@ export default function DynamicFavicon() {
     if (typeof window === 'undefined') return;
 
     const brandLogo = profile?.brand_logo_url;
-    const targetIcon = brandLogo || '/icone-mobile-fastrifa.png';
+    const targetIcon = brandLogo || '/logo-fastrifa.png';
 
     // Procura links de favicon existentes ou cria um novo
     let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
