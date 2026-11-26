@@ -15,6 +15,7 @@ import {
   cleanAllTestData,
 } from '@/lib/firebase/raffles';
 import { generateBrandInitials } from '@/lib/image-processor';
+import { getRafflePublicPath } from '@/lib/raffle-urls';
 import {
   MasterEditUserModal,
   MasterEditRaffleModal,
@@ -656,7 +657,7 @@ export default function AdminMasterPage() {
                         </button>
 
                         <Link
-                          href={`/r/${r.slug}`}
+                          href={getRafflePublicPath(r)}
                           target="_blank"
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#F2F7FF] text-[#0869F5] text-xs font-bold hover:bg-[#E3EFFF] transition"
                         >

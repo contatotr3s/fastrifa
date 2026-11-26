@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { getUserRaffles, subscribeToUserRaffles } from '@/lib/firebase/raffles';
+import { getRaffleAdminPath, getRafflePublicPath } from '@/lib/raffle-urls';
 import BrandOnboardingModal from '@/components/brand-onboarding-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
@@ -333,7 +334,7 @@ export default function AdminDashboardPage() {
                             : 'Pausada'}
                         </span>
                         <span className="text-[11px] text-[#526480] truncate font-mono">
-                          /{raffle.slug}
+                          {getRafflePublicPath(raffle)}
                         </span>
                       </div>
                       <h3 className="font-display font-bold text-lg sm:text-xl text-[#0D1729] tracking-[-0.03em] line-clamp-2 leading-tight">
@@ -365,7 +366,7 @@ export default function AdminDashboardPage() {
 
                 <div className="pt-4 border-t border-[#E0E9F7] flex items-center justify-between gap-3">
                   <Link
-                    href={`/r/${raffle.slug}`}
+                    href={getRafflePublicPath(raffle)}
                     target="_blank"
                     className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#475872] hover:text-[#0869F5] transition"
                   >
@@ -374,7 +375,7 @@ export default function AdminDashboardPage() {
                   </Link>
 
                   <Link
-                    href={`/admin/rifas/${raffle.id}`}
+                    href={getRaffleAdminPath(raffle)}
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] text-[#0755DE] text-[13px] font-bold rounded-[13px] transition"
                   >
                     <Settings className="w-4 h-4" />

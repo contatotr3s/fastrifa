@@ -32,6 +32,9 @@ export interface Raffle {
   user_id: string; // Organizer UID
   title: string;
   slug: string;
+  brand_slug?: string | null;
+  prize_keyword?: string | null;
+  short_code?: string | null;
   description: string;
   prize_image_url?: string | null;
   ticket_price: number;

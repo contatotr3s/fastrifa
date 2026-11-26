@@ -12,6 +12,12 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { auth, db, getPublicFirestore } from './config';
+import {
+  generateShortCode,
+  RESERVED_ROOT_SLUGS,
+  sanitizeBrandSlug,
+  sanitizePrizeKeyword,
+} from '@/lib/raffle-urls';
 import type { Raffle, Order, OccupiedTicket, Profile, AuditLog } from '@/types/database.types';
 
 async function getActiveDb() {
@@ -47,8 +53,59 @@ export function generateSlug(title: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '');
-  const randomSuffix = Math.random().toString(36).substring(2, 6);
+  const randomSuffix = generateShortCode(4);
   return `${base}-${randomSuffix}`;
+}
+
+export async function generateUniqueRaffleIdentity(
+  prizeKeyword: string,
+  brandName?: string | null
+): Promise<{
+  slug: string;
+  brand_slug: string;
+  prize_keyword: string;
+  short_code: string;
+}> {
+  const cleanKeyword = sanitizePrizeKeyword(prizeKeyword) || 'premio';
+  const brandSlug = sanitizeBrandSlug(brandName);
+  const localSlugs = new Set(getLocalRaffles().map((r) => r.slug.toLowerCase()));
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const shortCode = generateShortCode(4);
+    const slug = `${cleanKeyword}-${shortCode}`;
+
+    if (localSlugs.has(slug)) continue;
+
+    try {
+      const activeDb = await getPublicFirestore();
+      const q = query(collection(activeDb, 'raffles'), where('slug', '==', slug));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        return {
+          slug,
+          brand_slug: brandSlug,
+          prize_keyword: cleanKeyword,
+          short_code: shortCode,
+        };
+      }
+    } catch {
+      // Se estiver sem conexão na checagem, usa o código único gerado
+      return {
+        slug,
+        brand_slug: brandSlug,
+        prize_keyword: cleanKeyword,
+        short_code: shortCode,
+      };
+    }
+  }
+
+  const fallbackCode = generateShortCode(4);
+  return {
+    slug: `${cleanKeyword}-${fallbackCode}`,
+    brand_slug: brandSlug,
+    prize_keyword: cleanKeyword,
+    short_code: fallbackCode,
+  };
 }
 
 function getLocalRaffles(): Raffle[] {
@@ -266,13 +323,13 @@ export async function getAllCreators(): Promise<
   return creators;
 }
 
-export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
-  if (raffleId === 'demo-raffle-01') return null;
+export async function getRaffleById(raffleIdOrSlug: string): Promise<Raffle | null> {
+  if (!raffleIdOrSlug || raffleIdOrSlug === 'demo-raffle-01') return null;
 
-  // 1. Remote Firestore first (via public bridge if visitor is not logged in)
+  // 1. Tenta primeiro por Document ID do Firestore (compatibilidade com /admin/rifas/[id])
   try {
     const activeDb = await getPublicFirestore();
-    const d = await getDoc(doc(activeDb, 'raffles', raffleId));
+    const d = await getDoc(doc(activeDb, 'raffles', raffleIdOrSlug));
     if (d.exists()) {
       const data = { id: d.id, ...(d.data() as Omit<Raffle, 'id'>) };
       if (data.id === 'demo-raffle-01' || data.slug === 'iphone-16-pro-max')
@@ -280,16 +337,68 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
       return data;
     }
   } catch {
-    // Fall through to local
+    // Fall through to slug / local lookup
   }
 
-  // 2. Local fallback
+  // 2. Fallback por slug amigável (ex: /admin/rifas/iphone-7k9m)
+  const bySlug = await getRaffleBySlug(raffleIdOrSlug);
+  if (bySlug) return bySlug;
+
+  // 3. Fallback local
   const local = getLocalRaffles().find(
-    (r) => r.id === raffleId && r.id !== 'demo-raffle-01'
+    (r) =>
+      (r.id === raffleIdOrSlug || r.slug === raffleIdOrSlug) &&
+      r.id !== 'demo-raffle-01'
   );
   if (local) return local;
 
   return null;
+}
+
+export async function getRaffleByPublicParams(
+  brand: string,
+  keyword: string,
+  code: string
+): Promise<Raffle | null> {
+  if (!brand || !keyword || !code) return null;
+  if (RESERVED_ROOT_SLUGS.has(brand.toLowerCase())) return null;
+
+  const cleanKeyword = sanitizePrizeKeyword(keyword);
+  const cleanCode = code.toLowerCase().trim();
+  if (!cleanKeyword || !cleanCode) return null;
+
+  // 1. Busca direta pelo slug canônico ({keyword}-{code})
+  const directMatch = await getRaffleBySlug(`${cleanKeyword}-${cleanCode}`);
+  if (directMatch) return directMatch;
+
+  // 2. Fallback resiliente pelo short_code no Firestore (cobre eventual ajuste futuro de palavra-chave)
+  try {
+    const activeDb = await getPublicFirestore();
+    const q = query(collection(activeDb, 'raffles'), where('short_code', '==', cleanCode));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const matched = snap.docs
+        .map((d) => ({ id: d.id, ...(d.data() as Omit<Raffle, 'id'>) }))
+        .find(
+          (r) =>
+            r.id !== 'demo-raffle-01' &&
+            r.slug !== 'iphone-16-pro-max' &&
+            (!r.prize_keyword || sanitizePrizeKeyword(r.prize_keyword) === cleanKeyword)
+        );
+      if (matched) {
+        return await getRaffleBySlug(matched.slug);
+      }
+    }
+  } catch {
+    // fallback local abaixo
+  }
+
+  const local = getLocalRaffles().find(
+    (r) =>
+      r.short_code?.toLowerCase() === cleanCode &&
+      (!r.prize_keyword || sanitizePrizeKeyword(r.prize_keyword) === cleanKeyword)
+  );
+  return local || null;
 }
 
 export async function getRaffleBySlug(slug: string): Promise<Raffle | null> {

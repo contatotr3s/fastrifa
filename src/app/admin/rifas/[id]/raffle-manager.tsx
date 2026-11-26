@@ -37,6 +37,11 @@ import {
   subscribeToRaffle,
   subscribeToRaffleOrders,
 } from '@/lib/firebase/raffles';
+import {
+  getRafflePixPath,
+  getRafflePublicPath,
+  getRafflePublicUrl,
+} from '@/lib/raffle-urls';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
 import PhysicalCardModal from '@/components/physical-card-modal';
@@ -122,12 +127,7 @@ export default function RaffleManager({ raffle: initialRaffle, initialOrders }: 
     };
   }, [raffle.id]);
 
-  const publicUrl =
-    typeof window !== 'undefined' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
-      ? `${window.location.origin}/r/${raffle.slug}`
-      : `https://fastrifa.vercel.app/r/${raffle.slug}`;
+  const publicUrl = getRafflePublicUrl(raffle);
 
   function copyPublicLink() {
     navigator.clipboard.writeText(publicUrl);
@@ -427,7 +427,7 @@ Entre em contato para combinarmos a entrega do seu prêmio.
           </button>
 
           <Link
-            href={`/r/${raffle.slug}`}
+            href={getRafflePublicPath(raffle)}
             target="_blank"
             className="ora-btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-full"
           >
@@ -562,7 +562,7 @@ Entre em contato para combinarmos a entrega do seu prêmio.
         <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
           {!isVirtualOnly && (
             <Link
-              href={`/r/${raffle.slug}/pix`}
+              href={getRafflePixPath(raffle)}
               target="_blank"
               className="ora-btn-secondary px-4 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-sm hover:border-[#0869F5]"
             >

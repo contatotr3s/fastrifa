@@ -5,11 +5,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { useTheme } from '@/lib/theme-context';
-import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
+import { createRaffle, generateUniqueRaffleIdentity } from '@/lib/firebase/raffles';
+import {
+  sanitizeBrandSlug,
+  sanitizePrizeKeyword,
+  suggestPrizeKeyword,
+} from '@/lib/raffle-urls';
 import PrizeImageUploader from '@/components/prize-image-uploader';
 import { numeroPorExtensoBRL } from '@/lib/currency';
 import { RaffleCreationTermsModal } from '@/components/terms-modals';
-import { ArrowLeft, Info, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Info, Link2, Loader2, ShieldCheck } from 'lucide-react';
 import type { PixKeyType } from '@/types/database.types';
 
 export default function NewRafflePage() {
@@ -22,6 +27,8 @@ export default function NewRafflePage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
+  const [prizeKeyword, setPrizeKeyword] = useState('');
+  const [keywordTouched, setKeywordTouched] = useState(false);
   const [description, setDescription] = useState('');
   const [prizeImageUrl, setPrizeImageUrl] = useState('');
   const [prizeImages, setPrizeImages] = useState<string[]>([]);
@@ -49,6 +56,7 @@ export default function NewRafflePage() {
   const priceInWords = numeroPorExtensoBRL(numericPrice);
   const potentialRevenue = (totalTickets * numericPrice).toFixed(2);
   const potentialRevenueInWords = numeroPorExtensoBRL(totalTickets * numericPrice);
+  const brandSlugPreview = sanitizeBrandSlug(profile?.brand_name || profile?.full_name || 'FastRifa');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,8 +65,15 @@ export default function NewRafflePage() {
       return;
     }
 
+    const cleanKeyword = sanitizePrizeKeyword(prizeKeyword);
+
     if (!title || !pixKey || isNaN(numericPrice) || isNaN(totalTickets)) {
       setError('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (!/^[a-z]{2,12}$/.test(cleanKeyword)) {
+      setError('Informe a palavra-chave do prêmio usando apenas letras (entre 2 e 12 letras, sem espaços ou números).');
       return;
     }
 
@@ -76,11 +91,17 @@ export default function NewRafflePage() {
     setLoading(true);
 
     try {
-      const slug = generateSlug(title);
-      const newId = await createRaffle({
+      const identity = await generateUniqueRaffleIdentity(
+        cleanKeyword,
+        profile?.brand_name || profile?.full_name || 'FastRifa'
+      );
+      await createRaffle({
         user_id: user.uid,
         title,
-        slug,
+        slug: identity.slug,
+        brand_slug: identity.brand_slug,
+        prize_keyword: identity.prize_keyword,
+        short_code: identity.short_code,
         description,
         prize_image_url: prizeImageUrl || (prizeImages[0] ?? null),
         prize_images: prizeImages.length > 0 ? prizeImages : (prizeImageUrl ? [prizeImageUrl] : []),
@@ -98,7 +119,7 @@ export default function NewRafflePage() {
         draw_date: null,
       });
 
-      router.push(`/admin/rifas/${newId}?created=true`);
+      router.push(`/admin/rifas/${identity.slug}?created=true`);
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
       setError(errorObj.message || 'Erro ao criar rifa.');
@@ -156,10 +177,50 @@ export default function NewRafflePage() {
               type="text"
               required
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                const nextTitle = e.target.value;
+                setTitle(nextTitle);
+                if (!keywordTouched) {
+                  setPrizeKeyword(suggestPrizeKeyword(nextTitle));
+                }
+              }}
               placeholder="Ex: iPhone 16 Pro Max 256GB Lacrado"
               className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
             />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className="block text-[13px] font-semibold text-[#14213A]"
+                htmlFor="prizeKeyword"
+              >
+                Palavra-chave do Link (Resumo do Prêmio) *
+              </label>
+              <span className="text-[11px] font-bold text-[#526480] tabular-nums">
+                {prizeKeyword.length}/12 letras
+              </span>
+            </div>
+            <input
+              id="prizeKeyword"
+              type="text"
+              required
+              maxLength={12}
+              value={prizeKeyword}
+              onChange={(e) => {
+                setKeywordTouched(true);
+                setPrizeKeyword(sanitizePrizeKeyword(e.target.value));
+              }}
+              placeholder="Ex: iphone (apenas letras, máx. 12)"
+              className="w-full px-4 py-3 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[14px] font-mono transition"
+            />
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#526480]">
+              <span>Aceita somente letras (sem acentos, números ou espaços).</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] font-mono font-bold">
+                <Link2 className="w-3 h-3" />
+                /{brandSlugPreview}/{prizeKeyword || 'premio'}/xxxx
+              </span>
+            </div>
           </div>
 
           <div>

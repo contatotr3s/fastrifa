@@ -21,6 +21,7 @@ import {
   Palette,
 } from 'lucide-react';
 import type { Profile, Raffle, PixKeyType, RaffleStatus } from '@/types/database.types';
+import { getRaffleAdminPath, getRafflePublicPath } from '@/lib/raffle-urls';
 
 interface CreatorItem {
   email?: string;
@@ -521,7 +522,7 @@ export function MasterEditRaffleModal({
         {/* Quick Links */}
         <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-[16px] bg-[#F5F9FF] border border-[#E0E9F7]">
           <Link
-            href={`/admin/rifas/${raffle.id}`}
+            href={getRaffleAdminPath(raffle)}
             target="_blank"
             className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EDF5FF] border border-[#D9E5F7] text-[#0869F5] text-xs font-bold inline-flex items-center gap-1.5 transition"
           >
@@ -529,7 +530,7 @@ export function MasterEditRaffleModal({
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
           <Link
-            href={`/r/${raffle.slug}`}
+            href={getRafflePublicPath(raffle)}
             target="_blank"
             className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EDF5FF] border border-[#D9E5F7] text-[#475872] text-xs font-bold inline-flex items-center gap-1.5 transition"
           >

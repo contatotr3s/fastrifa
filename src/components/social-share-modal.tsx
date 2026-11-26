@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import { generateBrandInitials } from '@/lib/image-processor';
+import { getRafflePublicUrl } from '@/lib/raffle-urls';
 import {
   X,
   Download,
@@ -35,12 +36,7 @@ export default function SocialShareModal({
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const publicUrl =
-    typeof window !== 'undefined' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
-      ? `${window.location.origin}/r/${raffle.slug}`
-      : `https://fastrifa.vercel.app/r/${raffle.slug}`;
+  const publicUrl = getRafflePublicUrl(raffle);
 
   const brandName = raffle.brand_name || 'FastRifa Oficial';
   const initials = generateBrandInitials(brandName);

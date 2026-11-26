@@ -6,6 +6,7 @@ import { useAuth, MASTER_EMAIL } from './firebase/auth-context';
 import { db, getPublicFirestore } from './firebase/config';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { syncCreatorBrandColorToRaffles } from './firebase/raffles';
+import { RESERVED_ROOT_SLUGS } from './raffle-urls';
 
 export type SystemTheme = 'blue' | 'green';
 
@@ -61,8 +62,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
 
   // Identificação do tipo de rota
+  const pathSegments = (pathname || '').split('/').filter(Boolean);
   const isAdminRoute = Boolean(pathname?.startsWith('/admin'));
-  const isRaffleRoute = Boolean(pathname?.startsWith('/r/'));
+  const isBrandRaffleRoute =
+    (pathSegments.length === 3 || (pathSegments.length === 4 && pathSegments[3] === 'pix')) &&
+    !RESERVED_ROOT_SLUGS.has(pathSegments[0].toLowerCase());
+  const isRaffleRoute = Boolean(pathname?.startsWith('/r/')) || isBrandRaffleRoute;
   const isPublicRoute = !isAdminRoute && !isRaffleRoute;
 
   // 1. Escuta em tempo real o tema global do sistema configurado pelo Master no Firestore

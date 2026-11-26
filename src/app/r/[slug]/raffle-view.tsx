@@ -33,6 +33,7 @@ import {
   subscribeToRaffleOrders,
   computeOccupiedTicketsFromOrders,
 } from '@/lib/firebase/raffles';
+import { getRaffleAdminPath } from '@/lib/raffle-urls';
 import { generateBrandInitials } from '@/lib/image-processor';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { generatePixBrCode } from '@/lib/pix-brcode';
@@ -553,7 +554,7 @@ export default function RafflePublicView({
                 <span>Editar Rifa</span>
               </button>
               <Link
-                href={`/admin/rifas/${raffle.id}`}
+                href={getRaffleAdminPath(raffle)}
                 className="px-4 py-2 rounded-full bg-white text-[#0869F5] hover:bg-[#F5F9FF] font-display font-bold text-xs transition shadow-sm inline-flex items-center gap-1.5"
               >
                 <Sliders className="w-3.5 h-3.5" />

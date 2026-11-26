@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import QRCode from 'qrcode';
 import { buildMultiPageA4Pdf } from '@/lib/pdf-builder';
 import { generateBrandInitials } from '@/lib/image-processor';
+import { getRafflePixPath, getRafflePublicPath } from '@/lib/raffle-urls';
 import {
   X,
   Download,
@@ -245,8 +246,10 @@ export default function PhysicalCardModal({
     return 'https://fastrifa.vercel.app';
   }, []);
 
-  const publicRaffleUrl = `${publicOrigin}/r/${raffle.slug}`;
-  const smartPixCalculatorUrl = `${publicOrigin}/r/${raffle.slug}/pix`;
+  const publicPath = getRafflePublicPath(raffle);
+  const pixPath = getRafflePixPath(raffle);
+  const publicRaffleUrl = `${publicOrigin}${publicPath}`;
+  const smartPixCalculatorUrl = `${publicOrigin}${pixPath}`;
 
   const isGreen = selectedColor === 'green';
   const primary = isGreen ? '#00A868' : '#0869F5';
@@ -1300,7 +1303,7 @@ export default function PhysicalCardModal({
         {/* Ações Finais: Baixar PDF, Imprimir e Testar Calculadora PIX */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
           <a
-            href={`/r/${raffle.slug}/pix`}
+            href={pixPath}
             target="_blank"
             rel="noreferrer"
             className={`text-xs font-bold hover:underline inline-flex items-center gap-1.5 ${
@@ -1308,7 +1311,7 @@ export default function PhysicalCardModal({
             }`}
           >
             <QrIcon className="w-4 h-4" />
-            <span>Testar página do QR Code PIX da Cartela (/r/{raffle.slug}/pix)</span>
+            <span>Testar página do QR Code PIX da Cartela ({pixPath})</span>
           </a>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-end">
