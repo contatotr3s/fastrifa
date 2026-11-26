@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { PlatformTermsModal } from '@/components/terms-modals';
 import {
+  formatBrazilMobile,
+  getBrazilMobileError,
+  getEmailError,
+  normalizeBrazilMobileDigits,
+} from '@/lib/validators';
+import {
   ArrowRight,
   Loader2,
   Eye,
@@ -59,33 +65,23 @@ export default function SignupPage() {
     }
   }, [user, profile, authLoading, router]);
 
-  function formatPhone(value: string) {
-    const digits = value.replace(/\D/g, '').slice(0, 11);
-    if (!digits) return '';
-    if (digits.length <= 2) return `(${digits}`;
-    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
-  }
-
   function validateSignupForm(): boolean {
     const errors: FormErrors = {};
     const trimmedName = fullName.trim();
-    const rawPhone = phone.replace(/\D/g, '');
     const trimmedEmail = email.trim();
 
     if (!trimmedName || trimmedName.length < 3) {
       errors.fullName = 'Informe seu nome completo ou razão social (mínimo 3 letras).';
     }
 
-    if (!rawPhone || rawPhone.length < 10) {
-      errors.phone = 'Informe um WhatsApp válido com DDD (ex: 11 99999-9999).';
+    const phoneErr = getBrazilMobileError(phone);
+    if (phoneErr) {
+      errors.phone = phoneErr;
     }
 
-    if (!trimmedEmail) {
-      errors.email = 'Informe seu e-mail.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      errors.email = 'Informe um e-mail válido (ex: seu@email.com).';
+    const emailErr = getEmailError(trimmedEmail);
+    if (emailErr) {
+      errors.email = emailErr;
     }
 
     if (!password) {
@@ -112,7 +108,12 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const result = await signup(fullName, phone, email, password);
+      const result = await signup(
+        fullName.trim(),
+        normalizeBrazilMobileDigits(phone),
+        email.trim().toLowerCase(),
+        password
+      );
 
       if (result.error) {
         setError(result.error);
@@ -290,9 +291,11 @@ export default function SignupPage() {
               <input
                 id="phone"
                 type="tel"
+                inputMode="numeric"
+                maxLength={15}
                 value={phone}
                 onChange={(e) => {
-                  const formatted = formatPhone(e.target.value);
+                  const formatted = formatBrazilMobile(e.target.value);
                   setPhone(formatted);
                   if (fieldErrors.phone) {
                     setFieldErrors((prev) => ({ ...prev, phone: undefined }));

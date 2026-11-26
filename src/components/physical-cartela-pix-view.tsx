@@ -14,6 +14,7 @@ import { getRafflePublicPath } from '@/lib/raffle-urls';
 import { generatePixBrCode } from '@/lib/pix-brcode';
 import { calculateDiscountedPricing } from '@/lib/discounts';
 import { generateBrandInitials } from '@/lib/image-processor';
+import { formatBrazilMobile, getBrazilMobileError } from '@/lib/validators';
 import {
   ShieldCheck,
   QrCode,
@@ -329,16 +330,6 @@ export default function PhysicalCartelaPixView({
     setTimeout(() => inputRef.current?.focus(), 80);
   }
 
-  function formatPhone(val: string) {
-    const digits = val.replace(/\D/g, '').slice(0, 11);
-    if (!digits) return '';
-    if (digits.length <= 2) return `(${digits}`;
-    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10)
-      return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
-  }
-
   // Conclui a reserva das cotas verificadas no Firestore e gera o QR Code PIX somado
   async function handleConfirmReservationAndGeneratePix(e: React.FormEvent) {
     e.preventDefault();
@@ -346,14 +337,14 @@ export default function PhysicalCartelaPixView({
     setReserveError(null);
 
     const trimmedName = buyerName.trim();
-    const cleanPhone = buyerPhone.replace(/\D/g, '');
 
     if (trimmedName.length < 2) {
       setReserveError('Informe o nome do comprador para registrar a reserva.');
       return;
     }
-    if (cleanPhone.length < 10) {
-      setReserveError('Informe o WhatsApp com DDD do comprador.');
+    const phoneErr = getBrazilMobileError(buyerPhone);
+    if (phoneErr) {
+      setReserveError(phoneErr);
       return;
     }
 
@@ -363,7 +354,7 @@ export default function PhysicalCartelaPixView({
       const res = await createOrder({
         raffle_id: raffle.id,
         buyer_name: trimmedName,
-        buyer_phone: buyerPhone.trim(),
+        buyer_phone: formatBrazilMobile(buyerPhone),
         ticket_numbers: verifiedNumbers,
         total_amount: totalAmount,
         ...(pricing.discountPercent > 0
@@ -1011,10 +1002,12 @@ export default function PhysicalCartelaPixView({
                 </label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={15}
                   required
                   placeholder="(11) 99999-9999"
                   value={buyerPhone}
-                  onChange={(e) => setBuyerPhone(formatPhone(e.target.value))}
+                  onChange={(e) => setBuyerPhone(formatBrazilMobile(e.target.value))}
                   className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-sm font-medium text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[var(--ora-blue,#00A868)]"
                 />
               </div>

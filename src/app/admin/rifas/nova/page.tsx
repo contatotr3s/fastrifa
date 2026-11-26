@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
@@ -16,6 +16,15 @@ import DiscountConfigEditor from '@/components/discount-config-editor';
 import { DEFAULT_DISCOUNT_CONFIG, normalizeDiscountConfig } from '@/lib/discounts';
 import { numeroPorExtensoBRL } from '@/lib/currency';
 import { RaffleCreationTermsModal } from '@/components/terms-modals';
+import {
+  formatBrazilMobile,
+  getBrazilMobileError,
+  normalizeBrazilMobileDigits,
+  formatPixKeyInput,
+  validatePixKey,
+  detectPixKeyType,
+  onlyDigits,
+} from '@/lib/validators';
 import { ArrowLeft, Info, Link2, Loader2, ShieldCheck } from 'lucide-react';
 import type { PixKeyType, RaffleDiscountConfig } from '@/types/database.types';
 
@@ -36,12 +45,36 @@ export default function NewRafflePage() {
   const [prizeImages, setPrizeImages] = useState<string[]>([]);
   const [totalTickets, setTotalTickets] = useState<number>(100);
   const [ticketPrice, setTicketPrice] = useState<string>('1.00');
-  const [pixKeyType, setPixKeyType] = useState<PixKeyType>(profile?.pix_key_type || 'cpf');
-  const [pixKey, setPixKey] = useState(profile?.pix_key || '');
-  const [phoneWhatsapp, setPhoneWhatsapp] = useState(profile?.phone_whatsapp || '');
+  const initialPixType: PixKeyType =
+    profile?.pix_key_type ||
+    (profile?.pix_key ? detectPixKeyType(profile.pix_key) : 'cpf');
+
+  const [pixKeyType, setPixKeyType] = useState<PixKeyType>(initialPixType);
+  const [pixKey, setPixKey] = useState(
+    formatPixKeyInput(profile?.pix_key || '', initialPixType)
+  );
+  const [phoneWhatsapp, setPhoneWhatsapp] = useState(
+    formatBrazilMobile(profile?.phone_whatsapp || '')
+  );
   const [discountConfig, setDiscountConfig] = useState<RaffleDiscountConfig>(
     DEFAULT_DISCOUNT_CONFIG
   );
+  const didHydrateProfileRef = useRef(false);
+
+  useEffect(() => {
+    if (didHydrateProfileRef.current || !profile) return;
+    didHydrateProfileRef.current = true;
+    const resolvedType: PixKeyType =
+      profile.pix_key_type ||
+      (profile.pix_key ? detectPixKeyType(profile.pix_key) : 'cpf');
+    setPixKeyType(resolvedType);
+    setPixKey((prev) =>
+      prev || formatPixKeyInput(profile.pix_key || '', resolvedType)
+    );
+    setPhoneWhatsapp((prev) =>
+      prev || formatBrazilMobile(profile.phone_whatsapp || '')
+    );
+  }, [profile]);
 
   const presets = [50, 100, 200, 500, 1000];
 
@@ -87,6 +120,18 @@ export default function NewRafflePage() {
       return;
     }
 
+    const pixCheck = validatePixKey(pixKey, pixKeyType);
+    if (!pixCheck.valid) {
+      setError(pixCheck.error || 'Chave PIX inválida.');
+      return;
+    }
+
+    const phoneErr = getBrazilMobileError(phoneWhatsapp);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
+
     if (!acceptedTerms) {
       setError('É obrigatório ler e concordar com os Termos de Criação e Responsabilidade da Campanha para continuar.');
       return;
@@ -112,9 +157,9 @@ export default function NewRafflePage() {
         prize_images: prizeImages.length > 0 ? prizeImages : (prizeImageUrl ? [prizeImageUrl] : []),
         ticket_price: numericPrice,
         total_tickets: totalTickets,
-        pix_key: pixKey,
-        pix_key_type: pixKeyType,
-        phone_whatsapp: phoneWhatsapp || '',
+        pix_key: pixCheck.normalizedValue,
+        pix_key_type: pixCheck.resolvedType,
+        phone_whatsapp: normalizeBrazilMobileDigits(phoneWhatsapp),
         brand_name: profile?.brand_name || profile?.full_name || 'FastRifa',
         brand_logo_url: profile?.brand_logo_url || null,
         brand_color: (profile?.brand_color as 'blue' | 'green') || (theme as 'blue' | 'green') || 'green',
@@ -411,7 +456,20 @@ export default function NewRafflePage() {
               <select
                 id="pixKeyType"
                 value={pixKeyType}
-                onChange={(e) => setPixKeyType(e.target.value as PixKeyType)}
+                onChange={(e) => {
+                  const nextType = e.target.value as PixKeyType;
+                  setPixKeyType(nextType);
+                  setPixKey((prev) => {
+                    if (nextType === 'cpf' || nextType === 'cnpj' || nextType === 'phone') {
+                      const d = onlyDigits(prev);
+                      return d ? formatPixKeyInput(d, nextType) : '';
+                    }
+                    if (nextType === 'email') {
+                      return prev.includes('@') ? formatPixKeyInput(prev, 'email') : '';
+                    }
+                    return prev;
+                  });
+                }}
                 className="w-full px-3.5 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5] text-[15px] transition"
               >
                 <option value="cpf">CPF</option>
@@ -432,10 +490,27 @@ export default function NewRafflePage() {
               <input
                 id="pixKey"
                 type="text"
+                inputMode={
+                  pixKeyType === 'cpf' || pixKeyType === 'cnpj' || pixKeyType === 'phone'
+                    ? 'numeric'
+                    : pixKeyType === 'email'
+                    ? 'email'
+                    : 'text'
+                }
                 required
                 value={pixKey}
-                onChange={(e) => setPixKey(e.target.value)}
-                placeholder="Chave para onde o participante enviará o PIX"
+                onChange={(e) => setPixKey(formatPixKeyInput(e.target.value, pixKeyType))}
+                placeholder={
+                  pixKeyType === 'cpf'
+                    ? '000.000.000-00'
+                    : pixKeyType === 'cnpj'
+                    ? '00.000.000/0000-00'
+                    : pixKeyType === 'phone'
+                    ? '(11) 99999-9999'
+                    : pixKeyType === 'email'
+                    ? 'seu@email.com'
+                    : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+                }
                 className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
               />
             </div>
@@ -446,15 +521,17 @@ export default function NewRafflePage() {
               className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
               htmlFor="phoneWhatsapp"
             >
-              WhatsApp para Receber Comprovantes (com DDD) *
+              WhatsApp para Receber Comprovantes (DDD + 9) *
             </label>
             <input
               id="phoneWhatsapp"
               type="tel"
+              inputMode="numeric"
+              maxLength={15}
               required
               value={phoneWhatsapp}
-              onChange={(e) => setPhoneWhatsapp(e.target.value)}
-              placeholder="Ex: 11999999999"
+              onChange={(e) => setPhoneWhatsapp(formatBrazilMobile(e.target.value))}
+              placeholder="(11) 99999-9999"
               className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
             />
           </div>

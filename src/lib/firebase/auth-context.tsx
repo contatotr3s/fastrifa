@@ -581,7 +581,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const updatedProfile: Profile = {
       ...current,
       ...updates,
-      email: current.email || user.email?.toLowerCase().trim() || undefined,
+      email: updates.email?.toLowerCase().trim() || current.email || user.email?.toLowerCase().trim() || undefined,
       role: isMasterUser ? 'master' : (updates.role || current.role || 'organizer'),
       updated_at: new Date().toISOString(),
     };

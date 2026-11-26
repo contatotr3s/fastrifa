@@ -18,6 +18,14 @@ import DiscountConfigEditor from '@/components/discount-config-editor';
 import { DEFAULT_DISCOUNT_CONFIG, normalizeDiscountConfig } from '@/lib/discounts';
 import { updateRaffleWithAudit } from '@/lib/firebase/raffles';
 import { useAuth } from '@/lib/firebase/auth-context';
+import {
+  formatBrazilMobile,
+  getBrazilMobileError,
+  normalizeBrazilMobileDigits,
+  formatPixKeyInput,
+  validatePixKey,
+  onlyDigits,
+} from '@/lib/validators';
 import type { Raffle, PixKeyType, RaffleDiscountConfig } from '@/types/database.types';
 
 interface EditRaffleModalProps {
@@ -49,9 +57,13 @@ export default function EditRaffleModal({
       : []
   );
   const [drawDate, setDrawDate] = useState(raffle.draw_date ? raffle.draw_date.slice(0, 10) : '');
-  const [pixKey, setPixKey] = useState(raffle.pix_key || '');
   const [pixKeyType, setPixKeyType] = useState<PixKeyType>(raffle.pix_key_type || 'cpf');
-  const [phoneWhatsapp, setPhoneWhatsapp] = useState(raffle.phone_whatsapp || '');
+  const [pixKey, setPixKey] = useState(
+    formatPixKeyInput(raffle.pix_key || '', raffle.pix_key_type || 'cpf')
+  );
+  const [phoneWhatsapp, setPhoneWhatsapp] = useState(
+    formatBrazilMobile(raffle.phone_whatsapp || '')
+  );
   const [discountConfig, setDiscountConfig] = useState<RaffleDiscountConfig>(
     raffle.discount_config
       ? normalizeDiscountConfig(raffle.discount_config)
@@ -85,6 +97,20 @@ export default function EditRaffleModal({
       return;
     }
 
+    const pixCheck = validatePixKey(pixKey, pixKeyType);
+    if (!pixCheck.valid) {
+      setError(pixCheck.error || 'Chave PIX inválida.');
+      return;
+    }
+
+    if (phoneWhatsapp.trim()) {
+      const phoneErr = getBrazilMobileError(phoneWhatsapp);
+      if (phoneErr) {
+        setError(phoneErr);
+        return;
+      }
+    }
+
     setError(null);
     setIsSubmitting(true);
 
@@ -96,9 +122,11 @@ export default function EditRaffleModal({
         prize_image_url: prizeImageUrl || (prizeImages[0] ?? null),
         prize_images: prizeImages,
         draw_date: drawDate ? new Date(drawDate).toISOString() : null,
-        pix_key: pixKey.trim(),
-        pix_key_type: pixKeyType,
-        phone_whatsapp: phoneWhatsapp.trim(),
+        pix_key: pixCheck.normalizedValue,
+        pix_key_type: pixCheck.resolvedType,
+        phone_whatsapp: phoneWhatsapp.trim()
+          ? normalizeBrazilMobileDigits(phoneWhatsapp)
+          : '',
         discount_config: normalizeDiscountConfig(discountConfig),
       };
 
@@ -269,13 +297,15 @@ export default function EditRaffleModal({
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-[#14213A] mb-1.5 flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-[#0869F5]" />
-                <span>WhatsApp de Contato</span>
+                <span>WhatsApp de Contato (DDD + 9)</span>
               </label>
               <input
                 type="tel"
+                inputMode="numeric"
+                maxLength={15}
                 value={phoneWhatsapp}
-                onChange={(e) => setPhoneWhatsapp(e.target.value)}
-                placeholder="(00) 00000-0000"
+                onChange={(e) => setPhoneWhatsapp(formatBrazilMobile(e.target.value))}
+                placeholder="(11) 99999-9999"
                 className="w-full px-4 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
               />
             </div>
@@ -290,13 +320,26 @@ export default function EditRaffleModal({
               </label>
               <select
                 value={pixKeyType}
-                onChange={(e) => setPixKeyType(e.target.value as PixKeyType)}
+                onChange={(e) => {
+                  const nextType = e.target.value as PixKeyType;
+                  setPixKeyType(nextType);
+                  setPixKey((prev) => {
+                    if (nextType === 'cpf' || nextType === 'cnpj' || nextType === 'phone') {
+                      const d = onlyDigits(prev);
+                      return d ? formatPixKeyInput(d, nextType) : '';
+                    }
+                    if (nextType === 'email') {
+                      return prev.includes('@') ? formatPixKeyInput(prev, 'email') : '';
+                    }
+                    return prev;
+                  });
+                }}
                 className="w-full px-3 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
               >
                 <option value="cpf">CPF</option>
                 <option value="cnpj">CNPJ</option>
                 <option value="email">E-mail</option>
-                <option value="phone">Telefone</option>
+                <option value="phone">Celular</option>
                 <option value="random">Chave Aleatória</option>
               </select>
             </div>
@@ -306,8 +349,26 @@ export default function EditRaffleModal({
               </label>
               <input
                 type="text"
+                inputMode={
+                  pixKeyType === 'cpf' || pixKeyType === 'cnpj' || pixKeyType === 'phone'
+                    ? 'numeric'
+                    : pixKeyType === 'email'
+                    ? 'email'
+                    : 'text'
+                }
                 value={pixKey}
-                onChange={(e) => setPixKey(e.target.value)}
+                onChange={(e) => setPixKey(formatPixKeyInput(e.target.value, pixKeyType))}
+                placeholder={
+                  pixKeyType === 'cpf'
+                    ? '000.000.000-00'
+                    : pixKeyType === 'cnpj'
+                    ? '00.000.000/0000-00'
+                    : pixKeyType === 'phone'
+                    ? '(11) 99999-9999'
+                    : pixKeyType === 'email'
+                    ? 'seu@email.com'
+                    : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+                }
                 required
                 className="w-full px-4 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
               />

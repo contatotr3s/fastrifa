@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
+import { getEmailError } from '@/lib/validators';
 import {
   ArrowRight,
   Loader2,
@@ -60,12 +61,10 @@ export default function LoginPage() {
 
   function validateLoginForm(): boolean {
     const errors: FormErrors = {};
-    const trimmedEmail = email.trim();
+    const emailErr = getEmailError(email);
 
-    if (!trimmedEmail) {
-      errors.email = 'Por favor, informe seu e-mail de acesso.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      errors.email = 'Formato de e-mail inválido (ex: seu@email.com).';
+    if (emailErr) {
+      errors.email = emailErr;
     }
 
     if (!password) {
@@ -78,12 +77,10 @@ export default function LoginPage() {
 
   function validateForgotForm(): boolean {
     const errors: FormErrors = {};
-    const trimmedEmail = resetEmail.trim();
+    const emailErr = getEmailError(resetEmail);
 
-    if (!trimmedEmail) {
-      errors.resetEmail = 'Por favor, informe seu e-mail cadastrado.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      errors.resetEmail = 'Digite um e-mail válido (ex: seu@email.com).';
+    if (emailErr) {
+      errors.resetEmail = emailErr;
     }
 
     setFieldErrors(errors);

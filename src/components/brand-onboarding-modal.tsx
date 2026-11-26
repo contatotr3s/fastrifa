@@ -4,6 +4,17 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { processLogoImage, generateBrandInitials } from '@/lib/image-processor';
 import {
+  formatCpf,
+  getCpfError,
+  formatBrazilMobile,
+  getBrazilMobileError,
+  normalizeBrazilMobileDigits,
+  formatPixKeyInput,
+  validatePixKey,
+  detectPixKeyType,
+  onlyDigits,
+} from '@/lib/validators';
+import {
   Sparkles,
   Upload,
   X,
@@ -14,7 +25,9 @@ import {
   Loader2,
   Mail,
   ShieldCheck,
+  FileText,
 } from 'lucide-react';
+import type { PixKeyType } from '@/types/database.types';
 
 interface BrandOnboardingModalProps {
   isOpen: boolean;
@@ -29,11 +42,21 @@ export default function BrandOnboardingModal({
 }: BrandOnboardingModalProps) {
   const { user, profile, updateProfile } = useAuth();
 
+  const initialPixType: PixKeyType =
+    profile?.pix_key_type ||
+    (profile?.pix_key ? detectPixKeyType(profile.pix_key) : 'cpf');
+
   const [brandName, setBrandName] = useState(
     profile?.brand_name || profile?.full_name || ''
   );
-  const [phone, setPhone] = useState(profile?.phone_whatsapp || '');
-  const [pixKey, setPixKey] = useState(profile?.pix_key || '');
+  const [cpf, setCpf] = useState(formatCpf(profile?.cpf || ''));
+  const [phone, setPhone] = useState(
+    formatBrazilMobile(profile?.phone_whatsapp || '')
+  );
+  const [pixKeyType, setPixKeyType] = useState<PixKeyType>(initialPixType);
+  const [pixKey, setPixKey] = useState(
+    formatPixKeyInput(profile?.pix_key || '', initialPixType)
+  );
   const [logoPreview, setLogoPreview] = useState<string | null>(
     profile?.brand_logo_url || null
   );
@@ -46,9 +69,14 @@ export default function BrandOnboardingModal({
   // Sincroniza campos sempre que o modal abrir ou o perfil atualizar
   useEffect(() => {
     if (isOpen && profile) {
+      const resolvedPixType: PixKeyType =
+        profile.pix_key_type ||
+        (profile.pix_key ? detectPixKeyType(profile.pix_key) : 'cpf');
       setBrandName(profile.brand_name || profile.full_name || '');
-      setPhone(profile.phone_whatsapp || '');
-      setPixKey(profile.pix_key || '');
+      setCpf(formatCpf(profile.cpf || ''));
+      setPhone(formatBrazilMobile(profile.phone_whatsapp || ''));
+      setPixKeyType(resolvedPixType);
+      setPixKey(formatPixKeyInput(profile.pix_key || '', resolvedPixType));
       setLogoPreview(profile.brand_logo_url || null);
       setError(null);
     }
@@ -102,9 +130,41 @@ export default function BrandOnboardingModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!brandName.trim()) {
-      setError('Por favor, informe o nome da sua marca ou negócio.');
+    const cleanBrand = brandName.trim();
+    if (!cleanBrand || cleanBrand.length < 3) {
+      setError('Por favor, informe o nome da sua marca ou negócio (mínimo 3 caracteres).');
       return;
+    }
+
+    if (cpf.trim() || !isEditMode) {
+      const cpfErr = getCpfError(cpf);
+      if (cpfErr) {
+        setError(cpfErr);
+        return;
+      }
+    }
+
+    if (phone.trim()) {
+      const phoneErr = getBrazilMobileError(phone);
+      if (phoneErr) {
+        setError(phoneErr);
+        return;
+      }
+    }
+
+    let pixNormalized = profile?.pix_key || null;
+    let pixResolvedType = profile?.pix_key_type || null;
+
+    if (pixKey.trim()) {
+      const pixCheck = validatePixKey(pixKey, pixKeyType);
+      if (!pixCheck.valid) {
+        setError(pixCheck.error || 'Chave PIX inválida.');
+        return;
+      }
+      pixNormalized = pixCheck.normalizedValue;
+      pixResolvedType = pixCheck.resolvedType;
+    } else {
+      pixNormalized = null;
     }
 
     setIsSaving(true);
@@ -112,11 +172,15 @@ export default function BrandOnboardingModal({
 
     try {
       await updateProfile({
-        brand_name: brandName.trim(),
+        brand_name: cleanBrand,
         brand_logo_url: logoPreview,
         brand_initials: currentInitials,
-        phone_whatsapp: phone.trim() || profile?.phone_whatsapp,
-        pix_key: pixKey.trim() || null,
+        cpf: onlyDigits(cpf) || profile?.cpf || null,
+        phone_whatsapp: phone.trim()
+          ? normalizeBrazilMobileDigits(phone)
+          : profile?.phone_whatsapp || '',
+        pix_key: pixNormalized,
+        pix_key_type: pixResolvedType,
         onboarding_completed: true,
       });
 
@@ -306,37 +370,109 @@ export default function BrandOnboardingModal({
             </div>
           </div>
 
-          {/* Quick Defaults (PIX & WhatsApp) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
-                WhatsApp de Suporte
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 absolute left-3.5 top-3.5 text-[#526480]" />
-                <input
-                  type="text"
-                  placeholder="(11) 99999-9999"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
-                />
+          {/* CPF, WhatsApp e Chave PIX */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
+                  CPF do Responsável {!isEditMode && '*'}
+                </label>
+                <div className="relative">
+                  <FileText className="w-4 h-4 absolute left-3.5 top-3.5 text-[#526480]" />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={14}
+                    placeholder="000.000.000-00"
+                    value={cpf}
+                    onChange={(e) => {
+                      setCpf(formatCpf(e.target.value));
+                      if (error) setError(null);
+                    }}
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
+                  WhatsApp de Suporte (DDD + 9)
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 absolute left-3.5 top-3.5 text-[#526480]" />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={15}
+                    placeholder="(11) 99999-9999"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(formatBrazilMobile(e.target.value));
+                      if (error) setError(null);
+                    }}
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
-                Chave PIX Principal
-              </label>
-              <div className="relative">
-                <QrCode className="w-4 h-4 absolute left-3.5 top-3.5 text-[#526480]" />
-                <input
-                  type="text"
-                  placeholder="CPF, E-mail ou Celular"
-                  value={pixKey}
-                  onChange={(e) => setPixKey(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5 sm:col-span-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
+                  Tipo de Chave PIX
+                </label>
+                <select
+                  value={pixKeyType}
+                  onChange={(e) => {
+                    const nextType = e.target.value as PixKeyType;
+                    setPixKeyType(nextType);
+                    setPixKey((prev) => formatPixKeyInput(prev, nextType));
+                    if (error) setError(null);
+                  }}
+                  className="w-full px-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                >
+                  <option value="cpf">CPF</option>
+                  <option value="cnpj">CNPJ</option>
+                  <option value="phone">Celular</option>
+                  <option value="email">E-mail</option>
+                  <option value="random">Aleatória</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
+                  Chave PIX Principal
+                </label>
+                <div className="relative">
+                  <QrCode className="w-4 h-4 absolute left-3.5 top-3.5 text-[#526480]" />
+                  <input
+                    type="text"
+                    inputMode={
+                      pixKeyType === 'cpf' || pixKeyType === 'cnpj' || pixKeyType === 'phone'
+                        ? 'numeric'
+                        : pixKeyType === 'email'
+                        ? 'email'
+                        : 'text'
+                    }
+                    placeholder={
+                      pixKeyType === 'cpf'
+                        ? '000.000.000-00'
+                        : pixKeyType === 'cnpj'
+                        ? '00.000.000/0000-00'
+                        : pixKeyType === 'phone'
+                        ? '(11) 99999-9999'
+                        : pixKeyType === 'email'
+                        ? 'seu@email.com'
+                        : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+                    }
+                    value={pixKey}
+                    onChange={(e) => {
+                      setPixKey(formatPixKeyInput(e.target.value, pixKeyType));
+                      if (error) setError(null);
+                    }}
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[16px] text-xs font-semibold text-[#0D1729] placeholder-[#8A9BB3] focus:bg-white focus:outline-none focus:border-[#0869F5]"
+                  />
+                </div>
               </div>
             </div>
           </div>

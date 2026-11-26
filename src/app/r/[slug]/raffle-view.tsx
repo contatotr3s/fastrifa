@@ -45,6 +45,7 @@ import DiscountRouletteModal from '@/components/discount-roulette-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { generatePixBrCode } from '@/lib/pix-brcode';
+import { formatBrazilMobile, getBrazilMobileError } from '@/lib/validators';
 import PhysicalCardModal from '@/components/physical-card-modal';
 import EditRaffleModal from '@/components/edit-raffle-modal';
 import type { Raffle, OccupiedTicket } from '@/types/database.types';
@@ -455,14 +456,27 @@ export default function RafflePublicView({
   async function handleOrderSubmit(e: React.FormEvent) {
     e.preventDefault();
     setOrderError(null);
+
+    const cleanBuyerName = buyerName.trim();
+    if (cleanBuyerName.length < 2) {
+      setOrderError('Informe seu nome completo para reservar suas cotas.');
+      return;
+    }
+
+    const phoneErr = getBrazilMobileError(buyerPhone);
+    if (phoneErr) {
+      setOrderError(phoneErr);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const amount = pricing.finalAmount;
 
     const result = await createOrder({
       raffle_id: raffle.id,
-      buyer_name: buyerName,
-      buyer_phone: buyerPhone,
+      buyer_name: cleanBuyerName,
+      buyer_phone: formatBrazilMobile(buyerPhone),
       ticket_numbers: selectedTickets,
       total_amount: amount,
       ...(pricing.discountPercent > 0
@@ -1379,10 +1393,12 @@ export default function RafflePublicView({
                 <input
                   id="buyerPhone"
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={15}
                   required
                   placeholder="(11) 99999-9999"
                   value={buyerPhone}
-                  onChange={(e) => setBuyerPhone(e.target.value)}
+                  onChange={(e) => setBuyerPhone(formatBrazilMobile(e.target.value))}
                   className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] placeholder-[#526480] text-sm focus:outline-none focus:bg-white focus:border-[#0869F5]"
                 />
               </div>
