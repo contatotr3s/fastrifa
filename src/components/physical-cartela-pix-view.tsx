@@ -12,6 +12,7 @@ import {
 } from '@/lib/firebase/raffles';
 import { getRafflePublicPath } from '@/lib/raffle-urls';
 import { generatePixBrCode } from '@/lib/pix-brcode';
+import { calculateDiscountedPricing } from '@/lib/discounts';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
   ShieldCheck,
@@ -142,7 +143,16 @@ export default function PhysicalCartelaPixView({
   }, [raffle, occupiedMap]);
 
   const unitPrice = raffle ? Number(raffle.ticket_price) : 0;
-  const totalAmount = quantity * unitPrice;
+  const pricing = useMemo(
+    () =>
+      calculateDiscountedPricing({
+        ticketCount: quantity,
+        unitPrice,
+        config: raffle?.discount_config,
+      }),
+    [quantity, unitPrice, raffle?.discount_config]
+  );
+  const totalAmount = pricing.finalAmount;
 
   function fireConfetti(mode: 'mini' | 'full' = 'full') {
     try {
@@ -356,6 +366,14 @@ export default function PhysicalCartelaPixView({
         buyer_phone: buyerPhone.trim(),
         ticket_numbers: verifiedNumbers,
         total_amount: totalAmount,
+        ...(pricing.discountPercent > 0
+          ? {
+              original_amount: pricing.originalAmount,
+              discount_percent: pricing.discountPercent,
+              discount_amount: pricing.discountAmount,
+              discount_label: pricing.discountLabel,
+            }
+          : {}),
         status: 'pending',
       });
 
@@ -391,7 +409,11 @@ export default function PhysicalCartelaPixView({
 
   async function buildPixForCurrentAmount(cotaCount: number) {
     if (!raffle) return;
-    const sumAmount = cotaCount * unitPrice;
+    const sumAmount = calculateDiscountedPricing({
+      ticketCount: cotaCount,
+      unitPrice,
+      config: raffle.discount_config,
+    }).finalAmount;
     const payload = generatePixBrCode({
       pixKey: raffle.pix_key,
       pixKeyType: raffle.pix_key_type,
@@ -660,13 +682,20 @@ export default function PhysicalCartelaPixView({
                   {quantity} cota(s) × R$ {unitPrice.toFixed(2)}
                 </span>
                 <span className="text-[11px] text-[#526480]">
-                  Valor somado automático
+                  {pricing.discountPercent > 0
+                    ? `Desconto de ${pricing.discountPercent}% OFF aplicado!`
+                    : 'Valor somado automático'}
                 </span>
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ora-blue-deep,#008F58)] block">
                   Total a Pagar
                 </span>
+                {pricing.discountPercent > 0 && (
+                  <span className="text-xs text-[#64748B] line-through block">
+                    R$ {pricing.originalAmount.toFixed(2)}
+                  </span>
+                )}
                 <span className="font-display font-bold text-2xl sm:text-3xl text-[var(--ora-blue,#00A868)]">
                   R$ {totalAmount.toFixed(2)}
                 </span>

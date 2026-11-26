@@ -12,10 +12,12 @@ import {
   suggestPrizeKeyword,
 } from '@/lib/raffle-urls';
 import PrizeImageUploader from '@/components/prize-image-uploader';
+import DiscountConfigEditor from '@/components/discount-config-editor';
+import { DEFAULT_DISCOUNT_CONFIG, normalizeDiscountConfig } from '@/lib/discounts';
 import { numeroPorExtensoBRL } from '@/lib/currency';
 import { RaffleCreationTermsModal } from '@/components/terms-modals';
 import { ArrowLeft, Info, Link2, Loader2, ShieldCheck } from 'lucide-react';
-import type { PixKeyType } from '@/types/database.types';
+import type { PixKeyType, RaffleDiscountConfig } from '@/types/database.types';
 
 export default function NewRafflePage() {
   const { user, profile } = useAuth();
@@ -37,6 +39,9 @@ export default function NewRafflePage() {
   const [pixKeyType, setPixKeyType] = useState<PixKeyType>(profile?.pix_key_type || 'cpf');
   const [pixKey, setPixKey] = useState(profile?.pix_key || '');
   const [phoneWhatsapp, setPhoneWhatsapp] = useState(profile?.phone_whatsapp || '');
+  const [discountConfig, setDiscountConfig] = useState<RaffleDiscountConfig>(
+    DEFAULT_DISCOUNT_CONFIG
+  );
 
   const presets = [50, 100, 200, 500, 1000];
 
@@ -113,6 +118,7 @@ export default function NewRafflePage() {
         brand_name: profile?.brand_name || profile?.full_name || 'FastRifa',
         brand_logo_url: profile?.brand_logo_url || null,
         brand_color: (profile?.brand_color as 'blue' | 'green') || (theme as 'blue' | 'green') || 'green',
+        discount_config: normalizeDiscountConfig(discountConfig),
         status: 'active',
         winner_ticket: null,
         winner_name: null,
@@ -377,6 +383,15 @@ export default function NewRafflePage() {
               </p>
             )}
           </div>
+        </div>
+
+        {/* Estratégia de Desconto para Múltiplos Bilhetes */}
+        <div className="pt-6 border-t border-[#E0E9F7]">
+          <DiscountConfigEditor
+            value={discountConfig}
+            onChange={setDiscountConfig}
+            unitPrice={numericPrice}
+          />
         </div>
 
         {/* Chave PIX e WhatsApp */}

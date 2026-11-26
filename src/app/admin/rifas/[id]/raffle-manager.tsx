@@ -795,10 +795,20 @@ Entre em contato para combinarmos a entrega do seu prêmio.
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[#475872] tabular-nums">
                       <span>
                         {order.ticket_numbers.length} cota(s) • Total:{' '}
+                        {order.discount_percent && order.discount_percent > 0 && order.original_amount ? (
+                          <span className="text-[#8A9BB3] line-through mr-1.5">
+                            R$ {Number(order.original_amount).toFixed(2)}
+                          </span>
+                        ) : null}
                         <strong className="text-[#0D1729] font-bold">
                           R$ {Number(order.total_amount).toFixed(2)}
                         </strong>
                       </span>
+                      {order.discount_percent && order.discount_percent > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] text-[10px] font-bold">
+                          -{order.discount_percent}% OFF
+                        </span>
+                      ) : null}
                       <span className="text-[#B9D3F8]">•</span>
                       <span className="text-[#526480]">
                         {new Date(order.created_at).toLocaleString('pt-BR')}

@@ -26,6 +26,8 @@ import {
   Eye,
   AlertTriangle,
   MinusCircle,
+  Percent,
+  Tag,
 } from 'lucide-react';
 import {
   createOrder,
@@ -33,7 +35,13 @@ import {
   subscribeToRaffleOrders,
   computeOccupiedTicketsFromOrders,
 } from '@/lib/firebase/raffles';
+import {
+  calculateDiscountedPricing,
+  getDiscountForFixedQty,
+  normalizeDiscountConfig,
+} from '@/lib/discounts';
 import { getRaffleAdminPath } from '@/lib/raffle-urls';
+import DiscountRouletteModal from '@/components/discount-roulette-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { generatePixBrCode } from '@/lib/pix-brcode';
@@ -129,6 +137,10 @@ export default function RafflePublicView({
     orderId: string;
     tickets: number[];
     total: number;
+    originalAmount?: number;
+    discountPercent?: number;
+    discountAmount?: number;
+    discountLabel?: string | null;
   } | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
   const [copiedBrCode, setCopiedBrCode] = useState(false);
@@ -137,6 +149,30 @@ export default function RafflePublicView({
   const [showPhysicalCardModal, setShowPhysicalCardModal] = useState(false);
   const [quickPickFeedback, setQuickPickFeedback] = useState<string | null>(null);
   const [isRemoveMode, setIsRemoveMode] = useState(false);
+  const [showDiscountRoulette, setShowDiscountRoulette] = useState(false);
+  const [rouletteWonPercent, setRouletteWonPercent] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = sessionStorage.getItem(`fastrifa_roulette_${raffle.id}`);
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (parsed > 0 && parsed <= 80) {
+          setRouletteWonPercent(parsed);
+        }
+      }
+    } catch {}
+  }, [raffle.id]);
+
+  function handleRouletteWin(percent: number) {
+    setRouletteWonPercent(percent);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(`fastrifa_roulette_${raffle.id}`, String(percent));
+      } catch {}
+    }
+  }
 
   // Sincronização em tempo real da rifa e cotas ocupadas (reservas e aprovações ao vivo)
   useEffect(() => {
@@ -216,7 +252,21 @@ export default function RafflePublicView({
     Math.round((paidCount / raffle.total_tickets) * 100)
   );
   const primaryBrandColor = raffle.brand_color === 'green' ? '#00A868' : '#0869F5';
-  const totalPrice = (selectedTickets.length * raffle.ticket_price).toFixed(2);
+  const normalizedDiscount = useMemo(
+    () => normalizeDiscountConfig(raffle.discount_config),
+    [raffle.discount_config]
+  );
+  const pricing = useMemo(
+    () =>
+      calculateDiscountedPricing({
+        ticketCount: selectedTickets.length,
+        unitPrice: raffle.ticket_price,
+        config: normalizedDiscount,
+        rouletteWonPercent,
+      }),
+    [selectedTickets.length, raffle.ticket_price, normalizedDiscount, rouletteWonPercent]
+  );
+  const totalPrice = pricing.finalAmount.toFixed(2);
 
   function fireCelebrationConfetti(mode: 'order' | 'quick' | 'copy' = 'order') {
     try {
@@ -407,7 +457,7 @@ export default function RafflePublicView({
     setOrderError(null);
     setIsSubmitting(true);
 
-    const amount = selectedTickets.length * raffle.ticket_price;
+    const amount = pricing.finalAmount;
 
     const result = await createOrder({
       raffle_id: raffle.id,
@@ -415,6 +465,14 @@ export default function RafflePublicView({
       buyer_phone: buyerPhone,
       ticket_numbers: selectedTickets,
       total_amount: amount,
+      ...(pricing.discountPercent > 0
+        ? {
+            original_amount: pricing.originalAmount,
+            discount_percent: pricing.discountPercent,
+            discount_amount: pricing.discountAmount,
+            discount_label: pricing.discountLabel,
+          }
+        : {}),
       status: 'pending',
     });
 
@@ -443,6 +501,10 @@ export default function RafflePublicView({
       orderId: result.orderId,
       tickets: [...selectedTickets],
       total: amount,
+      originalAmount: pricing.originalAmount,
+      discountPercent: pricing.discountPercent,
+      discountAmount: pricing.discountAmount,
+      discountLabel: pricing.discountLabel,
     });
     setSelectedTickets([]);
     setConflictingTicket(null);
@@ -775,6 +837,102 @@ export default function RafflePublicView({
             </p>
           </div>
 
+          {/* Banner CTA Promocional de Desconto (quando ativado pelo criador) */}
+          {raffle.status === 'active' && normalizedDiscount.mode !== 'none' && (
+            <div className="p-4 sm:p-5 rounded-[24px] bg-gradient-to-r from-[#E8F7F0] via-[#F3FAF6] to-[#EDF5FF] border border-[#B9E7D2] space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-start gap-2.5">
+                  <span className="w-8 h-8 rounded-xl bg-[#00A868] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    {normalizedDiscount.mode === 'roulette' ? (
+                      <Dices className="w-4 h-4" />
+                    ) : (
+                      <Percent className="w-4 h-4" />
+                    )}
+                  </span>
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#00A868] block">
+                      {normalizedDiscount.mode === 'progressive'
+                        ? 'Desconto Progressivo Ativo'
+                        : normalizedDiscount.mode === 'roulette'
+                          ? 'Roleta da Sorte Promocional'
+                          : 'Desconto Especial por Quantidade'}
+                    </span>
+                    <p className="text-xs sm:text-[13px] font-semibold text-[#0D1729] leading-snug">
+                      {normalizedDiscount.mode === 'progressive' &&
+                        'Vai comprar mais de um bilhete? Você tem direito a um desconto progressivo: quanto mais você compra, maiores são as suas chances de ganhar e mais barato fica!'}
+                      {normalizedDiscount.mode === 'simple' &&
+                        `Vai comprar mais de um bilhete? Compre a partir de ${normalizedDiscount.simple_min_tickets} cotas e ganhe ${normalizedDiscount.simple_percent}% de desconto automático no PIX!`}
+                      {normalizedDiscount.mode === 'roulette' &&
+                        `Vai comprar mais de um bilhete? Escolha a partir de ${normalizedDiscount.roulette_min_tickets} cotas e gire a Roleta da Sorte para ganhar até ${Math.max(...(normalizedDiscount.roulette_options || [20]))}% de desconto!`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status / Gatilho dinâmico */}
+                {normalizedDiscount.mode === 'roulette' ? (
+                  rouletteWonPercent ? (
+                    <span className="self-start sm:self-center shrink-0 px-3 py-1.5 rounded-full bg-[#00A868] text-white text-xs font-bold shadow-xs">
+                      🎉 {rouletteWonPercent}% OFF ativo!
+                    </span>
+                  ) : pricing.canSpinRoulette ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowDiscountRoulette(true)}
+                      className="ora-btn-primary self-start sm:self-center shrink-0 px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      <Dices className="w-4 h-4" />
+                      <span>Girar Roleta Agora</span>
+                    </button>
+                  ) : (
+                    <span className="self-start sm:self-center shrink-0 px-3 py-1 rounded-full bg-white border border-[#B9E7D2] text-[#0D1729] text-[11px] font-bold tabular-nums">
+                      Faltam {pricing.needsMoreForRoulette} cota(s) p/ Roleta
+                    </span>
+                  )
+                ) : pricing.discountPercent > 0 ? (
+                  <span className="self-start sm:self-center shrink-0 px-3 py-1 rounded-full bg-[#00A868] text-white text-[11px] font-bold tabular-nums shadow-xs">
+                    🎉 {pricing.discountPercent}% OFF aplicado!
+                  </span>
+                ) : pricing.nextTier ? (
+                  <span className="self-start sm:self-center shrink-0 px-3 py-1 rounded-full bg-white border border-[#B9E7D2] text-[#00A868] text-[11px] font-bold tabular-nums">
+                    +{pricing.nextTier.remaining} cota(s) → {pricing.nextTier.percent}% OFF
+                  </span>
+                ) : null}
+              </div>
+
+              {/* Faixas visíveis no modo Progressivo */}
+              {normalizedDiscount.mode === 'progressive' && normalizedDiscount.tiers && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 tabular-nums">
+                  {normalizedDiscount.tiers.map((tier) => {
+                    const reached = selectedTickets.length >= tier.min_tickets;
+                    const isBestActive =
+                      pricing.activeTier?.min_tickets === tier.min_tickets;
+                    return (
+                      <span
+                        key={tier.min_tickets}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border transition ${
+                          isBestActive
+                            ? 'bg-[#00A868] border-[#00A868] text-white shadow-xs'
+                            : reached
+                              ? 'bg-[#E8F7F0] border-[#00A868] text-[#00A868]'
+                              : 'bg-white border-[#D9E5F7] text-[#475872]'
+                        }`}
+                      >
+                        <span>{tier.min_tickets}+ cotas</span>
+                        <span>•</span>
+                        <span>{tier.percent}% OFF</span>
+                      </span>
+                    );
+                  })}
+                  {pricing.nextTier && pricing.discountPercent > 0 && (
+                    <span className="text-[11px] font-bold text-[#0869F5] ml-1">
+                      Adicione mais {pricing.nextTier.remaining} e suba para {pricing.nextTier.percent}% OFF!
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Quick Pick Buttons (apenas quando ativa) */}
           {raffle.status === 'active' && (
             <div className="p-4 sm:p-5 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[24px] space-y-3.5">
@@ -800,6 +958,9 @@ export default function RafflePublicView({
                   const disabled = isRemoveMode
                     ? selectedTickets.length === 0
                     : allAvailableNumbers.length < qty;
+                  const qtyDiscountPct = !isRemoveMode
+                    ? getDiscountForFixedQty(qty, normalizedDiscount)
+                    : 0;
                   return (
                     <button
                       key={qty}
@@ -810,7 +971,7 @@ export default function RafflePublicView({
                           : addRandomTickets(qty)
                       }
                       disabled={disabled}
-                      className={`px-4 py-2.5 border text-xs sm:text-sm font-display font-bold rounded-[14px] shadow-[0_4px_12px_rgba(36,97,184,0.06)] transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer ${
+                      className={`px-4 py-2.5 border text-xs sm:text-sm font-display font-bold rounded-[14px] shadow-[0_4px_12px_rgba(36,97,184,0.06)] transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer ${
                         isRemoveMode
                           ? 'bg-[#FFF1F2] hover:bg-[#FFE4E6] border-[#FECDD3] hover:border-[#FDA4AF] text-[#BE123C]'
                           : 'bg-white hover:bg-[#EDF5FF] active:bg-[#D9ECFF] border-[#CDE0FC] hover:border-[#0869F5] text-[#0755DE]'
@@ -824,6 +985,11 @@ export default function RafflePublicView({
                       <span>
                         {isRemoveMode ? `-${qty} cotas` : `+${qty} cotas`}
                       </span>
+                      {qtyDiscountPct > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[9.5px] font-extrabold">
+                          -{qtyDiscountPct}%
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -987,19 +1153,44 @@ export default function RafflePublicView({
                   Limpar
                 </button>
               </div>
-              <div className="font-display font-bold text-base sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
-                Total: R$ {totalPrice}
+              <div className="flex flex-wrap items-baseline gap-2">
+                {pricing.discountPercent > 0 && (
+                  <span className="text-xs sm:text-sm text-[#8A9BB3] line-through font-semibold">
+                    R$ {pricing.originalAmount.toFixed(2)}
+                  </span>
+                )}
+                <div className="font-display font-bold text-base sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
+                  Total: R$ {totalPrice}
+                </div>
+                {pricing.discountPercent > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10px] font-bold">
+                    -{pricing.discountPercent}% OFF
+                  </span>
+                )}
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setIsCheckoutOpen(true)}
-              className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-[16px] sm:rounded-[18px] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
-            >
-              <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span>Reservar Agora</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {pricing.canSpinRoulette && (
+                <button
+                  type="button"
+                  onClick={() => setShowDiscountRoulette(true)}
+                  className="px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-[16px] sm:rounded-[18px] bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer hover:bg-[#FEF3C7] transition"
+                >
+                  <Dices className="w-4 h-4" />
+                  <span className="hidden sm:inline">Girar Roleta</span>
+                  <span className="sm:hidden">Roleta</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsCheckoutOpen(true)}
+                className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-[16px] sm:rounded-[18px] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
+              >
+                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>Reservar Agora</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1125,11 +1316,36 @@ export default function RafflePublicView({
                   );
                 })}
               </div>
-              <div className="pt-2.5 border-t border-[#E0E9F7] flex justify-between items-baseline">
-                <span className="text-xs font-bold text-[#14213A]">Total a pagar:</span>
-                <span className="font-display font-bold text-xl text-[#0869F5]">
-                  R$ {totalPrice}
-                </span>
+              {pricing.canSpinRoulette && (
+                <button
+                  type="button"
+                  onClick={() => setShowDiscountRoulette(true)}
+                  className="w-full py-2.5 px-3 rounded-[14px] bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#FEF3C7] transition"
+                >
+                  <Dices className="w-4 h-4" />
+                  <span>Você liberou a Roleta da Sorte! Clique para girar antes do PIX</span>
+                </button>
+              )}
+
+              <div className="pt-2.5 border-t border-[#E0E9F7] space-y-1">
+                {pricing.discountPercent > 0 && (
+                  <>
+                    <div className="flex justify-between text-xs text-[#526480]">
+                      <span>Subtotal ({selectedTickets.length} cotas):</span>
+                      <span className="line-through">R$ {pricing.originalAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-bold text-[#00A868]">
+                      <span>Desconto ({pricing.discountPercent}% OFF):</span>
+                      <span>- R$ {pricing.discountAmount.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs font-bold text-[#14213A]">Total a pagar:</span>
+                  <span className="font-display font-bold text-xl text-[#0869F5]">
+                    R$ {totalPrice}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -1214,6 +1430,12 @@ export default function RafflePublicView({
                 <strong className="text-[#0869F5]">
                   R$ {confirmedOrder.total.toFixed(2)}
                 </strong>
+                {confirmedOrder.discountPercent && confirmedOrder.discountPercent > 0 ? (
+                  <span className="inline-flex items-center gap-1 ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10.5px] font-bold">
+                    <Tag className="w-3 h-3" />
+                    Economia de R$ {(confirmedOrder.discountAmount || 0).toFixed(2)} ({confirmedOrder.discountPercent}% OFF)
+                  </span>
+                ) : null}
                 .
               </p>
             </div>
@@ -1290,7 +1512,11 @@ export default function RafflePublicView({
                 .map((n) => `#${n.toString().padStart(3, '0')}`)
                 .join(', ');
 
-              const message = `Olá! Meu nome é ${buyerName} e reservei as cotas (${formattedTickets}) na rifa "${raffle.title}". Notifico o pagamento no valor de R$ ${confirmedOrder.total.toFixed(2)} e anexo meu comprovante para conferência e confirmação!`;
+              const discountNote =
+                confirmedOrder.discountPercent && confirmedOrder.discountPercent > 0
+                  ? ` (com ${confirmedOrder.discountPercent}% de desconto aplicado!)`
+                  : '';
+              const message = `Olá! Meu nome é ${buyerName} e reservei as cotas (${formattedTickets}) na rifa "${raffle.title}". Notifico o pagamento no valor de R$ ${confirmedOrder.total.toFixed(2)}${discountNote} e anexo meu comprovante para conferência e confirmação!`;
               const whatsappUrl = `https://wa.me/55${organizerCleanPhone}?text=${encodeURIComponent(
                 message
               )}`;
@@ -1323,6 +1549,16 @@ export default function RafflePublicView({
           </div>
         </div>
       )}
+
+      {/* Modal Roleta Promocional de Desconto */}
+      <DiscountRouletteModal
+        isOpen={showDiscountRoulette}
+        onClose={() => setShowDiscountRoulette(false)}
+        options={normalizedDiscount.roulette_options || [5, 10, 15, 20]}
+        brandColor={raffle.brand_color}
+        alreadyWonPercent={rouletteWonPercent}
+        onWin={handleRouletteWin}
+      />
 
       {/* Modal Gerador de Cartela Física em PDF (2 Páginas A4) */}
       <PhysicalCardModal

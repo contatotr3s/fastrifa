@@ -6,6 +6,22 @@ export type OrderStatus = 'pending' | 'paid' | 'cancelled';
 
 export type UserRole = 'organizer' | 'master';
 
+export type DiscountMode = 'none' | 'progressive' | 'simple' | 'roulette';
+
+export interface DiscountTier {
+  min_tickets: number;
+  percent: number;
+}
+
+export interface RaffleDiscountConfig {
+  mode: DiscountMode;
+  tiers?: DiscountTier[];
+  simple_min_tickets?: number;
+  simple_percent?: number;
+  roulette_min_tickets?: number;
+  roulette_options?: number[];
+}
+
 export interface Profile {
   id: string; // Firebase Auth UID
   full_name: string;
@@ -55,6 +71,9 @@ export interface Raffle {
   brand_logo_url?: string | null;
   brand_color?: 'blue' | 'green' | string | null;
 
+  // Estratégia de desconto para múltiplos bilhetes
+  discount_config?: RaffleDiscountConfig | null;
+
   created_at: string;
   updated_at: string;
 }
@@ -81,6 +100,10 @@ export interface Order {
   buyer_phone: string;
   ticket_numbers: number[];
   total_amount: number;
+  original_amount?: number;
+  discount_percent?: number;
+  discount_amount?: number;
+  discount_label?: string | null;
   status: OrderStatus;
   created_at: string;
   paid_at?: string | null;

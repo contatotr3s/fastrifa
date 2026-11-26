@@ -14,9 +14,11 @@ import {
   Key,
 } from 'lucide-react';
 import PrizeImageUploader from '@/components/prize-image-uploader';
+import DiscountConfigEditor from '@/components/discount-config-editor';
+import { DEFAULT_DISCOUNT_CONFIG, normalizeDiscountConfig } from '@/lib/discounts';
 import { updateRaffleWithAudit } from '@/lib/firebase/raffles';
 import { useAuth } from '@/lib/firebase/auth-context';
-import type { Raffle, PixKeyType } from '@/types/database.types';
+import type { Raffle, PixKeyType, RaffleDiscountConfig } from '@/types/database.types';
 
 interface EditRaffleModalProps {
   raffle: Raffle;
@@ -50,6 +52,11 @@ export default function EditRaffleModal({
   const [pixKey, setPixKey] = useState(raffle.pix_key || '');
   const [pixKeyType, setPixKeyType] = useState<PixKeyType>(raffle.pix_key_type || 'cpf');
   const [phoneWhatsapp, setPhoneWhatsapp] = useState(raffle.phone_whatsapp || '');
+  const [discountConfig, setDiscountConfig] = useState<RaffleDiscountConfig>(
+    raffle.discount_config
+      ? normalizeDiscountConfig(raffle.discount_config)
+      : DEFAULT_DISCOUNT_CONFIG
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +99,7 @@ export default function EditRaffleModal({
         pix_key: pixKey.trim(),
         pix_key_type: pixKeyType,
         phone_whatsapp: phoneWhatsapp.trim(),
+        discount_config: normalizeDiscountConfig(discountConfig),
       };
 
       const result = await updateRaffleWithAudit({
@@ -304,6 +312,16 @@ export default function EditRaffleModal({
                 className="w-full px-4 py-2.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-2xl text-xs font-semibold text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
               />
             </div>
+          </div>
+
+          {/* Descontos para Múltiplos Bilhetes */}
+          <div className="pt-3 border-t border-[#E0E9F7]">
+            <DiscountConfigEditor
+              value={discountConfig}
+              onChange={setDiscountConfig}
+              unitPrice={newPrice}
+              compact
+            />
           </div>
 
           {/* Action Buttons */}
