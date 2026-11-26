@@ -118,7 +118,7 @@ export default function GradePrintShowcase() {
       onPointerMove={handlePointerMove}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
-      className="relative flex items-center justify-center py-0.5 sm:py-2 lg:py-4 select-none"
+      className="relative flex items-center justify-center py-0 sm:py-1 lg:py-4 select-none"
     >
       {/* Brilho atmosférico difuso atrás do print para integrar perfeitamente ao estágio */}
       <div
@@ -131,14 +131,14 @@ export default function GradePrintShowcase() {
       {/* Moldura flutuante 3D que responde ao scroll e ao mouse */}
       <div
         ref={frameRef}
-        className="relative z-10 w-full max-w-[560px] mx-auto will-change-transform rounded-[26px] p-1.5 sm:p-2 bg-white/60 backdrop-blur-md border border-white/90 shadow-[0_20px_50px_rgba(24,74,120,0.10),0_4px_18px_rgba(255,255,255,0.8)_inset] transition-shadow duration-300"
+        className="relative z-10 w-full max-w-[560px] mx-auto will-change-transform rounded-[24px] lg:rounded-[26px] p-1 sm:p-1.5 lg:p-2 bg-white/60 backdrop-blur-md border border-white/90 shadow-[0_20px_50px_rgba(24,74,120,0.10),0_4px_18px_rgba(255,255,255,0.8)_inset] transition-shadow duration-300"
       >
-        <div className="relative overflow-hidden rounded-[22px]">
+        <div className="relative overflow-hidden rounded-[20px] lg:rounded-[22px]">
           <img
             src="/demo-grade-print.jpg"
             alt="Demonstração da Grade Ágil de Cotas Interativas FastRifa"
             draggable={false}
-            className="w-full max-h-[205px] sm:max-h-[290px] lg:max-h-[min(420px,50vh)] object-contain block mx-auto ora-print-soft-mask"
+            className="w-full max-h-[156px] sm:max-h-[240px] lg:max-h-[min(420px,50vh)] object-contain block mx-auto ora-print-soft-mask"
           />
 
           {/* Reflexo luminoso suave ao passar o mouse */}

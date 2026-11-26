@@ -26,6 +26,7 @@ import {
   CheckCheck,
   AlertCircle,
   RotateCcw,
+  Tag,
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { useTheme } from '@/lib/theme-context';
@@ -326,6 +327,9 @@ Entre em contato para combinarmos a entrega do seu prêmio.
     return true;
   });
 
+  const coverImage = raffle.prize_image_url || raffle.prize_images?.[0] || null;
+  const isVirtualOnly = raffle.total_tickets > 200;
+
   return (
     <div className="space-y-8">
       {/* Top Header */}
@@ -334,10 +338,21 @@ Entre em contato para combinarmos a entrega do seu prêmio.
           <Link
             href="/admin"
             aria-label="Voltar para o painel"
-            className="ora-btn-secondary p-2.5 rounded-full inline-flex items-center justify-center"
+            className="ora-btn-secondary p-2.5 rounded-full inline-flex items-center justify-center flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-[#14213A]" />
           </Link>
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[16px] overflow-hidden bg-[#F2F7FF] border border-[#D9E5F7] shadow-xs flex-shrink-0 flex items-center justify-center">
+            {coverImage ? (
+              <img
+                src={coverImage}
+                alt={raffle.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Tag className="w-6 h-6 text-[#0869F5]" />
+            )}
+          </div>
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <span
@@ -376,19 +391,6 @@ Entre em contato para combinarmos a entrega do seu prêmio.
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Gerar Cartela Física (Disponível para rifas de até 200 números) */}
-          {raffle.total_tickets <= 200 && (
-            <button
-              type="button"
-              onClick={() => setShowPhysicalCardModal(true)}
-              className="ora-btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-full cursor-pointer border-[#0869F5]/40 hover:border-[#0869F5]"
-              title="Vai gerar cartela física em PDF (2 páginas A4), pronta para impressão"
-            >
-              <Printer className="w-4 h-4 text-[#0869F5]" />
-              <span>Gerar Cartela</span>
-            </button>
-          )}
-
           {/* Editar Campanha com Auditoria */}
           <button
             type="button"
@@ -510,29 +512,55 @@ Entre em contato para combinarmos a entrega do seu prêmio.
         </div>
       )}
 
-      {/* Banner de Cartela Física Pronta para Impressão (Rifas até 200 números) */}
-      {raffle.total_tickets <= 200 && (
-        <div className="ora-card rounded-[24px] p-4 sm:p-5 bg-gradient-to-r from-[#EDF5FF] via-[#F5F9FF] to-white border border-[#CDE0FC] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3.5">
-            <span className="w-11 h-11 rounded-2xl bg-white border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center flex-shrink-0 shadow-sm">
+      {/* Banner de Cartela Física (Até 200 números) ou Aviso Somente Virtual (> 200 números) */}
+      <div
+        className={`ora-card rounded-[24px] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border ${
+          isVirtualOnly
+            ? 'bg-gradient-to-r from-[#FFF8EB] via-[#FFFBF2] to-white border-[#F5D08A]'
+            : 'bg-gradient-to-r from-[#EDF5FF] via-[#F5F9FF] to-white border-[#CDE0FC]'
+        }`}
+      >
+        <div className="flex items-start sm:items-center gap-3.5">
+          <span
+            className={`w-11 h-11 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm border ${
+              isVirtualOnly
+                ? 'border-[#F5D08A] text-[#9A6700]'
+                : 'border-[#CDE0FC] text-[#0869F5]'
+            }`}
+          >
+            {isVirtualOnly ? (
+              <AlertCircle className="w-5 h-5" />
+            ) : (
               <Printer className="w-5 h-5" />
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <strong className="font-display font-bold text-sm sm:text-base text-[#0D1729]">
-                  Cartela Física Pronta para Impressão (PDF A4 — 2 Páginas)
-                </strong>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#0869F5] text-white text-[10px] font-bold uppercase tracking-wider">
-                  Físico + Virtual
-                </span>
-              </div>
-              <p className="text-xs text-[#475872] mt-0.5">
-                Como sua rifa possui até 200 números ({raffle.total_tickets} cotas), você pode gerar a cartela física estilizada com QR Code da rifa e folha de controle presencial com calculadora PIX automática.
-              </p>
+            )}
+          </span>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <strong className="font-display font-bold text-sm sm:text-base text-[#0D1729]">
+                {isVirtualOnly
+                  ? 'Campanha Exclusivamente Virtual (Online)'
+                  : 'Cartela Física Pronta para Impressão (PDF A4 — 2 Páginas)'}
+              </strong>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  isVirtualOnly
+                    ? 'bg-[#9A6700] text-white'
+                    : 'bg-[#0869F5] text-white'
+                }`}
+              >
+                {isVirtualOnly ? 'Somente Virtual' : 'Físico + Virtual'}
+              </span>
             </div>
+            <p className="text-xs text-[#475872] mt-0.5">
+              {isVirtualOnly
+                ? `Esta rifa possui ${raffle.total_tickets} números (acima do limite de 200 cotas para impressão A4). Por isso, opera somente no modo virtual (online) e não permite a emissão de cartela física.`
+                : `Como sua rifa possui até 200 números (${raffle.total_tickets} cotas), você pode gerar a cartela física estilizada com QR Code da rifa e folha de controle presencial com calculadora PIX automática.`}
+            </p>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+          {!isVirtualOnly && (
             <Link
               href={`/r/${raffle.slug}/pix`}
               target="_blank"
@@ -541,18 +569,30 @@ Entre em contato para combinarmos a entrega do seu prêmio.
               <ExternalLink className="w-4 h-4 text-[#0869F5]" />
               <span>Abrir Checador Físico</span>
             </Link>
+          )}
 
-            <button
-              type="button"
-              onClick={() => setShowPhysicalCardModal(true)}
-              className="ora-btn-primary px-5 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Gerar Cartela</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={isVirtualOnly}
+            onClick={() => {
+              if (!isVirtualOnly) setShowPhysicalCardModal(true);
+            }}
+            title={
+              isVirtualOnly
+                ? 'Cartela física indisponível para rifas com mais de 200 números (somente virtual)'
+                : 'Gerar cartela física em PDF (2 páginas A4)'
+            }
+            className={`px-5 py-3 rounded-[16px] text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-sm ${
+              isVirtualOnly
+                ? 'bg-[#F1F5F9] border border-[#CBD5E1] text-[#64748B] cursor-not-allowed opacity-75'
+                : 'ora-btn-primary cursor-pointer'
+            }`}
+          >
+            <Printer className="w-4 h-4" />
+            <span>{isVirtualOnly ? 'Cartela Indisponível (> 200)' : 'Gerar Cartela'}</span>
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 tabular-nums">

@@ -256,7 +256,7 @@ export default function PhysicalCardModal({
   const surfaceBg = isGreen ? '#F3FAF6' : '#F5F9FF';
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || raffle.total_tickets > 200) return;
     let cancelled = false;
 
     async function renderPages() {
@@ -1135,6 +1135,41 @@ export default function PhysicalCardModal({
       </html>
     `);
     printWin.document.close();
+  }
+
+  if (!isOpen) return null;
+
+  if (raffle.total_tickets > 200) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0D1729]/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="ora-card rounded-[24px] max-w-md w-full p-6 space-y-4 text-center relative">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="absolute right-4 top-4 p-2 rounded-full text-[#526480] hover:text-[#0D1729] hover:bg-[#F5F9FF] cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="w-12 h-12 rounded-2xl bg-[#FFF8EB] border border-[#F5D08A] text-[#9A6700] flex items-center justify-center mx-auto">
+            <Printer className="w-6 h-6" />
+          </div>
+          <h3 className="font-display font-bold text-xl text-[#0D1729]">
+            Campanha Somente Virtual
+          </h3>
+          <p className="text-sm text-[#475872] leading-relaxed">
+            Rifas com mais de 200 números ({raffle.total_tickets} cotas) funcionam exclusivamente no modo virtual (online) e não permitem a emissão de cartela física em PDF.
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ora-btn-primary w-full py-3 rounded-[16px] text-sm font-bold cursor-pointer"
+          >
+            Entendi
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

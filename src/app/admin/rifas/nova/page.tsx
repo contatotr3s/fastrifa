@@ -9,7 +9,7 @@ import { createRaffle, generateSlug } from '@/lib/firebase/raffles';
 import PrizeImageUploader from '@/components/prize-image-uploader';
 import { numeroPorExtensoBRL } from '@/lib/currency';
 import { RaffleCreationTermsModal } from '@/components/terms-modals';
-import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Info, Loader2, ShieldCheck } from 'lucide-react';
 import type { PixKeyType } from '@/types/database.types';
 
 export default function NewRafflePage() {
@@ -229,6 +229,14 @@ export default function NewRafflePage() {
               onChange={(e) => setTotalTickets(parseInt(e.target.value, 10) || 0)}
               className="w-full px-4 py-3.5 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[16px] text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] tabular-nums transition"
             />
+            {totalTickets > 200 && (
+              <div className="mt-2.5 p-3.5 rounded-[14px] bg-[#FFF8EB] border border-[#F5D08A] text-[#92400E] text-xs font-medium flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-[#9A6700] flex-shrink-0 mt-0.5" />
+                <span>
+                  <strong>Modo Somente Virtual:</strong> campanhas com mais de 200 números funcionam exclusivamente no modo online e não permitem a emissão de cartela física impressa em PDF (disponível apenas para rifas de até 200 cotas).
+                </span>
+              </div>
+            )}
           </div>
 
           <div>

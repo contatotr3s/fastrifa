@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   User,
   onAuthStateChanged,
@@ -38,6 +38,8 @@ interface AuthContextType {
 
 const LOCAL_USER_KEY = 'fastrifa_auth_user';
 const LOCAL_PROFILE_KEY = 'fastrifa_auth_profile';
+const AUTH_LOGOUT_EVENT_KEY = 'fastrifa_auth_logout_ts';
+const AUTH_SYNC_CHANNEL = 'fastrifa_auth_sync';
 
 function detectAuthProvider(fbUser: User | null | undefined): 'google' | 'password' {
   if (!fbUser?.providerData) return 'password';
@@ -62,10 +64,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | { uid: string; email: string | null } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const currentUserUidRef = useRef<string | null>(null);
+  currentUserUidRef.current = user?.uid ?? null;
+
+  const clearLocalSessionState = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(LOCAL_USER_KEY);
+      localStorage.removeItem(LOCAL_PROFILE_KEY);
+      localStorage.removeItem('fastrifa_theme');
+      const globalSystemTheme = localStorage.getItem('fastrifa_global_system_theme') || 'blue';
+      document.documentElement.setAttribute('data-theme', globalSystemTheme);
+    }
+    setUser(null);
+    setProfile(null);
+  }, []);
 
   useEffect(() => {
     // 1. Limpa resquícios de sessões mock antigas ou dados de teste indesejados
-    let hasLocalUser = false;
     if (typeof window !== 'undefined') {
       try {
         const savedUser = localStorage.getItem(LOCAL_USER_KEY);
@@ -91,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             setUser(parsedUser);
             setProfile(parsedProfile);
-            hasLocalUser = true;
             setLoading(false);
           }
         }
@@ -100,9 +114,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // 2. Monitora Firebase Auth oficial
+    // 2. Sincronização instantânea de logout/sessão entre abas
+    let channel: BroadcastChannel | null = null;
+    const handleRemoteLogout = () => {
+      clearLocalSessionState();
+      setLoading(false);
+      signOut(auth).catch(() => {});
+    };
+
+    if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+        channel.onmessage = (event) => {
+          if (event?.data?.type === 'LOGOUT') {
+            handleRemoteLogout();
+          }
+        };
+      } catch {
+        channel = null;
+      }
+    }
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === AUTH_LOGOUT_EVENT_KEY) {
+        handleRemoteLogout();
+        return;
+      }
+      if (e.key === LOCAL_USER_KEY) {
+        if (!e.newValue) {
+          handleRemoteLogout();
+          return;
+        }
+        try {
+          const nextUser = JSON.parse(e.newValue);
+          if (nextUser?.uid && nextUser.uid !== currentUserUidRef.current) {
+            setUser(nextUser);
+            const rawProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
+            setProfile(rawProfile ? JSON.parse(rawProfile) : null);
+          }
+        } catch {
+          handleRemoteLogout();
+        }
+      }
+    };
+
+    const verifySessionOnFocus = () => {
+      if (typeof window === 'undefined') return;
+      if (document.visibilityState === 'hidden') return;
+      if (!localStorage.getItem(LOCAL_USER_KEY) && currentUserUidRef.current) {
+        handleRemoteLogout();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('focus', verifySessionOnFocus);
+      document.addEventListener('visibilitychange', verifySessionOnFocus);
+    }
+
+    // 3. Monitora Firebase Auth oficial
+    let unsubscribeAuth: (() => void) | undefined;
     try {
-      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
           const isMaster = currentUser.email?.toLowerCase().trim() === MASTER_EMAIL;
           setUser(currentUser);
@@ -201,20 +274,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
           setLoading(false);
-        } else if (!hasLocalUser) {
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
         } else {
+          // Firebase Auth informou que não há usuário autenticado: limpa sempre o cache local
+          clearLocalSessionState();
           setLoading(false);
         }
       });
-
-      return () => unsubscribe();
     } catch {
       setLoading(false);
     }
-  }, []);
+
+    return () => {
+      if (unsubscribeAuth) unsubscribeAuth();
+      if (channel) {
+        try {
+          channel.close();
+        } catch {}
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('focus', verifySessionOnFocus);
+        document.removeEventListener('visibilitychange', verifySessionOnFocus);
+      }
+    };
+  }, [clearLocalSessionState]);
 
   async function login(email: string, pass: string): Promise<AuthResult> {
     const normalizedEmail = email.trim().toLowerCase();
@@ -504,21 +587,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
+    clearLocalSessionState();
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(AUTH_LOGOUT_EVENT_KEY, String(Date.now()));
+      } catch {}
+
+      if (typeof BroadcastChannel !== 'undefined') {
+        try {
+          const ch = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+          ch.postMessage({ type: 'LOGOUT', ts: Date.now() });
+          ch.close();
+        } catch {}
+      }
+    }
+
     try {
       await signOut(auth);
     } catch (e) {
       console.warn('SignOut error:', e);
     }
-
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(LOCAL_USER_KEY);
-      localStorage.removeItem(LOCAL_PROFILE_KEY);
-      localStorage.removeItem('fastrifa_theme');
-      const globalSystemTheme = localStorage.getItem('fastrifa_global_system_theme') || 'blue';
-      document.documentElement.setAttribute('data-theme', globalSystemTheme);
-    }
-    setUser(null);
-    setProfile(null);
   }
 
   return (

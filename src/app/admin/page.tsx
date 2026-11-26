@@ -289,7 +289,9 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {raffles.map((raffle) => (
+            {raffles.map((raffle) => {
+              const coverImage = raffle.prize_image_url || raffle.prize_images?.[0] || null;
+              return (
               <div
                 key={raffle.id}
                 className="ora-card rounded-[25px] p-5 sm:p-6 flex flex-col justify-between hover:border-[#97BAE7] transition shadow-sm"
@@ -298,9 +300,9 @@ export default function AdminDashboardPage() {
                   <div className="flex items-start gap-4 mb-3">
                     {/* Miniatura da Imagem da Rifa */}
                     <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-[18px] overflow-hidden bg-[#F2F7FF] border border-[#D9E5F7] flex-shrink-0 flex items-center justify-center">
-                      {raffle.prize_image_url ? (
+                      {coverImage ? (
                         <img
-                          src={raffle.prize_image_url}
+                          src={coverImage}
                           alt={raffle.title}
                           className="w-full h-full object-cover"
                         />
@@ -380,7 +382,8 @@ export default function AdminDashboardPage() {
                   </Link>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -28,6 +28,8 @@ export default function HybridSalesWelcomeModal({
 }: HybridSalesWelcomeModalProps) {
   if (!isOpen) return null;
 
+  const isVirtualOnly = raffle.total_tickets > 200;
+
   return (
     <div className="fixed inset-0 z-50 bg-[#0D1729]/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
       <div className="ora-card rounded-[24px] sm:rounded-[32px] max-w-xl w-full p-4 sm:p-8 space-y-5 sm:space-y-6 relative border-2 border-[var(--ora-border-strong,#B9E7D2)] shadow-[0_24px_60px_rgba(0,168,104,0.18)] my-auto max-h-[92vh] overflow-y-auto">
@@ -49,39 +51,77 @@ export default function HybridSalesWelcomeModal({
           </div>
 
           <h2 className="font-display font-black text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.03em] leading-tight">
-            Pronto para Vender Online e no Físico ao Mesmo Tempo!
+            {isVirtualOnly
+              ? 'Campanha Publicada em Modo Somente Virtual!'
+              : 'Pronto para Vender Online e no Físico ao Mesmo Tempo!'}
           </h2>
 
           <p className="text-sm sm:text-[15px] text-[#475872] leading-relaxed max-w-lg mx-auto">
-            Bolamos um jeito bacana e exclusivo para você potencializar suas vendas: você pode divulgar o link no WhatsApp e, se quiser, também <strong>imprimir uma cartela oficial de papel</strong> para vender no trabalho, família e comércio local.
+            {isVirtualOnly ? (
+              <>
+                Como esta campanha possui <strong>{raffle.total_tickets} números</strong> (acima de 200 cotas), ela funciona <strong>somente no modo virtual (online)</strong> — sem emissão de cartela física impressa. Divulgue seu link direto no WhatsApp!
+              </>
+            ) : (
+              <>
+                Bolamos um jeito bacana e exclusivo para você potencializar suas vendas: você pode divulgar o link no WhatsApp e, se quiser, também <strong>imprimir uma cartela oficial de papel</strong> para vender no trabalho, família e comércio local.
+              </>
+            )}
           </p>
         </div>
 
-        {/* Destaque da Solução Exclusiva */}
+        {/* Destaque da Solução */}
         <div className="p-4 sm:p-5 rounded-[24px] bg-gradient-to-br from-[#F3FAF6] to-white border border-[var(--ora-border,#D6EFE3)] space-y-3.5 shadow-xs">
           <div className="flex items-center gap-2.5 text-[var(--ora-blue,#00A868)] font-display font-bold text-sm">
             <Smartphone className="w-5 h-5 flex-shrink-0" />
-            <span>Checagem em Tempo Real via QR Code Inteligente</span>
+            <span>
+              {isVirtualOnly
+                ? 'Vendas 100% Online em Tempo Real'
+                : 'Checagem em Tempo Real via QR Code Inteligente'}
+            </span>
           </div>
 
           <div className="space-y-2.5 text-xs sm:text-[13px] text-[#334661] leading-relaxed">
-            <div className="flex items-start gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
-                1
-              </span>
-              <p>
-                <strong>Imprima a Cartela Física A4:</strong> Ela já vem com seu prêmio, fotos, suas cotas e as instruções prontas para circular de mão em mão.
-              </p>
-            </div>
+            {!isVirtualOnly ? (
+              <>
+                <div className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <p>
+                    <strong>Imprima a Cartela Física A4:</strong> Ela já vem com seu prêmio, fotos, suas cotas e as instruções prontas para circular de mão em mão.
+                  </p>
+                </div>
 
-            <div className="flex items-start gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
-                2
-              </span>
-              <p>
-                <strong>Zero risco de vender número repetido:</strong> A cartela tem um QR Code exclusivo do <em>Checador Físico</em>. Quem for comprar aponta a câmera, o sistema valida se a cota está livre na hora e calcula o PIX exato somado.
-              </p>
-            </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <p>
+                    <strong>Zero risco de vender número repetido:</strong> A cartela tem um QR Code exclusivo do <em>Checador Físico</em>. Quem for comprar aponta a câmera, o sistema valida se a cota está livre na hora e calcula o PIX exato somado.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <p>
+                    <strong>Compartilhe o link público:</strong> seus clientes escolhem os números da sorte diretamente pelo celular com seleção rápida automática.
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <p>
+                    <strong>Somente virtual acima de 200 números:</strong> campanhas com mais de 200 cotas não geram cartela física A4 para manter legibilidade e controle 100% digital.
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="flex items-start gap-2.5">
               <span className="w-5 h-5 rounded-full bg-[var(--ora-surface-alt,#E8F7F0)] text-[var(--ora-blue,#00A868)] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
@@ -96,23 +136,27 @@ export default function HybridSalesWelcomeModal({
 
         {/* Ações */}
         <div className="space-y-3 pt-1">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onOpenPrintModal();
-            }}
-            className="ora-btn-primary w-full py-4 px-6 rounded-[20px] font-bold text-[15px] sm:text-base flex items-center justify-center gap-2.5 shadow-md cursor-pointer transition active:scale-[0.98]"
-          >
-            <Printer className="w-5 h-5" />
-            <span>Ver Cartela e Imprimir Versão Física</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {!isVirtualOnly && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenPrintModal();
+              }}
+              className="ora-btn-primary w-full py-4 px-6 rounded-[20px] font-bold text-[15px] sm:text-base flex items-center justify-center gap-2.5 shadow-md cursor-pointer transition active:scale-[0.98]"
+            >
+              <Printer className="w-5 h-5" />
+              <span>Ver Cartela e Imprimir Versão Física</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             type="button"
             onClick={onClose}
-            className="ora-btn-secondary w-full py-3 px-5 rounded-[18px] font-bold text-sm text-[#475872] hover:text-[#0D1729] flex items-center justify-center gap-2 cursor-pointer transition"
+            className={`${
+              isVirtualOnly ? 'ora-btn-primary text-white' : 'ora-btn-secondary text-[#475872] hover:text-[#0D1729]'
+            } w-full py-3.5 px-5 rounded-[18px] font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition`}
           >
             <span>Ir para Gerenciamento da Rifa</span>
           </button>

@@ -9,8 +9,6 @@ import {
   ArrowRight,
   CheckCircle2,
   UserCheck,
-  MessageCircle,
-  ShieldCheck,
   Mail,
 } from 'lucide-react';
 
@@ -180,37 +178,37 @@ export default function HomePage() {
         </section>
 
         {/* Section 2: Interactive Live Demo Stage (Ajustado à dimensão da tela) */}
-        <section id="campanha-ao-vivo" className="ora-section-seam scroll-mt-20 py-3 sm:py-6 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-4 sm:px-8">
+        <section id="campanha-ao-vivo" className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-3.5 sm:px-8">
           <div className="max-w-[1280px] w-full mx-auto">
-            <div className="ora-demo-stage rounded-[24px] lg:rounded-[30px] p-4 sm:p-6 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 lg:gap-8 items-center">
+            <div className="ora-demo-stage rounded-[22px] lg:rounded-[30px] p-3.5 sm:p-5 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
-                <div className="lg:col-span-5 space-y-2 sm:space-y-3 lg:space-y-4 text-center lg:text-left">
-                  <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
+                <div className="lg:col-span-5 space-y-1.5 sm:space-y-2.5 lg:space-y-4 text-center lg:text-left">
+                  <span className="text-[#0869f5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
                     Experiência do Comprador
                   </span>
-                  <h2 className="font-display font-bold text-[1.35rem] sm:text-[1.7rem] lg:text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.12] tracking-[-0.035em] text-[#0D1729]">
+                  <h2 className="font-display font-bold text-[1.18rem] sm:text-[1.55rem] lg:text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.1] tracking-[-0.035em] text-[#0D1729]">
                     Pro seu cliente é vapt-vupt: escolheu, pagou no PIX, confirmou.
                   </h2>
-                  <p className="text-[12.5px] sm:text-[14px] lg:text-[15.5px] text-[#475872] leading-[1.42] lg:leading-[1.55] max-w-xl mx-auto lg:mx-0">
+                  <p className="text-[11.5px] sm:text-[13.5px] lg:text-[15.5px] text-[#475872] leading-[1.36] lg:leading-[1.55] max-w-xl mx-auto lg:mx-0">
                     Zero atrito. O comprador não precisa baixar nenhum aplicativo e nem criar conta com senha. Ele abre o seu link no celular, escolhe os números da sorte em segundos e já te manda o comprovante no WhatsApp.
                   </p>
 
                   <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 pt-0.5 lg:pt-1 inline-flex flex-col items-start text-left mx-auto lg:mx-0">
-                    <div className="flex items-center gap-2 lg:gap-2.5 text-[12px] sm:text-[13.5px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
-                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[10px] lg:text-[11px] font-bold shrink-0">
+                    <div className="flex items-center gap-1.5 lg:gap-2.5 text-[11px] sm:text-[13px] lg:text-[14px] leading-tight lg:leading-snug font-medium text-[#14213A]">
+                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[9.5px] lg:text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Grade interativa com números livres e ocupados em tempo real</span>
                     </div>
-                    <div className="flex items-center gap-2 lg:gap-2.5 text-[12px] sm:text-[13.5px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
-                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[10px] lg:text-[11px] font-bold shrink-0">
+                    <div className="flex items-center gap-1.5 lg:gap-2.5 text-[11px] sm:text-[13px] lg:text-[14px] leading-tight lg:leading-snug font-medium text-[#14213A]">
+                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[9.5px] lg:text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Seleção rápida da sorte (+5, +10, +25, +50 cotas com um toque)</span>
                     </div>
-                    <div className="flex items-center gap-2 lg:gap-2.5 text-[12px] sm:text-[13.5px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
-                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[10px] lg:text-[11px] font-bold shrink-0">
+                    <div className="flex items-center gap-1.5 lg:gap-2.5 text-[11px] sm:text-[13px] lg:text-[14px] leading-tight lg:leading-snug font-medium text-[#14213A]">
+                      <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0869F5] text-white flex items-center justify-center text-[9.5px] lg:text-[11px] font-bold shrink-0">
                         ✓
                       </span>
                       <span>Chave PIX copiada com 1 clique e envio do comprovante no zap</span>
@@ -220,7 +218,7 @@ export default function HomePage() {
                   <div className="pt-1 lg:pt-2 flex justify-center lg:justify-start">
                     <Link
                       href="/cadastro"
-                      className="ora-btn-primary rounded-[18px] px-5 py-2.5 lg:px-6 lg:py-3 text-[13.5px] lg:text-[14.5px] font-bold inline-flex items-center gap-2"
+                      className="ora-btn-primary rounded-[16px] lg:rounded-[18px] px-4 py-2 lg:px-6 lg:py-3 text-[12.5px] lg:text-[14.5px] font-bold inline-flex items-center gap-2"
                     >
                       <span>Criar Minha Rifa Agora</span>
                       <ArrowUpRight className="w-4 h-4" />
@@ -245,10 +243,9 @@ export default function HomePage() {
           <div className="max-w-[1160px] mx-auto">
             <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 text-[#0869f5] text-xs font-bold tracking-wider uppercase">
-                  <ShieldCheck className="w-4 h-4 text-[#0869f5]" />
-                  <span>Dinheiro Direto na Sua Conta Bancária</span>
-                </div>
+                <span className="block text-[#0869f5] text-xs font-bold tracking-wider uppercase">
+                  Dinheiro Direto na Sua Conta Bancária
+                </span>
                 <h2 className="font-display font-bold text-[clamp(1.85rem,3.2vw,2.75rem)] leading-[1.1] tracking-[-0.04em] text-[#0D1729]">
                   Zero taxa sobre suas vendas. Sem esperar 30 dias para sacar.
                 </h2>
@@ -256,20 +253,13 @@ export default function HomePage() {
                   Enquanto outras plataformas seguram o seu dinheiro por semanas e cobram comissões por bilhete, na FastRifa o comprador paga diretamente na sua chave PIX. Caiu na conta, é seu. Tudo vapt-vupt.
                 </p>
               </div>
-              <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3">
+              <div className="lg:col-span-4 flex flex-col justify-center">
                 <Link
                   href="/cadastro"
                   className="ora-btn-primary rounded-[18px] px-6 py-4 text-center text-[16px] font-bold flex items-center justify-center gap-2"
                 >
                   <span>Criar Rifa Rápida Agora</span>
                   <ArrowUpRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  href="/login"
-                  className="ora-btn-secondary rounded-[18px] px-6 py-3.5 text-center text-[15px] font-semibold flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4 text-[#0869F5]" />
-                  <span>Acessar Meu Painel</span>
                 </Link>
               </div>
             </div>
@@ -363,8 +353,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Links & Contact */}
-          <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-6 font-medium text-xs sm:text-sm">
+          {/* Contact */}
+          <div className="flex flex-wrap items-center justify-center font-medium text-xs sm:text-sm">
             <a
               href="mailto:contatotr3s@gmail.com"
               className="inline-flex items-center gap-1.5 text-[#526480] hover:text-[#0869F5] transition"
@@ -373,15 +363,6 @@ export default function HomePage() {
               <Mail className="w-4 h-4 text-[#0869F5]" />
               <span>contatotr3s@gmail.com</span>
             </a>
-            <Link href="/admin" className="hover:text-[#0869F5] transition">
-              Painel
-            </Link>
-            <Link href="/login" className="hover:text-[#0869F5] transition">
-              Entrar
-            </Link>
-            <Link href="/cadastro" className="hover:text-[#0869F5] transition">
-              Criar Conta
-            </Link>
           </div>
 
           {/* Back to top button na extremidade direita */}
