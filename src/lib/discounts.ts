@@ -11,6 +11,128 @@ export const DEFAULT_PROGRESSIVE_TIERS: DiscountTier[] = [
 
 export const DEFAULT_ROULETTE_OPTIONS: number[] = [5, 10, 15, 20];
 
+export const ROULETTE_WEIGHT_PRESETS: Record<number, number[]> = {
+  2: [75, 25],
+  3: [60, 30, 10],
+  4: [55, 25, 15, 5],
+  5: [45, 25, 15, 10, 5],
+  6: [40, 24, 16, 10, 6, 4],
+};
+
+export interface RouletteSliceProbability {
+  index: number;
+  percent: number;
+  baseWeight: number;
+  eligible: boolean;
+  probability: number;
+}
+
+export interface RouletteSpinDistribution {
+  entries: RouletteSliceProbability[];
+  eligibleEntries: RouletteSliceProbability[];
+  minEligiblePercent: number | null;
+  maxOption: number;
+  hasHigherOption: boolean;
+}
+
+export function getRouletteSpinDistribution(
+  options?: number[] | null,
+  minExclusivePercent?: number | null
+): RouletteSpinDistribution {
+  const safeOptions =
+    options && options.length >= 2
+      ? options.slice(0, 6).map((opt) => clampPercent(opt))
+      : DEFAULT_ROULETTE_OPTIONS;
+
+  const weights =
+    ROULETTE_WEIGHT_PRESETS[safeOptions.length] ||
+    safeOptions.map((_, idx) => Math.max(1, safeOptions.length - idx));
+
+  const sortedIndices = safeOptions
+    .map((pct, index) => ({ pct, index }))
+    .sort((a, b) => (a.pct !== b.pct ? a.pct - b.pct : a.index - b.index));
+
+  const baseWeightByIndex = new Array<number>(safeOptions.length).fill(1);
+  sortedIndices.forEach((item, rank) => {
+    baseWeightByIndex[item.index] = weights[rank] ?? 1;
+  });
+
+  const minFloor =
+    minExclusivePercent != null && minExclusivePercent > 0
+      ? Number(minExclusivePercent)
+      : null;
+
+  const rawEntries = safeOptions.map((percent, index) => {
+    const eligible = minFloor !== null ? percent > minFloor : true;
+    return {
+      index,
+      percent,
+      baseWeight: baseWeightByIndex[index],
+      eligible,
+      probability: 0,
+    };
+  });
+
+  const totalEligibleWeight = rawEntries.reduce(
+    (sum, item) => (item.eligible ? sum + item.baseWeight : sum),
+    0
+  );
+
+  const entries: RouletteSliceProbability[] = rawEntries.map((item) => ({
+    ...item,
+    probability:
+      item.eligible && totalEligibleWeight > 0
+        ? item.baseWeight / totalEligibleWeight
+        : 0,
+  }));
+
+  const eligibleEntries = entries.filter((e) => e.eligible);
+  const minEligiblePercent =
+    eligibleEntries.length > 0
+      ? Math.min(...eligibleEntries.map((e) => e.percent))
+      : null;
+  const maxOption = Math.max(...safeOptions);
+
+  return {
+    entries,
+    eligibleEntries,
+    minEligiblePercent,
+    maxOption,
+    hasHigherOption: eligibleEntries.length > 0,
+  };
+}
+
+export function pickWeightedRouletteSlice(
+  options?: number[] | null,
+  minExclusivePercent?: number | null
+): { index: number; percent: number } | null {
+  const { eligibleEntries } = getRouletteSpinDistribution(
+    options,
+    minExclusivePercent
+  );
+  if (eligibleEntries.length === 0) return null;
+
+  let rand = 0;
+  if (typeof globalThis !== 'undefined' && globalThis.crypto?.getRandomValues) {
+    const buf = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(buf);
+    rand = buf[0] / 4294967296;
+  } else {
+    rand = Math.random();
+  }
+
+  let cumulative = 0;
+  for (const entry of eligibleEntries) {
+    cumulative += entry.probability;
+    if (rand < cumulative) {
+      return { index: entry.index, percent: entry.percent };
+    }
+  }
+
+  const fallback = eligibleEntries[eligibleEntries.length - 1];
+  return { index: fallback.index, percent: fallback.percent };
+}
+
 export const DEFAULT_DISCOUNT_CONFIG: RaffleDiscountConfig = {
   mode: 'none',
   tiers: DEFAULT_PROGRESSIVE_TIERS,

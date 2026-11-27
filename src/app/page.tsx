@@ -5,6 +5,7 @@ import HowItWorksShowcase from '@/components/how-it-works-showcase';
 import ScrollToTopButton from '@/components/scroll-to-top-button';
 import FacildanTextoDinamico from '@/components/facildan-texto-dinamico';
 import HomeHeaderActions from '@/components/home-header-actions';
+import RouletteSalesShowcase from '@/components/roulette-sales-showcase';
 import {
   ArrowUpRight,
   ArrowRight,
@@ -68,6 +69,9 @@ export default function HomePage() {
           >
             <a href="#como-funciona" className="ora-nav-link">
               Como funciona
+            </a>
+            <a href="#roleta-de-vendas" className="ora-nav-link">
+              Roleta de Vendas
             </a>
             <a href="#campanha-ao-vivo" className="ora-nav-link">
               Demonstração
@@ -223,6 +227,9 @@ export default function HomePage() {
 
         {/* Section 3: How It Works (4 Practical Steps — Interactive Showcase) */}
         <HowItWorksShowcase />
+
+        {/* Section 3.5: Progressive Discount Roulette Sales Engine */}
+        <RouletteSalesShowcase />
 
         {/* Section 4: Transparency & Direct PIX Highlight */}
         <section id="transparencia" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
