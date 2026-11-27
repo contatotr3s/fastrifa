@@ -4,6 +4,16 @@ export type RaffleStatus = 'draft' | 'active' | 'paused' | 'completed' | 'cancel
 
 export type OrderStatus = 'pending' | 'paid' | 'cancelled';
 
+export type PartnerCommissionType = 'negotiable' | 'percent' | 'fixed_per_ticket';
+
+export type PartnerInviteStatus = 'pending' | 'used' | 'revoked';
+
+export type RafflePartnerStatus = 'active' | 'paused' | 'revoked';
+
+export type PartnerPayoutStatus = 'pending_confirmation' | 'confirmed';
+
+export type OrderSaleChannel = 'public' | 'organizer_direct' | 'partner';
+
 export type UserRole = 'organizer' | 'master';
 
 export type DiscountMode = 'none' | 'progressive' | 'buy_x_pay_y' | 'simple' | 'roulette';
@@ -112,8 +122,71 @@ export interface Order {
   discount_amount?: number;
   discount_label?: string | null;
   status: OrderStatus;
+  sale_channel?: OrderSaleChannel;
+  partner_id?: string | null;
+  partner_name?: string | null;
+  commission_type?: PartnerCommissionType | null;
+  commission_value?: number | null;
+  commission_amount?: number | null;
   created_at: string;
   paid_at?: string | null;
+}
+
+export interface PartnerInvite {
+  id: string;
+  raffle_id: string;
+  organizer_id: string;
+  raffle_title: string;
+  brand_name?: string | null;
+  commission_type: PartnerCommissionType;
+  commission_value: number;
+  prefill_name?: string | null;
+  prefill_cpf?: string | null;
+  prefill_phone?: string | null;
+  source_partner_id?: string | null;
+  status: PartnerInviteStatus;
+  used_by_partner_id?: string | null;
+  used_at?: string | null;
+  created_at: string;
+  expires_at: string;
+  expires_at_ms: number;
+  expires_at_ts?: unknown;
+}
+
+export interface RafflePartner {
+  id: string;
+  invite_id: string;
+  raffle_id: string;
+  organizer_id: string;
+  full_name: string;
+  cpf: string;
+  cpf_last4: string;
+  phone_whatsapp: string;
+  commission_type: PartnerCommissionType;
+  commission_value: number;
+  status: RafflePartnerStatus;
+  settled_commission_amount?: number;
+  confirmed_payout_amount?: number;
+  payout_ids?: string[];
+  last_settled_at?: string | null;
+  last_confirmed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PartnerPayout {
+  id: string;
+  raffle_id: string;
+  raffle_title: string;
+  organizer_id: string;
+  partner_id: string;
+  partner_name: string;
+  partner_cpf: string;
+  amount: number;
+  note?: string | null;
+  status: PartnerPayoutStatus;
+  created_at: string;
+  confirmed_at?: string | null;
 }
 
 export interface OccupiedTicket {

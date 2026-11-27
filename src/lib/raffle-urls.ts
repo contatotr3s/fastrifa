@@ -121,23 +121,66 @@ export function getRaffleAdminPath(
 }
 
 /**
+ * Retorna a origem pública usada em links compartilháveis e QR Codes
+ * (nunca codifica localhost/127.0.0.1).
+ */
+export function getShareOrigin(): string {
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    return window.location.origin;
+  }
+  return 'https://fastrifa.vercel.app';
+}
+
+/**
+ * Retorna o caminho de gestão de parceiros da rifa no painel admin.
+ */
+export function getRafflePartnersAdminPath(
+  raffle: Pick<Raffle, 'id' | 'slug' | 'prize_keyword' | 'short_code'>
+): string {
+  return `${getRaffleAdminPath(raffle)}/parceiros`;
+}
+
+/**
+ * Retorna o caminho público do convite único de 24h do parceiro.
+ */
+export function getPartnerInvitePath(token: string): string {
+  return `/parceiro/convite/${token}`;
+}
+
+/**
+ * Retorna o caminho exclusivo de checkout do parceiro.
+ */
+export function getPartnerCheckoutPath(token: string): string {
+  return `/parceiro/${token}`;
+}
+
+/**
+ * Retorna o caminho para o parceiro confirmar o recebimento de comissão.
+ */
+export function getPartnerPayoutConfirmPath(payoutToken: string): string {
+  return `/parceiro/confirmar-pagamento/${payoutToken}`;
+}
+
+/**
+ * Retorna o caminho de checkout direto do organizador autenticado.
+ */
+export function getOrganizerDirectCheckoutPath(
+  raffle: Pick<Raffle, 'slug' | 'brand_slug' | 'brand_name' | 'prize_keyword' | 'short_code'>
+): string {
+  return `${getRafflePixPath(raffle)}?canal=organizador`;
+}
+
+/**
  * Retorna a URL pública completa da rifa (nunca codifica localhost para QR Codes/WhatsApp).
  */
 export function getRafflePublicUrl(
   raffle: Pick<Raffle, 'slug' | 'brand_slug' | 'brand_name' | 'prize_keyword' | 'short_code'>,
   originOverride?: string
 ): string {
-  let origin = originOverride;
-  if (!origin) {
-    if (
-      typeof window !== 'undefined' &&
-      window.location.hostname !== 'localhost' &&
-      window.location.hostname !== '127.0.0.1'
-    ) {
-      origin = window.location.origin;
-    } else {
-      origin = 'https://fastrifa.vercel.app';
-    }
-  }
+  const origin = originOverride || getShareOrigin();
   return `${origin}${getRafflePublicPath(raffle)}`;
 }
