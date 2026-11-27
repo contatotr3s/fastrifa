@@ -604,13 +604,13 @@ export default function HowItWorksShowcase() {
         <div
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          className="hidden lg:grid lg:grid-cols-12 gap-5 items-stretch ora-card rounded-[28px] p-4 xl:p-5 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]"
+          className="hidden lg:flex gap-5 items-stretch ora-card rounded-[28px] p-4 xl:p-5 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]"
         >
           {/* Coluna Esquerda: Stepper Interativo */}
           <div
             role="tablist"
             aria-label="Etapas de funcionamento da FastRifa"
-            className="lg:col-span-5 flex flex-col justify-between gap-2"
+            className="lg:w-[calc(41.666667%-11.6667px)] lg:shrink-0 min-w-0 flex flex-col justify-between gap-2"
           >
             {STEPS.map((step, index) => {
               const Icon = step.icon;
@@ -696,7 +696,7 @@ export default function HowItWorksShowcase() {
             id={`panel-${currentStep.id}`}
             role="tabpanel"
             aria-labelledby={`tab-${currentStep.id}`}
-            className="lg:col-span-7 relative rounded-[22px] bg-gradient-to-br from-[#F5F9FF] via-[#EDF5FF] to-[#E8F7F0]/75 border border-[#D9E5F7] p-4 xl:p-5 flex flex-col justify-between min-h-[330px] xl:min-h-[360px] overflow-hidden"
+            className="lg:flex-1 min-w-0 relative rounded-[22px] bg-gradient-to-br from-[#F5F9FF] via-[#EDF5FF] to-[#E8F7F0]/75 border border-[#D9E5F7] p-4 xl:p-5 flex flex-col justify-between min-h-[330px] xl:min-h-[360px] overflow-hidden"
           >
             {/* Ambient Radial Glows */}
             <div

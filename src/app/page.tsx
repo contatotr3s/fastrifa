@@ -89,9 +89,9 @@ export default function HomePage() {
       <main className="flex-1">
         <section className="ora-hero-stage pt-2 pb-8 sm:pt-3 sm:pb-14 px-4 sm:px-8 relative overflow-hidden min-h-[calc(100svh-72px)] flex flex-col justify-center">
           <div className="max-w-[1400px] w-full mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 items-center relative">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
-              <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left space-y-2.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
+              <div className="w-full lg:w-1/2 lg:shrink-0 text-center lg:text-left space-y-2.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
                 <h1 className="font-display tracking-[-0.04em]">
                   <span className="block text-lg sm:text-2xl lg:text-[1.85rem] font-bold text-[#0D1729] mb-1 tracking-[-0.03em]">
                     Crie, divulgue e venda.
@@ -119,7 +119,7 @@ export default function HomePage() {
                 </p>
 
                 {/* 3D Orbital Scene no modo responsivo (harmonizada no fluxo mobile) */}
-                <div className="block lg:hidden -my-1.5 sm:my-0 w-full overflow-visible pointer-events-none">
+                <div className="block lg:hidden -my-1.5 sm:my-0 w-full overflow-visible">
                   <HeroOrbitScene variant="mobile" />
                 </div>
 
@@ -156,7 +156,7 @@ export default function HomePage() {
               </div>
 
               {/* Right Column: 3D Orbital Scene side-by-side no desktop (lower layer z-10) */}
-              <div className="hidden lg:flex lg:col-span-6 xl:col-span-6 items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible pointer-events-none">
+              <div className="hidden lg:flex w-full lg:flex-1 min-w-0 items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible">
                 <HeroOrbitScene variant="desktop" />
               </div>
             </div>
@@ -167,9 +167,9 @@ export default function HomePage() {
         <section id="campanha-ao-vivo" className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-3.5 sm:px-8">
           <div className="max-w-[1280px] w-full mx-auto">
             <div className="ora-demo-stage rounded-[22px] lg:rounded-[30px] p-3.5 sm:p-5 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-8 items-center">
+              <div className="flex flex-col lg:flex-row gap-2.5 sm:gap-4 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
-                <div className="lg:col-span-5 space-y-1.5 sm:space-y-2.5 lg:space-y-4 text-center lg:text-left">
+                <div className="w-full lg:w-[calc(41.666667%-18.6667px)] lg:shrink-0 min-w-0 space-y-1.5 sm:space-y-2.5 lg:space-y-4 text-center lg:text-left">
                   <span className="text-[#0869f5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
                     Experiência do Comprador
                   </span>
@@ -213,7 +213,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Right Animated Soft-Frame Print Showcase */}
-                <div className="lg:col-span-7 flex items-center justify-center">
+                <div className="w-full lg:flex-1 min-w-0 flex items-center justify-center">
                   <GradePrintShowcase />
                 </div>
               </div>
@@ -227,8 +227,8 @@ export default function HomePage() {
         {/* Section 4: Transparency & Direct PIX Highlight */}
         <section id="transparencia" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
           <div className="max-w-[1160px] mx-auto">
-            <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
+            <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] flex flex-col lg:flex-row gap-8 items-center">
+              <div className="w-full lg:w-[calc(66.666667%-10.6667px)] lg:shrink-0 min-w-0 space-y-4 text-center lg:text-left">
                 <span className="block text-[#0869f5] text-xs font-bold tracking-wider uppercase">
                   Dinheiro Direto na Sua Conta Bancária
                 </span>
@@ -239,7 +239,7 @@ export default function HomePage() {
                   Enquanto outras plataformas seguram o seu dinheiro por semanas e cobram comissões por bilhete, na FastRifa o comprador paga diretamente na sua chave PIX. Caiu na conta, é seu. Tudo vapt-vupt.
                 </p>
               </div>
-              <div className="lg:col-span-4 flex flex-col justify-center">
+              <div className="w-full lg:flex-1 min-w-0 flex flex-col justify-center">
                 <Link
                   href="/cadastro"
                   className="ora-btn-primary rounded-[18px] px-6 py-4 text-center text-[16px] font-bold flex items-center justify-center gap-2"
@@ -254,8 +254,8 @@ export default function HomePage() {
 
         {/* Section 5: FAQ Section (Oratry Sticky Split Layout + Mobile Stacking Deck) */}
         <section id="perguntas" className="ora-section-seam scroll-mt-20 py-12 sm:py-16 lg:py-20 px-4 sm:px-8">
-          <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
-            <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4 text-center lg:text-left max-w-xl mx-auto lg:mx-0 lg:max-w-none">
+          <div className="max-w-[1240px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
+            <div className="w-full lg:w-[calc(41.666667%-23.3333px)] lg:shrink-0 min-w-0 lg:sticky lg:top-28 space-y-4 text-center lg:text-left max-w-xl mx-auto lg:mx-0 lg:max-w-none">
               <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
                 Tira-Dúvidas Rápido
               </span>
@@ -267,7 +267,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="lg:col-span-7 space-y-6 lg:space-y-4 pb-6 lg:pb-0">
+            <div className="w-full lg:flex-1 min-w-0 space-y-6 lg:space-y-4 pb-6 lg:pb-0">
               {faqs.map((item, idx) => (
                 <div
                   key={idx}
