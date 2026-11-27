@@ -29,6 +29,7 @@ import {
   Tag,
   Home,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import { useTheme } from '@/lib/theme-context';
@@ -40,10 +41,11 @@ import {
   subscribeToRaffleOrders,
 } from '@/lib/firebase/raffles';
 import {
-  getRafflePixPath,
+  getRafflePartnersAdminPath,
   getRafflePublicPath,
   getRafflePublicUrl,
 } from '@/lib/raffle-urls';
+import { calculateOrderCommission } from '@/lib/partner-finance';
 import SocialShareModal from '@/components/social-share-modal';
 import DrawRouletteModal from '@/components/draw-roulette-modal';
 import PhysicalCardModal from '@/components/physical-card-modal';
@@ -69,6 +71,7 @@ export default function RaffleManager({ raffle: initialRaffle, initialOrders }: 
   const [raffle, setCurrentRaffle] = useState<Raffle>(initialRaffle);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'cancelled'>('all');
+  const [channelFilter, setChannelFilter] = useState<'all' | 'public' | 'organizer_direct' | 'partner'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -310,17 +313,42 @@ Entre em contato para combinarmos a entrega do seu prêmio.
     ? `https://wa.me/55${winnerPhone}?text=${encodeURIComponent(winnerWhatsappMessage)}`
     : null;
 
+  function getOrderChannel(order: Order): 'public' | 'organizer_direct' | 'partner' {
+    if (order.sale_channel) return order.sale_channel;
+    return order.partner_id ? 'partner' : 'public';
+  }
+
+  function getOrderCommissionAmount(order: Order): number {
+    if (typeof order.commission_amount === 'number' && Number.isFinite(order.commission_amount)) {
+      return Math.max(0, order.commission_amount);
+    }
+    return calculateOrderCommission({
+      totalAmount: order.total_amount,
+      ticketCount: Array.isArray(order.ticket_numbers) ? order.ticket_numbers.length : 0,
+      commissionType: order.commission_type ?? 'negotiable',
+      commissionValue: order.commission_value ?? 0,
+    });
+  }
+
+  const publicOrdersCount = orders.filter((o) => getOrderChannel(o) === 'public').length;
+  const organizerDirectOrdersCount = orders.filter((o) => getOrderChannel(o) === 'organizer_direct').length;
+  const partnerOrdersCount = orders.filter((o) => getOrderChannel(o) === 'partner').length;
+
   const filteredOrders = orders.filter((o) => {
     // 1. Filtro por status
     if (filter !== 'all' && o.status !== filter) return false;
 
-    // 2. Filtro por texto / telefone / cota
+    // 2. Filtro por canal de venda
+    if (channelFilter !== 'all' && getOrderChannel(o) !== channelFilter) return false;
+
+    // 3. Filtro por texto / telefone / cota / parceiro
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       const cleanPhone = (o.buyer_phone || '').replace(/\D/g, '');
       const cleanDigits = q.replace(/\D/g, '');
 
       const nameMatch = (o.buyer_name || '').toLowerCase().includes(q);
+      const partnerMatch = (o.partner_name || '').toLowerCase().includes(q);
       const phoneMatch = cleanDigits ? cleanPhone.includes(cleanDigits) : false;
       const ticketMatch = o.ticket_numbers.some((num) => {
         const numStr = num.toString();
@@ -328,7 +356,7 @@ Entre em contato para combinarmos a entrega do seu prêmio.
         return numStr === cleanDigits || numPadded === cleanDigits || numStr.includes(q);
       });
 
-      return nameMatch || phoneMatch || ticketMatch;
+      return nameMatch || partnerMatch || phoneMatch || ticketMatch;
     }
 
     return true;
@@ -505,7 +533,7 @@ Entre em contato para combinarmos a entrega do seu prêmio.
                 }`}
               >
                 {isVirtualOnly ? (
-                  <AlertCircle className="w-5 h-5" />
+                  <Users className="w-5 h-5" />
                 ) : (
                   <Printer className="w-5 h-5" />
                 )}
@@ -524,44 +552,41 @@ Entre em contato para combinarmos a entrega do seu prêmio.
                 </span>
                 <h3 className="font-display font-bold text-[15px] sm:text-base text-[#0D1729] tracking-[-0.02em] mt-1">
                   {isVirtualOnly
-                    ? 'Campanha Exclusivamente Online'
-                    : 'Cartela Física para Impressão (PDF A4)'}
+                    ? 'Campanha Online + Checkout para Parceiros'
+                    : 'Cartela Física (PDF A4) e Checkout para Parceiros'}
                 </h3>
                 <p className="text-xs text-[#526480] leading-relaxed mt-0.5">
                   {isVirtualOnly
-                    ? 'Campanhas acima de 200 números operam exclusivamente no modo digital. A emissão de cartela impressa A4 está disponível para rifas de até 200 cotas.'
-                    : 'Gere a cartela física estilizada em PDF (2 páginas) com QR Code da rifa e acompanhe vendas presenciais em tempo real no Checador Físico.'}
+                    ? 'Campanhas acima de 200 números operam no modo digital com suporte completo ao Checkout para Parceiros. A emissão de cartela impressa A4 fica disponível para rifas de até 200 cotas.'
+                    : 'Gere a cartela física estilizada em PDF (2 páginas A4) com QR Code da rifa e gerencie sua rede de vendedores no Checkout para Parceiros.'}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <Link
+                href={getRafflePartnersAdminPath(raffle)}
+                className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5"
+              >
+                <Users className="w-3.5 h-3.5 text-[#0869F5]" />
+                <span>Checkout para Parceiros</span>
+              </Link>
+
               {isVirtualOnly ? (
                 <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] text-[#64748B] text-xs font-semibold">
                   <Printer className="w-3.5 h-3.5 opacity-60" />
                   <span>Impressão até 200 cotas</span>
                 </span>
               ) : (
-                <>
-                  <Link
-                    href={getRafflePixPath(raffle)}
-                    target="_blank"
-                    className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5 text-[#0869F5]" />
-                    <span>Abrir Checador Físico</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPhysicalCardModal(true)}
-                    title="Gerar cartela física em PDF (2 páginas A4)"
-                    className="ora-btn-primary rounded-full px-5 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Gerar Cartela</span>
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={() => setShowPhysicalCardModal(true)}
+                  title="Gerar cartela física em PDF (2 páginas A4)"
+                  className="ora-btn-primary rounded-full px-5 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Gerar Cartela</span>
+                </button>
               )}
             </div>
           </div>
@@ -686,40 +711,89 @@ Entre em contato para combinarmos a entrega do seu prêmio.
           </div>
 
           {/* Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-[#F5F9FF] p-1.5 rounded-[18px] border border-[#E0E9F7]">
-            <button
-              type="button"
-              onClick={() => setFilter('all')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
-                filter === 'all'
-                  ? 'bg-white text-[#0869F5] shadow-sm'
-                  : 'text-[#475872] hover:text-[#0D1729]'
-              }`}
-            >
-              Todos ({orders.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter('pending')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
-                filter === 'pending'
-                  ? 'bg-white text-[#9A6700] shadow-sm'
-                  : 'text-[#475872] hover:text-[#0D1729]'
-              }`}
-            >
-              Pendentes ({pendingOrders.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter('paid')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
-                filter === 'paid'
-                  ? 'bg-white text-[#0869F5] shadow-sm'
-                  : 'text-[#475872] hover:text-[#0D1729]'
-              }`}
-            >
-              Confirmados ({paidOrders.length})
-            </button>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 bg-[#F5F9FF] p-1.5 rounded-[18px] border border-[#E0E9F7]">
+              <button
+                type="button"
+                onClick={() => setFilter('all')}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
+                  filter === 'all'
+                    ? 'bg-white text-[#0869F5] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Todos ({orders.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilter('pending')}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
+                  filter === 'pending'
+                    ? 'bg-white text-[#9A6700] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Pendentes ({pendingOrders.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilter('paid')}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-[14px] transition cursor-pointer ${
+                  filter === 'paid'
+                    ? 'bg-white text-[#0869F5] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Confirmados ({paidOrders.length})
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 bg-[#F5F9FF] p-1.5 rounded-[18px] border border-[#E0E9F7]">
+              <button
+                type="button"
+                onClick={() => setChannelFilter('all')}
+                className={`px-3 py-1.5 text-[11px] font-bold rounded-[14px] transition cursor-pointer ${
+                  channelFilter === 'all'
+                    ? 'bg-white text-[#0869F5] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Todos os Canais
+              </button>
+              <button
+                type="button"
+                onClick={() => setChannelFilter('public')}
+                className={`px-3 py-1.5 text-[11px] font-bold rounded-[14px] transition cursor-pointer ${
+                  channelFilter === 'public'
+                    ? 'bg-white text-[#0869F5] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Venda Pública ({publicOrdersCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setChannelFilter('organizer_direct')}
+                className={`px-3 py-1.5 text-[11px] font-bold rounded-[14px] transition cursor-pointer ${
+                  channelFilter === 'organizer_direct'
+                    ? 'bg-white text-[#0869F5] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Checkout Direto ({organizerDirectOrdersCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setChannelFilter('partner')}
+                className={`px-3 py-1.5 text-[11px] font-bold rounded-[14px] transition cursor-pointer ${
+                  channelFilter === 'partner'
+                    ? 'bg-white text-[#00A868] shadow-sm'
+                    : 'text-[#475872] hover:text-[#0D1729]'
+                }`}
+              >
+                Parceiros ({partnerOrdersCount})
+              </button>
+            </div>
           </div>
         </div>
 
@@ -798,6 +872,11 @@ Entre em contato para combinarmos a entrega do seu prêmio.
           <div className="space-y-3">
             {filteredOrders.map((order) => {
               const cleanPhone = (order.buyer_phone || '').replace(/\D/g, '');
+              const channel = getOrderChannel(order);
+              const commissionLabel =
+                order.commission_type === 'negotiable'
+                  ? 'A combinar'
+                  : `Comissão: R$ ${getOrderCommissionAmount(order).toFixed(2)}`;
 
               return (
                 <div
@@ -818,6 +897,22 @@ Entre em contato para combinarmos a entrega do seu prêmio.
                         <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
                         <span>{order.buyer_phone}</span>
                       </a>
+
+                      {channel === 'partner' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] text-[10.5px] font-bold">
+                          <span>Parceiro: {order.partner_name || 'Parceiro'}</span>
+                          <span className="opacity-60">•</span>
+                          <span>{commissionLabel}</span>
+                        </span>
+                      ) : channel === 'organizer_direct' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] text-[10.5px] font-bold">
+                          Checkout Direto
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F5F9FF] border border-[#E0E9F7] text-[#526480] text-[10.5px] font-bold">
+                          Venda Pública
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[#475872] tabular-nums">

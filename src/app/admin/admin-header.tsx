@@ -22,7 +22,7 @@ export default function AdminHeader() {
   const isRaffleDetailsPage =
     Boolean(pathname?.startsWith('/admin/rifas/')) && !isNewRafflePage;
 
-  // Em /admin/rifas/nova, /admin e /admin/rifas/[id] (organizador logado),
+  // Em /admin/rifas/nova, /admin, /admin/rifas/[id] e /admin/rifas/[id]/parceiros (organizador logado),
   // o header externo é removido e a navegação fica dentro da própria box hero/formulário
   if (isNewRafflePage || (!isMaster && (pathname === '/admin' || isRaffleDetailsPage))) {
     return null;
