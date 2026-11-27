@@ -146,6 +146,7 @@ interface RaffleScarcityWidgetProps {
   progressPercent: number;
   orders: Order[];
   brandColor?: string | null;
+  className?: string;
 }
 
 export function RaffleScarcityWidget({
@@ -155,6 +156,7 @@ export function RaffleScarcityWidget({
   progressPercent,
   orders,
   brandColor,
+  className = '',
 }: RaffleScarcityWidgetProps) {
   const [clientNow, setClientNow] = useState<number | null>(null);
 
@@ -225,9 +227,12 @@ export function RaffleScarcityWidget({
             ? `Ritmo acelerado: ${progressPercent}% da campanha preenchido`
             : `Campanha aberta ao vivo • ${availableCount} cotas livres`;
 
+  const hasActivityBadges =
+    recent24hCount > 0 || Boolean(lastOrderTimeLabel) || pendingCount > 0;
+
   return (
     <div
-      className={`rounded-[18px] border px-4 py-3 transition-colors tabular-nums space-y-2 ${containerStyle}`}
+      className={`rounded-[20px] border px-4 py-3.5 transition-colors tabular-nums flex flex-col justify-center gap-2 ${containerStyle} ${className}`}
     >
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 min-w-0">
@@ -252,23 +257,25 @@ export function RaffleScarcityWidget({
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
-        {recent24hCount > 0 && (
-          <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-black/10 text-[#14213A]">
-            {recent24hCount} {recent24hCount === 1 ? 'pedido' : 'pedidos'} nas últimas 24h
-          </span>
-        )}
-        {lastOrderTimeLabel && (
-          <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-black/10 text-[#475872]">
-            Última movimentação {lastOrderTimeLabel}
-          </span>
-        )}
-        {pendingCount > 0 && (
-          <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-black/10 text-[#9A6700]">
-            {pendingCount} {pendingCount === 1 ? 'cota em reserva agora' : 'cotas em reserva agora'}
-          </span>
-        )}
-      </div>
+      {hasActivityBadges && (
+        <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
+          {recent24hCount > 0 && (
+            <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-black/10 text-[#14213A]">
+              {recent24hCount} {recent24hCount === 1 ? 'pedido' : 'pedidos'} nas últimas 24h
+            </span>
+          )}
+          {lastOrderTimeLabel && (
+            <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-black/10 text-[#475872]">
+              Última movimentação {lastOrderTimeLabel}
+            </span>
+          )}
+          {pendingCount > 0 && (
+            <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-black/10 text-[#9A6700]">
+              {pendingCount} {pendingCount === 1 ? 'cota em reserva agora' : 'cotas em reserva agora'}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

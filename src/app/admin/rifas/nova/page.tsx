@@ -25,13 +25,27 @@ import {
   detectPixKeyType,
   onlyDigits,
 } from '@/lib/validators';
-import { ArrowLeft, Info, Link2, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Home,
+  LogOut,
+  Info,
+  Link2,
+  Loader2,
+  ShieldCheck,
+  AlertCircle,
+} from 'lucide-react';
 import type { PixKeyType, RaffleDiscountConfig } from '@/types/database.types';
 
 export default function NewRafflePage() {
-  const { user, profile } = useAuth();
+  const { user, profile, logout } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
+
+  async function handleLogout() {
+    await logout();
+    router.push('/login');
+  }
 
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
@@ -46,6 +60,7 @@ export default function NewRafflePage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
   const [prizeKeyword, setPrizeKeyword] = useState('');
   const [keywordTouched, setKeywordTouched] = useState(false);
   const [description, setDescription] = useState('');
@@ -185,6 +200,7 @@ export default function NewRafflePage() {
       await createRaffle({
         user_id: user.uid,
         title,
+        subtitle: subtitle.trim() || null,
         slug: identity.slug,
         brand_slug: identity.brand_slug,
         prize_keyword: identity.prize_keyword,
@@ -216,37 +232,57 @@ export default function NewRafflePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/admin"
-          aria-label="Voltar para o painel"
-          className="ora-btn-secondary p-2.5 rounded-full inline-flex items-center justify-center"
-        >
-          <ArrowLeft className="w-5 h-5 text-[#14213A]" />
-        </Link>
-        <div>
-          <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
-            Criar Rifa Rápida
-          </h1>
-          <p className="text-sm text-[#475872]">
-            Configure seu prêmio, valor da cota e chave PIX em 2 minutos para começar a divulgar no WhatsApp.
-          </p>
-        </div>
-      </div>
+    <div className="max-w-2xl mx-auto">
+      {/* Form Box Única com Cabeçalho e Navegação integrados */}
+      <form onSubmit={handleSubmit} noValidate className="ora-card rounded-[28px] p-5 sm:p-9 space-y-7 sm:space-y-8">
+        <div className="flex items-start justify-between gap-3 sm:gap-4 pb-5 sm:pb-6 border-b border-[#E0E9F7]">
+          <div className="min-w-0 space-y-1">
+            <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em] leading-tight">
+              Criar Rifa Rápida
+            </h1>
+            <p className="text-xs sm:text-sm text-[#475872] leading-relaxed">
+              Configure seu prêmio, valor da cota e chave PIX em 2 minutos para começar a divulgar no WhatsApp.
+            </p>
+          </div>
 
-      {error && (
-        <div
-          role="alert"
-          className="p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[18px]"
-        >
-          {error}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <Link
+              href="/admin"
+              title="Voltar para o painel"
+              aria-label="Voltar para o painel"
+              className="ora-btn-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-full inline-flex items-center justify-center text-[#14213A] hover:text-[#00A868] transition shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/"
+              title="Ir para a página inicial"
+              aria-label="Ir para a página inicial"
+              className="ora-btn-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-full inline-flex items-center justify-center text-[#14213A] hover:text-[#00A868] transition shrink-0"
+            >
+              <Home className="w-4 h-4" />
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Sair da conta"
+              aria-label="Sair da conta"
+              className="w-9 h-9 sm:w-10 sm:h-10 inline-flex items-center justify-center text-[#475872] hover:text-[#BE123C] bg-[#F8FBFF] hover:bg-[#FFF1F2] border border-[#D9E5F7] hover:border-[#FECDD3] rounded-full transition cursor-pointer shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      )}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} noValidate className="ora-card rounded-[28px] p-6 sm:p-9 space-y-8">
+        {error && (
+          <div
+            role="alert"
+            className="p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[18px]"
+          >
+            {error}
+          </div>
+        )}
+
         {/* Prêmio */}
         <div className="space-y-4">
           <h2 className="font-display font-bold text-lg text-[#0D1729] tracking-[-0.02em]">
@@ -288,6 +324,32 @@ export default function NewRafflePage() {
                 <span>{fieldErrors.title}</span>
               </p>
             )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className="block text-[13px] font-semibold text-[#14213A]"
+                htmlFor="subtitle"
+              >
+                Subtítulo da Campanha (Opcional)
+              </label>
+              <span className="text-[11px] font-bold text-[#526480] tabular-nums">
+                {subtitle.length}/140
+              </span>
+            </div>
+            <input
+              id="subtitle"
+              type="text"
+              maxLength={140}
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="Ex: Sorteio pela Loteria Federal • Entrega grátis para todo o Brasil"
+              className="w-full px-4 py-3 rounded-[16px] bg-[#F5F9FF] border border-[#D9E5F7] text-[#0D1729] placeholder-[#526480] focus:outline-none focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15 text-[15px] transition"
+            />
+            <p className="mt-1.5 text-[11px] text-[#526480]">
+              Frase de destaque exibida logo abaixo do título e acima da descrição na página pública.
+            </p>
           </div>
 
           <div>

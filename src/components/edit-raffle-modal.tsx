@@ -47,6 +47,7 @@ export default function EditRaffleModal({
   const { user } = useAuth();
 
   const [title, setTitle] = useState(raffle.title);
+  const [subtitle, setSubtitle] = useState(raffle.subtitle || '');
   const [description, setDescription] = useState(raffle.description || '');
   const [ticketPrice, setTicketPrice] = useState(String(raffle.ticket_price));
   const [prizeImageUrl, setPrizeImageUrl] = useState(raffle.prize_image_url || '');
@@ -133,6 +134,7 @@ export default function EditRaffleModal({
     try {
       const updates: Partial<Raffle> = {
         title: title.trim(),
+        subtitle: subtitle.trim() || null,
         description: description.trim(),
         ticket_price: newPrice,
         prize_image_url: prizeImageUrl || (prizeImages[0] ?? null),
@@ -248,6 +250,30 @@ export default function EditRaffleModal({
                 <span>{fieldErrors.title}</span>
               </p>
             )}
+          </div>
+
+          {/* Subtítulo */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className="block text-xs font-bold uppercase tracking-wider text-[#14213A]"
+                htmlFor="editSubtitle"
+              >
+                Subtítulo da Campanha (Opcional)
+              </label>
+              <span className="text-[11px] font-bold text-[#526480] tabular-nums">
+                {subtitle.length}/140
+              </span>
+            </div>
+            <input
+              id="editSubtitle"
+              type="text"
+              maxLength={140}
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="Ex: Sorteio pela Loteria Federal • Entrega grátis para todo o Brasil"
+              className="w-full px-4 py-3 rounded-2xl bg-[#F5F9FF] border border-[#D9E5F7] text-sm font-medium text-[#0D1729] focus:outline-none focus:bg-white focus:border-[#0869F5]"
+            />
           </div>
 
           {/* Descrição */}

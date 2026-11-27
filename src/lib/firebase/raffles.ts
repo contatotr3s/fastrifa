@@ -1146,6 +1146,7 @@ export async function updateRaffleWithAudit({
     // Compara campos alterados
     const checkedFields: Array<keyof Raffle> = [
       'title',
+      'subtitle',
       'description',
       'ticket_price',
       'prize_image_url',
@@ -1174,6 +1175,10 @@ export async function updateRaffleWithAudit({
 
           if (field === 'title') {
             changeSummaryParts.push(`Título alterado para "${newVal}"`);
+          } else if (field === 'subtitle') {
+            changeSummaryParts.push(
+              newVal ? `Subtítulo alterado para "${newVal}"` : 'Subtítulo removido'
+            );
           } else if (field === 'description') {
             changeSummaryParts.push(`Texto descritivo atualizado`);
           } else if (field === 'ticket_price') {

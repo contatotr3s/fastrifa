@@ -18,12 +18,13 @@ export default function AdminHeader() {
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
   const isOnboarding = pathname === '/admin/onboarding';
+  const isNewRafflePage = pathname === '/admin/rifas/nova';
   const isRaffleDetailsPage =
-    Boolean(pathname?.startsWith('/admin/rifas/')) && pathname !== '/admin/rifas/nova';
+    Boolean(pathname?.startsWith('/admin/rifas/')) && !isNewRafflePage;
 
-  // No painel principal (/admin) e nos detalhes de rifa (/admin/rifas/[id]) do organizador logado,
-  // o header externo é removido (navegação fica dentro da box hero)
-  if (!isMaster && (pathname === '/admin' || isRaffleDetailsPage)) {
+  // Em /admin/rifas/nova, /admin e /admin/rifas/[id] (organizador logado),
+  // o header externo é removido e a navegação fica dentro da própria box hero/formulário
+  if (isNewRafflePage || (!isMaster && (pathname === '/admin' || isRaffleDetailsPage))) {
     return null;
   }
 

@@ -53,6 +53,7 @@ export interface Raffle {
   id: string; // Firestore document ID
   user_id: string; // Organizer UID
   title: string;
+  subtitle?: string | null;
   slug: string;
   brand_slug?: string | null;
   prize_keyword?: string | null;
