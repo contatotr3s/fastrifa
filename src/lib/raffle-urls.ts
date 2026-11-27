@@ -137,6 +137,17 @@ export function getShareOrigin(): string {
 }
 
 /**
+ * Retorna a origem atual do navegador (mantém localhost em desenvolvimento
+ * para permitir testar convites/checkouts localmente, e usa o domínio real em produção).
+ */
+export function getRuntimeOrigin(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://fastrifa.vercel.app';
+}
+
+/**
  * Retorna o caminho de gestão de parceiros da rifa no painel admin.
  */
 export function getRafflePartnersAdminPath(

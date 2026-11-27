@@ -61,7 +61,7 @@ import {
   getPartnerInvitePath,
   getPartnerPayoutConfirmPath,
   getRaffleAdminPath,
-  getShareOrigin,
+  getRuntimeOrigin,
 } from '@/lib/raffle-urls';
 import { formatBrazilMobile, onlyDigits } from '@/lib/validators';
 import type {
@@ -464,7 +464,7 @@ export default function RafflePartnersAdminPage({
     }
   }
 
-  const shareOrigin = getShareOrigin();
+  const shareOrigin = getRuntimeOrigin();
 
   const currentRafflePartners = useMemo(() => {
     if (!raffle) return [];

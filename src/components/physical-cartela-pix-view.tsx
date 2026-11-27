@@ -19,7 +19,7 @@ import { MASTER_EMAIL, useAuth } from '@/lib/firebase/auth-context';
 import {
   getPartnerCheckoutPath,
   getRafflePublicPath,
-  getShareOrigin,
+  getRuntimeOrigin,
 } from '@/lib/raffle-urls';
 import { generatePixBrCode } from '@/lib/pix-brcode';
 import {
@@ -872,7 +872,7 @@ export default function PhysicalCartelaPixView({
 
   function copyPartnerCheckoutLink() {
     if (!partner) return;
-    const url = `${getShareOrigin()}${getPartnerCheckoutPath(partner.id)}`;
+    const url = `${getRuntimeOrigin()}${getPartnerCheckoutPath(partner.id)}`;
     navigator.clipboard.writeText(url);
     setCopiedPartnerLink(true);
     setTimeout(() => setCopiedPartnerLink(false), 2500);
