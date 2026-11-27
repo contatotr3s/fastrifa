@@ -13,6 +13,10 @@ import {
 } from 'firebase/firestore';
 import { auth, db, getPublicFirestore } from './config';
 import {
+  deletePartnersDataByOrganizer,
+  deletePartnersDataByRaffle,
+} from './partners';
+import {
   generateShortCode,
   RESERVED_ROOT_SLUGS,
   sanitizeBrandSlug,
@@ -588,6 +592,14 @@ export async function getOccupiedTickets(
 export async function createOrder(
   data: Omit<Order, 'id' | 'created_at' | 'paid_at'>
 ): Promise<{ success: boolean; orderId?: string; error?: string; conflictingTicket?: number }> {
+  const raffle = await getRaffleById(data.raffle_id);
+  if (!raffle || raffle.status !== 'active') {
+    return {
+      success: false,
+      error: 'Esta campanha não está aberta para novas reservas no momento.',
+    };
+  }
+
   const occupied = await getOccupiedTickets(data.raffle_id);
   const occupiedSet = new Set(occupied.map((o) => o.ticket_number));
 
@@ -602,8 +614,25 @@ export async function createOrder(
 
   const now = new Date().toISOString();
   const orderId = 'ord_' + Math.random().toString(36).substring(2, 10);
-  const newOrder: Order = {
+
+  const sanitizedData: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries({
     ...data,
+    discount_label: data.discount_label ?? null,
+    sale_channel: data.sale_channel ?? 'public',
+    partner_id: data.partner_id ?? null,
+    partner_name: data.partner_name ?? null,
+    commission_type: data.commission_type ?? null,
+    commission_value: data.commission_value ?? null,
+    commission_amount: data.commission_amount ?? null,
+  })) {
+    if (value !== undefined) {
+      sanitizedData[key] = value;
+    }
+  }
+
+  const newOrder: Order = {
+    ...(sanitizedData as Omit<Order, 'id' | 'created_at' | 'paid_at'>),
     id: orderId,
     created_at: now,
     paid_at: null,
@@ -612,7 +641,7 @@ export async function createOrder(
   try {
     const activeDb = await getPublicFirestore();
     const docRef = await addDoc(collection(activeDb, 'orders'), {
-      ...data,
+      ...sanitizedData,
       created_at: now,
       paid_at: null,
     });
@@ -692,7 +721,9 @@ export async function deleteRaffle(raffleId: string): Promise<boolean> {
   saveLocalOrders(getLocalOrders().filter((o) => o.raffle_id !== raffleId));
   saveLocalAuditLogs(getLocalAuditLogs().filter((l) => l.raffle_id !== raffleId));
 
-  // 2. Remove no Firestore (rifa + pedidos + logs de auditoria vinculados)
+  // 2. Remove no Firestore (rifa + pedidos + logs de auditoria + parceiros vinculados)
+  await deletePartnersDataByRaffle(raffleId);
+
   try {
     const activeDb = await getActiveDb();
 
@@ -783,6 +814,12 @@ export async function deleteCreatorProfile(userId: string): Promise<boolean> {
     await deleteDoc(doc(activeDb, 'profiles', userId));
   } catch (err) {
     console.warn('Error deleting remote creator from Firestore:', err);
+  }
+
+  // Remove parceiros, convites e acertos vinculados (por organizer_id e por raffle_id)
+  await deletePartnersDataByOrganizer(userId);
+  for (const rId of raffleIds) {
+    await deletePartnersDataByRaffle(rId);
   }
 
   // 2. Limpa todos os caches locais do usuário e suas rifas/pedidos/logs

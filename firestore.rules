@@ -5,6 +5,10 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == 'dancos3@gmail.com' && request.auth.token.email_verified == true;
     }
 
+    function isRealAuth() {
+      return request.auth != null && request.auth.token.email != 'leitor.publico@fastrifa.com';
+    }
+
     // Profiles
     match /profiles/{userId} {
       allow read: if true;
@@ -26,10 +30,140 @@ service cloud.firestore {
                     && request.resource.data.ticket_numbers is list
                     && request.resource.data.ticket_numbers.size() > 0
                     && request.resource.data.total_amount is number
-                    && request.resource.data.total_amount > 0;
-      allow update, delete: if request.auth != null && (
+                    && request.resource.data.total_amount > 0
+                    && request.resource.data.raffle_id is string
+                    && request.resource.data.raffle_id.size() > 0
+                    && get(/databases/$(database)/documents/raffles/$(request.resource.data.raffle_id)).data.status == 'active'
+                    && (
+                      !(request.resource.data.keys().hasAny(['partner_id']) && request.resource.data.partner_id != null) ||
+                      (
+                        request.resource.data.partner_id is string &&
+                        request.resource.data.partner_id.size() > 0 &&
+                        get(/databases/$(database)/documents/raffle_partners/$(request.resource.data.partner_id)).data.status == 'active' &&
+                        get(/databases/$(database)/documents/raffle_partners/$(request.resource.data.partner_id)).data.raffle_id == request.resource.data.raffle_id
+                      )
+                    );
+      allow update, delete: if isRealAuth() && (
         isMaster() ||
         get(/databases/$(database)/documents/raffles/$(resource.data.raffle_id)).data.user_id == request.auth.uid
+      );
+    }
+
+    // Partner Invites (uso único, expira em 24h)
+    match /partner_invites/{inviteId} {
+      allow get: if true;
+      allow list: if isRealAuth() && (
+        isMaster() ||
+        resource.data.organizer_id == request.auth.uid
+      );
+      allow create: if isRealAuth() && (
+        isMaster() ||
+        (
+          request.auth.uid == request.resource.data.organizer_id &&
+          request.resource.data.raffle_id is string &&
+          request.resource.data.raffle_id.size() > 0 &&
+          get(/databases/$(database)/documents/raffles/$(request.resource.data.raffle_id)).data.user_id == request.auth.uid
+        )
+      ) && request.resource.data.status == 'pending'
+        && request.resource.data.expires_at_ts is timestamp;
+      allow update: if (
+        isRealAuth() && (
+          isMaster() ||
+          (
+            resource.data.organizer_id == request.auth.uid &&
+            request.resource.data.status == 'revoked' &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          )
+        )
+      ) || (
+        resource.data.status == 'pending' &&
+        resource.data.expires_at_ts is timestamp &&
+        request.time < resource.data.expires_at_ts &&
+        request.resource.data.status == 'used' &&
+        request.resource.data.used_by_partner_id is string &&
+        request.resource.data.used_by_partner_id.size() > 0 &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'used_by_partner_id', 'used_at']) &&
+        request.resource.data.raffle_id == resource.data.raffle_id &&
+        request.resource.data.organizer_id == resource.data.organizer_id &&
+        request.resource.data.commission_type == resource.data.commission_type &&
+        request.resource.data.commission_value == resource.data.commission_value &&
+        request.resource.data.expires_at_ts == resource.data.expires_at_ts &&
+        existsAfter(/databases/$(database)/documents/raffle_partners/$(request.resource.data.used_by_partner_id)) &&
+        getAfter(/databases/$(database)/documents/raffle_partners/$(request.resource.data.used_by_partner_id)).data.invite_id == inviteId
+      );
+      allow delete: if isRealAuth() && (
+        isMaster() ||
+        resource.data.organizer_id == request.auth.uid
+      );
+    }
+
+    // Raffle Partners (token secreto pessoal por campanha)
+    match /raffle_partners/{partnerId} {
+      allow get: if true;
+      allow list: if isRealAuth() && (
+        isMaster() ||
+        resource.data.organizer_id == request.auth.uid
+      );
+      allow create: if request.resource.data.status == 'active'
+                    && request.resource.data.invite_id is string
+                    && request.resource.data.invite_id.size() > 0
+                    && request.resource.data.full_name is string
+                    && request.resource.data.full_name.size() >= 3
+                    && request.resource.data.cpf is string
+                    && request.resource.data.cpf.size() == 11
+                    && request.resource.data.phone_whatsapp is string
+                    && request.resource.data.phone_whatsapp.size() >= 10
+                    && request.resource.data.payout_ids is list
+                    && request.resource.data.payout_ids.size() == 0
+                    && exists(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id))
+                    && get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.status == 'pending'
+                    && get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.expires_at_ts is timestamp
+                    && request.time < get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.expires_at_ts
+                    && request.resource.data.raffle_id == get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.raffle_id
+                    && request.resource.data.organizer_id == get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.organizer_id
+                    && request.resource.data.commission_type == get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.commission_type
+                    && request.resource.data.commission_value == get(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.commission_value
+                    && getAfter(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.status == 'used'
+                    && getAfter(/databases/$(database)/documents/partner_invites/$(request.resource.data.invite_id)).data.used_by_partner_id == partnerId;
+      allow update, delete: if isRealAuth() && (
+        isMaster() ||
+        resource.data.organizer_id == request.auth.uid
+      );
+    }
+
+    // Partner Payouts (comprovação bilateral de repasse de comissão)
+    match /partner_payouts/{payoutId} {
+      allow get: if true;
+      allow list: if isRealAuth() && (
+        isMaster() ||
+        resource.data.organizer_id == request.auth.uid
+      );
+      allow create: if isRealAuth() && (
+        isMaster() ||
+        (
+          request.auth.uid == request.resource.data.organizer_id &&
+          request.resource.data.raffle_id is string &&
+          request.resource.data.raffle_id.size() > 0 &&
+          get(/databases/$(database)/documents/raffles/$(request.resource.data.raffle_id)).data.user_id == request.auth.uid
+        )
+      ) && request.resource.data.status == 'pending_confirmation'
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 0;
+      allow update: if (
+        isRealAuth() && (
+          isMaster() ||
+          resource.data.organizer_id == request.auth.uid
+        )
+      ) || (
+        resource.data.status == 'pending_confirmation' &&
+        request.resource.data.status == 'confirmed' &&
+        request.resource.data.confirmed_at is string &&
+        request.resource.data.confirmed_at.size() > 0 &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'confirmed_at'])
+      );
+      allow delete: if isRealAuth() && (
+        isMaster() ||
+        resource.data.organizer_id == request.auth.uid
       );
     }
 
