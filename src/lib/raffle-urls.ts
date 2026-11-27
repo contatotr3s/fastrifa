@@ -6,6 +6,7 @@ export const RESERVED_ROOT_SLUGS = new Set([
   'login',
   'cadastro',
   'r',
+  'parceiro',
   'criador',
   'auth',
   'dashboard',
