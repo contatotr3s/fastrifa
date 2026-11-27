@@ -94,56 +94,56 @@ export default function RouletteSalesShowcase() {
   return (
     <section
       id="roleta-de-vendas"
-      className="ora-section-seam scroll-mt-20 py-14 sm:py-20 px-4 sm:px-8"
+      className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-3.5 sm:px-8"
     >
       <div className="max-w-[1280px] w-full mx-auto">
-        <div className="ora-demo-stage rounded-[24px] lg:rounded-[32px] p-5 sm:p-8 lg:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
-            {/* Coluna Esquerda: Argumento Comercial + Benefícios */}
-            <div className="lg:col-span-6 space-y-4 text-center lg:text-left">
-              <span className="text-[#0869F5] text-xs font-bold uppercase tracking-wider block">
+        <div className="ora-demo-stage rounded-[22px] lg:rounded-[30px] p-3.5 sm:p-5 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center">
+            {/* Coluna Esquerda (5 cols, igual à Seção Experiência do Comprador) */}
+            <div className="lg:col-span-5 space-y-2 sm:space-y-3 lg:space-y-4 text-center lg:text-left">
+              <span className="text-[#0869F5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
                 Motor de Recompra · Exclusivo FastRifa
               </span>
-              <h2 className="font-display font-bold text-[clamp(1.75rem,3vw,2.65rem)] leading-[1.08] tracking-[-0.035em] text-[#0D1729]">
+              <h2 className="font-display font-bold text-[1.18rem] sm:text-[1.55rem] lg:text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.1] tracking-[-0.035em] text-[#0D1729]">
                 Roleta da Sorte Progressiva: uma compra puxa a outra.
               </h2>
-              <p className="text-[14.5px] sm:text-[16px] text-[#475872] leading-[1.6] max-w-xl mx-auto lg:mx-0">
+              <p className="text-[11.5px] sm:text-[13.5px] lg:text-[15.5px] text-[#475872] leading-[1.36] lg:leading-[1.55] max-w-xl mx-auto lg:mx-0">
                 Aumente o ticket médio, acelere o pagamento no PIX e faça o mesmo comprador voltar para garantir mais cotas — com probabilidades inteligentes que protegem a sua margem.
               </p>
 
-              <div className="space-y-2.5 pt-1 text-left max-w-xl mx-auto lg:mx-0">
-                <div className="flex items-start gap-2.5 text-[13.5px] sm:text-[14.5px] text-[#14213A]">
-                  <span className="w-6 h-6 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center shrink-0 mt-0.5">
-                    <TrendingUp className="w-3.5 h-3.5" />
+              <div className="space-y-1.5 sm:space-y-2 pt-0.5 lg:pt-1 inline-flex flex-col items-start text-left mx-auto lg:mx-0">
+                <div className="flex items-start gap-2 lg:gap-2.5 text-[11.5px] sm:text-[13px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
+                  <span className="w-5 h-5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center shrink-0 mt-0.5">
+                    <TrendingUp className="w-3 h-3" />
                   </span>
                   <span>
-                    <strong>Mais cotas por pedido:</strong> exige mínimo de bilhetes para girar e deixa o cliente somar mais números mantendo o desconto.
+                    <strong>Mais cotas por pedido:</strong> exige mínimo de bilhetes e mantém o desconto ao adicionar números.
                   </span>
                 </div>
 
-                <div className="flex items-start gap-2.5 text-[13.5px] sm:text-[14.5px] text-[#14213A]">
-                  <span className="w-6 h-6 rounded-full bg-[#FFF8EB] border border-[#F5D08A] text-[#D97706] flex items-center justify-center shrink-0 mt-0.5">
-                    <Clock className="w-3.5 h-3.5" />
+                <div className="flex items-start gap-2 lg:gap-2.5 text-[11.5px] sm:text-[13px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
+                  <span className="w-5 h-5 rounded-full bg-[#FFF8EB] border border-[#F5D08A] text-[#D97706] flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="w-3 h-3" />
                   </span>
                   <span>
-                    <strong>Urgência real de 10 minutos:</strong> contador regressivo no checkout incentiva o pagamento imediato no PIX.
+                    <strong>Urgência real de 10 minutos:</strong> contador no checkout acelera o pagamento imediato no PIX.
                   </span>
                 </div>
 
-                <div className="flex items-start gap-2.5 text-[13.5px] sm:text-[14.5px] text-[#14213A]">
-                  <span className="w-6 h-6 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] flex items-center justify-center shrink-0 mt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                <div className="flex items-start gap-2 lg:gap-2.5 text-[11.5px] sm:text-[13px] lg:text-[14px] leading-snug font-medium text-[#14213A]">
+                  <span className="w-5 h-5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center shrink-0 mt-0.5">
+                    <ShieldCheck className="w-3 h-3" />
                   </span>
                   <span>
-                    <strong>Recompra validada sem prejuízo:</strong> só libera novo giro (em faixas maiores até o teto) depois que o PIX da compra anterior for confirmado.
+                    <strong>Recompra sem prejuízo:</strong> novo giro só libera após confirmação real do PIX anterior.
                   </span>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-center lg:justify-start">
+              <div className="pt-1 lg:pt-2 flex justify-center lg:justify-start">
                 <Link
                   href="/cadastro"
-                  className="ora-btn-primary rounded-[18px] px-6 py-3.5 text-[15px] font-bold inline-flex items-center gap-2 shadow-[0_12px_28px_rgba(8,105,245,0.22)]"
+                  className="ora-btn-primary rounded-[16px] lg:rounded-[18px] px-4 py-2 lg:px-6 lg:py-3 text-[12.5px] lg:text-[14.5px] font-bold inline-flex items-center gap-2"
                 >
                   <span>Ativar Roleta na Minha Rifa</span>
                   <ArrowUpRight className="w-4 h-4" />
@@ -151,11 +151,10 @@ export default function RouletteSalesShowcase() {
               </div>
             </div>
 
-            {/* Coluna Direita: Simulador Interativo da Escada Progressiva */}
-            <div className="lg:col-span-6">
-              <div className="ora-card rounded-[26px] p-5 sm:p-6 border border-[#D9E5F7] bg-white space-y-4">
-                {/* Cabeçalho + Seletor de Estágios */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Coluna Direita (7 cols): Simulador Interativo da Escada Progressiva */}
+            <div className="lg:col-span-7">
+              <div className="ora-card rounded-[24px] p-4 sm:p-6 border border-[#D9E5F7] bg-white space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0D1729]">
                     <Dices className="w-4 h-4 text-[#0869F5]" />
                     <span>Simulação da Escada Progressiva</span>
@@ -188,13 +187,12 @@ export default function RouletteSalesShowcase() {
                   </div>
                 </div>
 
-                {/* Título e Badge da Etapa */}
-                <div className="rounded-[18px] bg-[#F8FBFF] border border-[#E0E9F7] p-3.5 space-y-1">
+                <div className="rounded-[18px] bg-[#F5F9FF] border border-[#E0E9F7] p-3.5 space-y-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <strong className="font-display font-bold text-sm sm:text-[15px] text-[#0D1729]">
                       {activeStage.headline}
                     </strong>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#065F46] text-[10.5px] font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#EDF5FF] border border-[#CDE0FC] text-[#0869F5] text-[10.5px] font-bold">
                       {activeStage.badgeText}
                     </span>
                   </div>
@@ -203,10 +201,9 @@ export default function RouletteSalesShowcase() {
                   </p>
                 </div>
 
-                {/* Mini Roda SVG + Tabela de Chances Reproporcionadas */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                   <div className="sm:col-span-5 flex items-center justify-center">
-                    <div className="relative w-44 h-44 sm:w-[176px] sm:h-[176px] flex items-center justify-center select-none">
+                    <div className="relative w-40 h-40 sm:w-[176px] sm:h-[176px] flex items-center justify-center select-none">
                       <div
                         aria-hidden="true"
                         className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 w-0 h-0 border-l-[9px] border-l-transparent border-r-[9px] border-r-transparent border-t-[15px] border-t-[#0D1729]"
@@ -220,7 +217,7 @@ export default function RouletteSalesShowcase() {
                           cy={cy}
                           r={r + 3}
                           fill="#FFFFFF"
-                          stroke="#D9E5F7"
+                          stroke="var(--ora-border-strong, #B9E7D2)"
                           strokeWidth="3"
                         />
                         {wheelOptions.length === 1 ? (
@@ -264,8 +261,8 @@ export default function RouletteSalesShowcase() {
                             const fill = isMax
                               ? '#F59E0B'
                               : idx % 2 === 0
-                                ? '#00A868'
-                                : '#EDF5FF';
+                                ? 'var(--ora-blue, #00A868)'
+                                : 'var(--ora-surface-alt, #E8F7F0)';
                             const textFill =
                               isMax || idx % 2 === 0 ? '#FFFFFF' : '#0D1729';
 
@@ -298,10 +295,10 @@ export default function RouletteSalesShowcase() {
                           cy={cy}
                           r="16"
                           fill="#FFFFFF"
-                          stroke="#D9E5F7"
+                          stroke="var(--ora-border-strong, #B9E7D2)"
                           strokeWidth="2.5"
                         />
-                        <circle cx={cx} cy={cy} r="7" fill="#0869F5" />
+                        <circle cx={cx} cy={cy} r="7" fill="var(--ora-blue, #00A868)" />
                       </svg>
                     </div>
                   </div>
@@ -333,14 +330,14 @@ export default function RouletteSalesShowcase() {
                             {opt.chanceLabel}
                           </span>
                         </div>
-                        <div className="w-full h-2 rounded-full bg-[#EEF4FD] overflow-hidden">
+                        <div className="w-full h-2 rounded-full bg-[#F5F9FF] border border-[#E0E9F7]/70 overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all duration-300 ${
                               !opt.eligible
                                 ? 'bg-[#CBD5E1]'
                                 : opt.percent === 20
                                   ? 'bg-[#F59E0B]'
-                                  : 'bg-[#00A868]'
+                                  : 'bg-[#0869F5]'
                             }`}
                             style={{ width: `${opt.barWidth}%` }}
                           />
@@ -350,9 +347,8 @@ export default function RouletteSalesShowcase() {
                   </div>
                 </div>
 
-                {/* Rodapé de garantia */}
-                <div className="pt-2 border-t border-[#E0E9F7] flex items-center gap-2 text-[11.5px] font-semibold text-[#065F46]">
-                  <CheckCircle2 className="w-4 h-4 text-[#00A868] shrink-0" />
+                <div className="pt-2 border-t border-[#E0E9F7] flex items-center gap-2 text-[11.5px] font-semibold text-[#0869F5]">
+                  <CheckCircle2 className="w-4 h-4 text-[#0869F5] shrink-0" />
                   <span>
                     Novo giro liberado somente após confirmação real do PIX anterior.
                   </span>

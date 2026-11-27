@@ -41,6 +41,19 @@ const LOCAL_PROFILE_KEY = 'fastrifa_auth_profile';
 const AUTH_LOGOUT_EVENT_KEY = 'fastrifa_auth_logout_ts';
 const AUTH_SYNC_CHANNEL = 'fastrifa_auth_sync';
 
+function getSafeGlobalTheme(): 'blue' | 'green' {
+  if (typeof window === 'undefined') return 'green';
+  try {
+    const stored = localStorage.getItem('fastrifa_global_system_theme');
+    if (stored === 'blue' || stored === 'green') return stored;
+    const match = document.cookie.match(/fastrifa_global_system_theme=([^;]+)/);
+    if (match && (match[1] === 'blue' || match[1] === 'green')) {
+      return match[1];
+    }
+  } catch {}
+  return 'green';
+}
+
 function detectAuthProvider(fbUser: User | null | undefined): 'google' | 'password' {
   if (!fbUser?.providerData) return 'password';
   return fbUser.providerData.some((p) => p?.providerId === 'google.com')
@@ -72,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(LOCAL_USER_KEY);
       localStorage.removeItem(LOCAL_PROFILE_KEY);
       localStorage.removeItem('fastrifa_theme');
-      const globalSystemTheme = localStorage.getItem('fastrifa_global_system_theme') || 'blue';
+      const globalSystemTheme = getSafeGlobalTheme();
       document.documentElement.setAttribute('data-theme', globalSystemTheme);
     }
     setUser(null);
@@ -224,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             } else {
               // Documento ainda não existia: cria novo perfil herdando o tema global do Master
-              const globalSystemTheme = (typeof window !== 'undefined' ? localStorage.getItem('fastrifa_global_system_theme') : null) || 'blue';
+              const globalSystemTheme = getSafeGlobalTheme();
               const initialProfile: Profile = {
                 id: currentUser.uid,
                 full_name: currentUser.displayName || (isMaster ? 'Danilo' : 'Organizador'),
@@ -387,7 +400,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
-      const globalSystemTheme = (typeof window !== 'undefined' ? localStorage.getItem('fastrifa_global_system_theme') : null) || 'blue';
+      const globalSystemTheme = getSafeGlobalTheme();
       const newProfile: Profile = {
         id: cred.user.uid,
         full_name: name.trim(),
@@ -467,7 +480,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // NÃO EXISTE NO BANCO: Tratar obrigatoriamente como NOVO CADASTRO!
           isNewUser = true;
           needsOnboarding = !isMasterUser;
-          const globalSystemTheme = (typeof window !== 'undefined' ? localStorage.getItem('fastrifa_global_system_theme') : null) || 'blue';
+          const globalSystemTheme = getSafeGlobalTheme();
 
           userProfile = {
             id: googleUser.uid,

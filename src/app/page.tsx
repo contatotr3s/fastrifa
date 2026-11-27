@@ -174,7 +174,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
                 <div className="lg:col-span-5 space-y-1.5 sm:space-y-2.5 lg:space-y-4 text-center lg:text-left">
-                  <span className="text-[#0869f5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
+                  <span className="text-[#0869F5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
                     Experiência do Comprador
                   </span>
                   <h2 className="font-display font-bold text-[1.18rem] sm:text-[1.55rem] lg:text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.1] tracking-[-0.035em] text-[#0D1729]">
@@ -233,10 +233,10 @@ export default function HomePage() {
 
         {/* Section 4: Transparency & Direct PIX Highlight */}
         <section id="transparencia" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
-          <div className="max-w-[1160px] mx-auto">
+          <div className="max-w-[1280px] w-full mx-auto">
             <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <span className="block text-[#0869f5] text-xs font-bold tracking-wider uppercase">
+                <span className="block text-[#0869F5] text-xs font-bold tracking-wider uppercase">
                   Dinheiro Direto na Sua Conta Bancária
                 </span>
                 <h2 className="font-display font-bold text-[clamp(1.85rem,3.2vw,2.75rem)] leading-[1.1] tracking-[-0.04em] text-[#0D1729]">
@@ -261,9 +261,9 @@ export default function HomePage() {
 
         {/* Section 5: FAQ Section (Oratry Sticky Split Layout + Mobile Stacking Deck) */}
         <section id="perguntas" className="ora-section-seam scroll-mt-20 py-12 sm:py-16 lg:py-20 px-4 sm:px-8">
-          <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+          <div className="max-w-[1280px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4 text-center lg:text-left max-w-xl mx-auto lg:mx-0 lg:max-w-none">
-              <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
+              <span className="text-[#0869F5] text-xs font-bold uppercase tracking-wider block">
                 Tira-Dúvidas Rápido
               </span>
               <h2 className="font-display font-bold text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
@@ -286,7 +286,7 @@ export default function HomePage() {
                   }
                   className="ora-card rounded-[24px] p-5 sm:p-6 lg:p-7 space-y-2.5 hover:border-[#B9D3F8] transition sticky top-[var(--faq-top)] lg:static lg:top-auto bg-white shadow-[0_-10px_28px_rgba(13,23,41,0.06),0_12px_30px_rgba(32,77,139,0.08)] lg:shadow-none"
                 >
-                  <div className="flex lg:hidden items-center justify-between text-[11px] font-bold text-[#0869f5] uppercase tracking-wider">
+                  <div className="flex lg:hidden items-center justify-between text-[11px] font-bold text-[#0869F5] uppercase tracking-wider">
                     <span>Dúvida 0{idx + 1}</span>
                     <span className="text-[#8A9BB3] tabular-nums">
                       0{idx + 1} / 0{faqs.length}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from './firebase/auth-context';
 import { db, getPublicFirestore } from './firebase/config';
@@ -12,6 +12,21 @@ export type SystemTheme = 'blue' | 'green';
 
 export const GLOBAL_THEME_STORAGE_KEY = 'fastrifa_global_system_theme';
 export const DEFAULT_SYSTEM_THEME: SystemTheme = 'green';
+
+function readCachedSystemTheme(): SystemTheme {
+  if (typeof window === 'undefined') return DEFAULT_SYSTEM_THEME;
+  try {
+    const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
+    if (cached === 'blue' || cached === 'green') return cached;
+    const match = document.cookie.match(
+      new RegExp(`${GLOBAL_THEME_STORAGE_KEY}=([^;]+)`)
+    );
+    if (match && (match[1] === 'blue' || match[1] === 'green')) {
+      return match[1];
+    }
+  } catch {}
+  return DEFAULT_SYSTEM_THEME;
+}
 
 interface ThemeContextType {
   theme: SystemTheme;
@@ -33,30 +48,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { user, profile, updateProfile } = useAuth();
   const pathname = usePathname();
 
-  // Cor global definida pelo Master (com fallback no cache local ou 'green' padrão atual)
-  const [globalTheme, setGlobalThemeState] = useState<SystemTheme>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
-      if (cached === 'blue' || cached === 'green') return cached;
-    }
-    return DEFAULT_SYSTEM_THEME;
-  });
+  // Cor global definida pelo Master (com fallback no cache/cookie ou 'green' padrão atual)
+  const [globalTheme, setGlobalThemeState] = useState<SystemTheme>(() =>
+    readCachedSystemTheme()
+  );
 
   // Cor individual do usuário logado
-  const [userTheme, setUserThemeState] = useState<SystemTheme>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
-      if (cached === 'blue' || cached === 'green') return cached;
-    }
-    return DEFAULT_SYSTEM_THEME;
-  });
-  const [activeTheme, setActiveThemeState] = useState<SystemTheme>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
-      if (cached === 'blue' || cached === 'green') return cached;
-    }
-    return DEFAULT_SYSTEM_THEME;
-  });
+  const [userTheme, setUserThemeState] = useState<SystemTheme>(() =>
+    readCachedSystemTheme()
+  );
+  const [activeTheme, setActiveThemeState] = useState<SystemTheme>(() =>
+    readCachedSystemTheme()
+  );
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
@@ -69,6 +72,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     !RESERVED_ROOT_SLUGS.has(pathSegments[0].toLowerCase());
   const isRaffleRoute = Boolean(pathname?.startsWith('/r/')) || isBrandRaffleRoute;
   const isPublicRoute = !isAdminRoute && !isRaffleRoute;
+
+  const scopeRef = useRef({ isRaffleRoute, isPublicRoute, isMaster });
+  scopeRef.current = { isRaffleRoute, isPublicRoute, isMaster };
 
   // 1. Escuta em tempo real o tema global do sistema configurado pelo Master no Firestore
   useEffect(() => {
@@ -92,6 +98,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                   localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, newGlobal);
                   document.cookie = `${GLOBAL_THEME_STORAGE_KEY}=${newGlobal}; path=/; max-age=31536000; SameSite=Lax`;
                 } catch {}
+                const {
+                  isRaffleRoute: raffleNow,
+                  isPublicRoute: publicNow,
+                  isMaster: masterNow,
+                } = scopeRef.current;
+                if (!raffleNow && (publicNow || masterNow)) {
+                  document.documentElement.setAttribute('data-theme', newGlobal);
+                }
               }
             }
           },

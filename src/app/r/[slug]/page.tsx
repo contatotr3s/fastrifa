@@ -34,7 +34,12 @@ export default function RafflePublicPage({
 
           // Aplica dinamicamente a cor da marca do organizador da rifa
           if (typeof window !== 'undefined') {
-            const themeToApply = raffleData.brand_color === 'green' ? 'green' : 'blue';
+            const fallbackTheme =
+              localStorage.getItem('fastrifa_global_system_theme') || 'green';
+            const themeToApply =
+              raffleData.brand_color === 'green' || raffleData.brand_color === 'blue'
+                ? raffleData.brand_color
+                : fallbackTheme;
             document.documentElement.setAttribute('data-theme', themeToApply);
           }
         })
@@ -48,7 +53,7 @@ export default function RafflePublicPage({
     return () => {
       // Ao sair da página pública da rifa, restaura o tema global do sistema
       if (typeof window !== 'undefined') {
-        const globalTheme = localStorage.getItem('fastrifa_global_system_theme') || 'blue';
+        const globalTheme = localStorage.getItem('fastrifa_global_system_theme') || 'green';
         document.documentElement.setAttribute('data-theme', globalTheme);
       }
     };
