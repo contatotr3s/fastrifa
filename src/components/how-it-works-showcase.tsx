@@ -546,7 +546,7 @@ export default function HowItWorksShowcase() {
         }
       `}</style>
 
-      <div className="max-w-[1340px] w-full mx-auto space-y-3 sm:space-y-4 lg:space-y-5">
+      <div className="max-w-[1336px] w-full mx-auto space-y-3 sm:space-y-4 lg:space-y-5">
         {/* Cabeçalho da Seção + Controles Desktop */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-6">
           <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">

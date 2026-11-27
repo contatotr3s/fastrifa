@@ -9,6 +9,8 @@ interface HeroOrbitSceneProps {
 export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const numberRef = useRef<HTMLSpanElement>(null);
+  const ring1Ref = useRef<HTMLDivElement>(null);
+  const ring2Ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [isDesktopScreen, setIsDesktopScreen] = useState(true);
 
@@ -53,6 +55,8 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
     let angle = -2.15;
     let lastTime = 0;
     let drawing = false;
+    let lastMeasuredW = 0;
+    let cachedRadiusX = isMobile ? 120 : 280;
 
     let animationFrameId: number;
 
@@ -68,9 +72,40 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       }
 
       const w = root.clientWidth || (isMobile ? 360 : 720);
-      // Geometria precisa: escala e raios originais no desktop, compactos no mobile
-      const radiusX = isMobile ? Math.min(w * 0.36, 140) : Math.min(w * 0.46, 360);
       const radiusY = isMobile ? 52 : 165;
+
+      if (w !== lastMeasuredW) {
+        lastMeasuredW = w;
+        const maxItemW = items.reduce((max, el) => Math.max(max, el.offsetWidth), isMobile ? 160 : 230);
+        const minScale = isMobile ? 0.60 : 0.92;
+        const scaleRange = isMobile ? 0.16 : 0.26;
+        const meanScale = minScale + scaleRange / 2;
+        const halfScaleAmp = scaleRange / 2;
+        const halfW = w / 2;
+        const safetyMargin = isMobile ? 4 : 6;
+        const C = (maxItemW / 2) * meanScale;
+        const B = radiusY * Math.abs(sinT) + (maxItemW / 2) * halfScaleAmp;
+        const targetHyp = Math.max(0, halfW - safetyMargin - C);
+        const maxSafeRadiusX = targetHyp > B ? Math.sqrt(targetHyp * targetHyp - B * B) / cosT : 0;
+        const baseRadiusX = isMobile ? Math.min(w * 0.36, 140) : Math.min(w * 0.46, 360);
+        cachedRadiusX = Math.max(isMobile ? 70 : 120, Math.min(baseRadiusX, maxSafeRadiusX));
+
+        if (!isMobile) {
+          const absSinT = Math.abs(sinT);
+          const maxRingW = (ringH: number) =>
+            Math.max(240, (((halfW - 4) - (ringH / 2) * absSinT) * 2) / cosT);
+          if (ring1Ref.current) {
+            const w1 = Math.min(Math.round(cachedRadiusX * 2), Math.floor(maxRingW(345)));
+            ring1Ref.current.style.width = `${w1}px`;
+          }
+          if (ring2Ref.current) {
+            const w2 = Math.min(Math.round(cachedRadiusX * 2 + 85), Math.floor(maxRingW(390)));
+            ring2Ref.current.style.width = `${w2}px`;
+          }
+        }
+      }
+
+      const radiusX = cachedRadiusX;
 
       items.forEach((item, index) => {
         const a = angle + index * ((Math.PI * 2) / items.length);
@@ -190,6 +225,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       {!isMobile && (
         <>
           <div
+            ref={ring1Ref}
             aria-hidden="true"
             className="fr-orbit-ring-1 pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed"
             style={{
@@ -201,6 +237,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
             }}
           />
           <div
+            ref={ring2Ref}
             aria-hidden="true"
             className="fr-orbit-ring-2 pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border"
             style={{

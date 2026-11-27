@@ -87,8 +87,8 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-2 pb-8 sm:pt-3 sm:pb-14 px-4 sm:px-8 relative overflow-hidden min-h-[calc(100svh-72px)] flex flex-col justify-center">
-          <div className="max-w-[1400px] w-full mx-auto">
+        <section className="ora-hero-stage pt-2 pb-8 sm:pt-3 sm:pb-14 relative overflow-hidden min-h-[calc(100svh-72px)] flex flex-col justify-center">
+          <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8">
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
               <div className="w-full lg:w-1/2 lg:shrink-0 text-center lg:text-left space-y-2.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
@@ -156,7 +156,7 @@ export default function HomePage() {
               </div>
 
               {/* Right Column: 3D Orbital Scene side-by-side no desktop (lower layer z-10) */}
-              <div className="hidden lg:flex w-full lg:flex-1 min-w-0 items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible">
+              <div className="hidden lg:flex w-full lg:flex-1 min-w-0 items-center justify-center relative z-10 lg:-ml-28 xl:-ml-44 2xl:-ml-44 overflow-visible">
                 <HeroOrbitScene variant="desktop" />
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-[#E0E9F7] bg-white py-10 px-4 sm:px-8">
-        <div className="max-w-[1340px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-[#526480]">
+        <div className="max-w-[1336px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-[#526480]">
           {/* Brand & Rights */}
           <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
             <img
