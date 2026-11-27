@@ -94,9 +94,9 @@ export default function RouletteSalesShowcase() {
   return (
     <section
       id="roleta-de-vendas"
-      className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-3.5 sm:px-8"
+      className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center"
     >
-      <div className="max-w-[1280px] w-full mx-auto">
+      <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8">
         <div className="ora-demo-stage rounded-[22px] lg:rounded-[30px] p-3.5 sm:p-5 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center">
             {/* Coluna Esquerda (5 cols, igual à Seção Experiência do Comprador) */}
