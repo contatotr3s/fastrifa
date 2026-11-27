@@ -887,104 +887,24 @@ export default function RafflePublicView({
     return list;
   }, [raffle.total_tickets, searchQuery]);
 
+  const hasCompletedOnboarding = Boolean(
+    profile?.onboarding_completed && profile?.brand_name?.trim()
+  );
+  const panelHref = isMaster
+    ? '/admin/master'
+    : hasCompletedOnboarding
+    ? '/admin'
+    : '/admin/onboarding';
+  const userBrandName = isMaster
+    ? 'FastRifa'
+    : profile?.brand_name?.trim() || 'Minha Marca';
+  const userBrandInitials =
+    profile?.brand_initials || generateBrandInitials(userBrandName);
+
   return (
     <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col pb-8 sm:pb-12 relative overflow-hidden">
-      {/* Top Floating Pill Navbar with Smooth Feathered Atmosphere */}
-      <header className="ora-header-container !z-40 flex items-center">
-        <div className="relative z-10 max-w-5xl w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
-          {/* Logo do Cliente / Organizador em Destaque no Topo */}
-          <div className="flex items-center gap-3">
-            <div className="ora-glass-pill rounded-[20px] px-3.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-3 border-[#CDE0FC] shadow-xs">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-[14px] overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#A7F3D0] to-[var(--ora-blue,#00A868)] text-white text-xs sm:text-sm font-bold flex-shrink-0 shadow-sm border border-white">
-                {raffle.brand_logo_url ? (
-                  <img
-                    src={raffle.brand_logo_url}
-                    alt={raffle.brand_name || 'Organizador'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span>{generateBrandInitials(raffle.brand_name || 'FR')}</span>
-                )}
-              </div>
-              <div className="text-left">
-                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#526480] block leading-none">
-                  Campanha Oficial de
-                </span>
-                <strong className="text-[13px] sm:text-[15px] text-[#0D1729] font-bold leading-tight block truncate max-w-[150px] sm:max-w-[280px]">
-                  {raffle.brand_name || 'Organizador Oficial'}
-                </strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {user ? (() => {
-              const hasCompletedOnboarding = Boolean(
-                profile?.onboarding_completed && profile?.brand_name?.trim()
-              );
-              const panelHref = isMaster
-                ? '/admin/master'
-                : hasCompletedOnboarding
-                ? '/admin'
-                : '/admin/onboarding';
-              const userBrandName = isMaster
-                ? 'FastRifa'
-                : profile?.brand_name?.trim() || 'Minha Marca';
-              const userBrandInitials =
-                profile?.brand_initials || generateBrandInitials(userBrandName);
-
-              return (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={isMaster || hasCompletedOnboarding ? '/admin/rifas/nova' : '/admin/onboarding'}
-                    className="ora-btn-primary rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5 shadow-sm"
-                  >
-                    <span>Criar Minha Rifa</span>
-                    <ArrowUpRight className="w-4 h-4 text-white" />
-                  </Link>
-                  <Link
-                    href={panelHref}
-                    className="ora-btn-secondary rounded-full pl-1.5 pr-3.5 sm:pl-2 sm:pr-4 py-1.5 text-xs sm:text-sm font-semibold inline-flex items-center gap-2 text-[#0D1729]"
-                    title={`Acessar Painel — ${userBrandName}`}
-                  >
-                    <span className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-[#D9E5F7] bg-white shadow-xs">
-                      {!isMaster && profile?.brand_logo_url ? (
-                        <img
-                          src={profile.brand_logo_url}
-                          alt={userBrandName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : !isMaster && profile?.brand_name?.trim() ? (
-                        <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-[9px]">
-                          {userBrandInitials}
-                        </span>
-                      ) : (
-                        <img
-                          src="/icone-isolado.png"
-                          alt="Fast Rifa"
-                          className="w-4 h-4 object-contain"
-                        />
-                      )}
-                    </span>
-                    <span>Painel</span>
-                  </Link>
-                </div>
-              );
-            })() : (
-              <Link
-                href="/cadastro"
-                className="ora-btn-secondary rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold hidden sm:inline-flex items-center gap-1.5"
-              >
-                <span>Criar Minha Rifa</span>
-                <ArrowUpRight className="w-4 h-4 text-[#0869F5]" />
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
-
       {/* Main Container */}
-      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-7">
+      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-6 sm:space-y-7">
         {/* Banner Incisivo de Modo Criador Oficial (exibido apenas para o criador autenticado) */}
         {isCreator && (
           <div className="bg-gradient-to-r from-[#0869F5] to-[#0755DE] text-white p-4 sm:p-5 rounded-[24px] shadow-[0_12px_32px_rgba(8,105,245,0.20)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-white/20 animate-in fade-in">
@@ -1026,10 +946,13 @@ export default function RafflePublicView({
           </div>
         )}
 
-        {/* Prize Showcase Card */}
-        <section className="ora-card rounded-[32px] p-6 sm:p-10 relative overflow-hidden">
+        {/* Box Hero da Campanha (Sem traço divisório): Fotos + Valor + Ao Vivo (Esquerda) | Marca + Título + Descrição + CTA (Direita) */}
+        <section
+          id="public-raffle-hero"
+          className="ora-card rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 relative overflow-hidden"
+        >
           {raffle.status === 'completed' && raffle.winner_ticket != null && (
-            <div className="mb-8 p-6 sm:p-7 bg-gradient-to-r from-[#FFFDF0] via-[#FFF8EB] to-white border-2 border-[#F5D08A] rounded-[26px] shadow-[0_12px_36px_rgba(245,158,11,0.12)] flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden animate-in fade-in">
+            <div className="mb-7 p-5 sm:p-6 bg-gradient-to-r from-[#FFFDF0] via-[#FFF8EB] to-white border-2 border-[#F5D08A] rounded-[24px] shadow-[0_12px_36px_rgba(245,158,11,0.12)] flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden animate-in fade-in">
               <div className="flex items-start sm:items-center gap-4 relative z-10">
                 <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white flex items-center justify-center flex-shrink-0 shadow-md text-2xl">
                   🏆
@@ -1063,151 +986,135 @@ export default function RafflePublicView({
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            {/* Carrossel / Slider de Fotos do Prêmio */}
-            {allPrizeImages.length > 0 && (
-              <div
-                className="w-full md:w-80 flex flex-col gap-2.5 flex-shrink-0"
-                onMouseEnter={() => setIsHoveringImage(true)}
-                onMouseLeave={() => setIsHoveringImage(false)}
-              >
-                {/* Frame Principal do Slider */}
-                <div className="relative w-full h-64 sm:h-72 rounded-[26px] overflow-hidden bg-[#F5F9FF] border border-[#E0E9F7] shadow-[0_12px_30px_rgba(32,75,134,0.08)] group">
-                  <img
-                    src={allPrizeImages[activeImageIndex] || allPrizeImages[0]}
-                    alt={`${raffle.title} - Foto ${activeImageIndex + 1}`}
-                    className="w-full h-full object-cover transition-all duration-500 ease-out"
-                  />
+          <div className="flex flex-col lg:flex-row lg:items-stretch gap-6 lg:gap-8">
+            {/* Coluna Esquerda: Fotos do Prêmio + Valor Unitário + Campanha Aberta ao Vivo */}
+            <div
+              id="hero-left-col"
+              className="w-full lg:w-[370px] xl:w-[390px] shrink-0 flex flex-col gap-4"
+            >
+              {/* Carrossel / Slider de Fotos do Prêmio */}
+              {allPrizeImages.length > 0 && (
+                <div
+                  id="hero-photos-col"
+                  className="w-full flex flex-col gap-2.5 flex-shrink-0"
+                  onMouseEnter={() => setIsHoveringImage(true)}
+                  onMouseLeave={() => setIsHoveringImage(false)}
+                >
+                  {/* Frame Principal do Slider */}
+                  <div className="relative w-full h-64 sm:h-72 lg:h-[260px] rounded-[24px] overflow-hidden bg-[#F5F9FF] border border-[#E0E9F7] shadow-[0_12px_30px_rgba(32,75,134,0.08)] group">
+                    <img
+                      src={allPrizeImages[activeImageIndex] || allPrizeImages[0]}
+                      alt={`${raffle.title} - Foto ${activeImageIndex + 1}`}
+                      className="w-full h-full object-cover transition-all duration-500 ease-out"
+                    />
 
-                  {/* Controles de Navegação Anterior / Próximo quando houver mais de 1 foto */}
+                    {/* Controles de Navegação Anterior / Próximo quando houver mais de 1 foto */}
+                    {allPrizeImages.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveImageIndex((prev) =>
+                              prev === 0 ? allPrizeImages.length - 1 : prev - 1
+                            );
+                          }}
+                          className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md cursor-pointer"
+                          aria-label="Foto anterior"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveImageIndex((prev) =>
+                              (prev + 1) % allPrizeImages.length
+                            );
+                          }}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md cursor-pointer"
+                          aria-label="Próxima foto"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+
+                        {/* Badge de Contagem no Topo */}
+                        <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold tabular-nums">
+                          📸 {activeImageIndex + 1} / {allPrizeImages.length}
+                        </span>
+
+                        {/* Dots Indicadores na Base */}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full">
+                          {allPrizeImages.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setActiveImageIndex(idx)}
+                              className={`transition-all rounded-full ${
+                                idx === activeImageIndex
+                                  ? 'w-4 h-1.5 bg-white'
+                                  : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
+                              }`}
+                              aria-label={`Ir para foto ${idx + 1}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Miniaturas Clicáveis abaixo do frame quando há mais de 1 foto */}
                   {allPrizeImages.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveImageIndex((prev) =>
-                            prev === 0 ? allPrizeImages.length - 1 : prev - 1
-                          );
-                        }}
-                        className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md cursor-pointer"
-                        aria-label="Foto anterior"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveImageIndex((prev) =>
-                            (prev + 1) % allPrizeImages.length
-                          );
-                        }}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md cursor-pointer"
-                        aria-label="Próxima foto"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-
-                      {/* Badge de Contagem no Topo */}
-                      <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold tabular-nums">
-                        📸 {activeImageIndex + 1} / {allPrizeImages.length}
-                      </span>
-
-                      {/* Dots Indicadores na Base */}
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full">
-                        {allPrizeImages.map((_, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => setActiveImageIndex(idx)}
-                            className={`transition-all rounded-full ${
-                              idx === activeImageIndex
-                                ? 'w-4 h-1.5 bg-white'
-                                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
-                            }`}
-                            aria-label={`Ir para foto ${idx + 1}`}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                      {allPrizeImages.map((imgUrl, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveImageIndex(idx)}
+                          className={`relative w-14 h-12 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
+                            idx === activeImageIndex
+                              ? 'border-[#0869F5] ring-2 ring-[#0869F5]/25 scale-105'
+                              : 'border-[#E0E9F7] opacity-65 hover:opacity-100'
+                          }`}
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`Miniatura ${idx + 1}`}
+                            className="w-full h-full object-cover"
                           />
-                        ))}
-                      </div>
-                    </>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {/* Miniaturas Clicáveis abaixo do frame quando há mais de 1 foto */}
-                {allPrizeImages.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    {allPrizeImages.map((imgUrl, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setActiveImageIndex(idx)}
-                        className={`relative w-14 h-12 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
-                          idx === activeImageIndex
-                            ? 'border-[#0869F5] ring-2 ring-[#0869F5]/25 scale-105'
-                            : 'border-[#E0E9F7] opacity-65 hover:opacity-100'
-                        }`}
-                      >
-                        <img
-                          src={imgUrl}
-                          alt={`Miniatura ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex-1 space-y-4 w-full">
-              <div className="flex flex-wrap items-center gap-2.5">
-                {raffle.brand_name ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9FF] border border-[#CDE0FC] text-[#0869F5] text-xs font-bold rounded-full">
-                    <span className="w-2 h-2 rounded-full bg-[#0869F5]" />
-                    <span>Oficial: <strong>{raffle.brand_name}</strong></span>
-                  </span>
-                ) : (
-                  <span className="px-3.5 py-1 bg-[#0869F5] text-white text-xs font-bold rounded-full uppercase tracking-wider">
-                    Campanha Oficial
-                  </span>
-                )}
-                <span className="px-3.5 py-1 bg-[#F5F9FF] border border-[#D9E5F7] text-[#475872] text-xs font-semibold rounded-full tabular-nums">
-                  {raffle.total_tickets} cotas no total
-                </span>
-              </div>
-
-              <h1 className="font-display font-bold text-2xl sm:text-4xl text-[#0D1729] tracking-[-0.04em] leading-[1.1]">
-                {raffle.title}
-              </h1>
-
-              {raffle.description && (
-                <p className="text-[15px] sm:text-base text-[#475872] leading-[1.6] whitespace-pre-line">
-                  {raffle.description}
-                </p>
               )}
 
-              {/* Price Box & Progress */}
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-4 bg-[#F5F9FF] border border-[#E0E9F7] rounded-[22px] p-4 sm:p-5 tabular-nums">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#526480] block">
+              {/* Box Valor Unitário & Progresso (abaixo das fotos) */}
+              <div
+                id="hero-price-box"
+                className="bg-[#F5F9FF] border border-[#E0E9F7] rounded-[20px] p-4 space-y-3 tabular-nums"
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#526480]">
                     Valor unitário
                   </span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="font-display font-bold text-3xl sm:text-4xl text-[#0869F5]">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-display font-bold text-2xl sm:text-3xl text-[#0869F5]">
                       R$ {Number(raffle.ticket_price).toFixed(2)}
                     </span>
                     <span className="text-xs font-semibold text-[#475872]">/ por cota</span>
                   </div>
                 </div>
 
-                <div className="w-full sm:w-56 space-y-2">
+                <div className="w-full space-y-1.5">
                   <div className="flex justify-between text-xs font-bold text-[#14213A]">
                     <span>Cotas confirmadas</span>
-                    <span style={{ color: primaryBrandColor }} className="font-extrabold">{progressPercent}%</span>
+                    <span style={{ color: primaryBrandColor }} className="font-extrabold">
+                      {progressPercent}%
+                    </span>
                   </div>
-                  <div className="w-full h-3.5 bg-[#E2E8F0] rounded-full overflow-hidden p-0.5 border border-[#CBD5E1]">
+                  <div className="w-full h-3 bg-[#E2E8F0] rounded-full overflow-hidden p-0.5 border border-[#CBD5E1]">
                     <div
                       className="h-full rounded-full transition-all duration-500 shadow-xs"
                       style={{
@@ -1219,17 +1126,122 @@ export default function RafflePublicView({
                 </div>
               </div>
 
+              {/* Widget Campanha Aberta ao Vivo (abaixo do Valor Unitário) */}
               {raffle.status === 'active' && (
-                <RaffleScarcityWidget
-                  totalTickets={raffle.total_tickets}
-                  availableCount={allAvailableNumbers.length}
-                  paidCount={paidCount}
-                  pendingCount={pendingCount}
-                  progressPercent={progressPercent}
-                  orders={liveOrders}
-                  brandColor={raffle.brand_color}
-                />
+                <div id="hero-live-box">
+                  <RaffleScarcityWidget
+                    totalTickets={raffle.total_tickets}
+                    availableCount={allAvailableNumbers.length}
+                    paidCount={paidCount}
+                    pendingCount={pendingCount}
+                    progressPercent={progressPercent}
+                    orders={liveOrders}
+                    brandColor={raffle.brand_color}
+                  />
+                </div>
               )}
+            </div>
+
+            {/* Coluna Direita: Campanha Oficial de [Marca] + Título + Descrição + Criar Minha Rifa no canto inferior direito */}
+            <div
+              id="hero-right-col"
+              className="flex-1 min-w-0 flex flex-col justify-between gap-5"
+            >
+              <div className="space-y-4">
+                {/* Marca e Campanha Oficial no topo direito */}
+                <div
+                  id="hero-brand-col"
+                  className="flex flex-wrap items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[18px] overflow-hidden border-2 border-[#CDE0FC] shadow-xs bg-gradient-to-br from-[#A7F3D0] to-[var(--ora-blue,#00A868)] text-white flex items-center justify-center shrink-0 text-base sm:text-xl font-bold">
+                      {raffle.brand_logo_url ? (
+                        <img
+                          src={raffle.brand_logo_url}
+                          alt={raffle.brand_name || 'Organizador'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>{generateBrandInitials(raffle.brand_name || 'FR')}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-[#526480] block leading-tight">
+                        Campanha Oficial de
+                      </span>
+                      <strong className="font-display text-base sm:text-lg font-bold text-[#0D1729] leading-tight block truncate max-w-[180px] sm:max-w-[280px]">
+                        {raffle.brand_name || 'Organizador Oficial'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <span className="px-3.5 py-1 bg-[#F5F9FF] border border-[#D9E5F7] text-[#475872] text-xs font-semibold rounded-full tabular-nums shrink-0">
+                    {raffle.total_tickets} cotas no total
+                  </span>
+                </div>
+
+                <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#0D1729] tracking-[-0.04em] leading-[1.12]">
+                  {raffle.title}
+                </h1>
+
+                {raffle.description && (
+                  <p className="text-[14.5px] sm:text-[15px] text-[#475872] leading-[1.6] whitespace-pre-line">
+                    {raffle.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Canto Inferior Direito: Botão Criar Minha Rifa (e Painel se autenticado) */}
+              <div
+                id="hero-cta-corner"
+                className="mt-auto pt-3 flex flex-wrap items-center justify-end gap-2"
+              >
+                {user ? (
+                  <>
+                    <Link
+                      href={panelHref}
+                      className="ora-btn-secondary rounded-full pl-1.5 pr-3.5 py-2 text-xs font-semibold inline-flex items-center justify-center gap-2 text-[#0D1729] whitespace-nowrap"
+                      title={`Acessar Painel — ${userBrandName}`}
+                    >
+                      <span className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-[#D9E5F7] bg-white shadow-xs">
+                        {!isMaster && profile?.brand_logo_url ? (
+                          <img
+                            src={profile.brand_logo_url}
+                            alt={userBrandName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : !isMaster && profile?.brand_name?.trim() ? (
+                          <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-[8px]">
+                            {userBrandInitials}
+                          </span>
+                        ) : (
+                          <img
+                            src="/icone-isolado.png"
+                            alt="Fast Rifa"
+                            className="w-3.5 h-3.5 object-contain"
+                          />
+                        )}
+                      </span>
+                      <span>Painel</span>
+                    </Link>
+                    <Link
+                      href={isMaster || hasCompletedOnboarding ? '/admin/rifas/nova' : '/admin/onboarding'}
+                      className="ora-btn-primary rounded-full px-4 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
+                    >
+                      <span>Criar Minha Rifa</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-white shrink-0" />
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href="/cadastro"
+                    className="ora-btn-secondary rounded-full px-4 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  >
+                    <span>Criar Minha Rifa</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-[var(--ora-blue,#00A868)] shrink-0" />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </section>

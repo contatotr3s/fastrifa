@@ -39,6 +39,7 @@ import {
   Edit3,
   FileText,
   Search,
+  Scale,
 } from 'lucide-react';
 import type { Raffle, Profile, AuditLog } from '@/types/database.types';
 
@@ -267,6 +268,15 @@ export default function AdminMasterPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/admin/master/regulamento-lab"
+            className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs font-bold inline-flex items-center gap-2 border-[#CDE0FC] text-[#0D1729] hover:border-[#00A868]"
+            title="Laboratório de Regulamento (exclusivo Master, em desenvolvimento)"
+          >
+            <Scale className="w-4 h-4 text-[#00A868]" />
+            <span>Lab Regulamento</span>
+          </Link>
+
           <button
             type="button"
             disabled={isCleaning}

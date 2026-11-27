@@ -12,6 +12,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = Boolean(user && (email === MASTER_EMAIL || profile?.role === 'master'));
+  const isMasterRoute = Boolean(pathname?.startsWith('/admin/master'));
   const needsOnboarding = Boolean(
     user && !isMaster && profile && (!profile.onboarding_completed || !profile.brand_name?.trim())
   );
@@ -36,7 +37,13 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     // 3. Aguarda o perfil do Firestore carregar antes de decidir onboarding
     if (!profile) return;
 
-    // 4. Se for organizador comum: deve preencher os dados da marca antes de acessar o painel
+    // 4. Bloqueio estrito de qualquer rota /admin/master/* para não-Master
+    if (isMasterRoute) {
+      router.replace(needsOnboarding ? '/admin/onboarding' : '/admin');
+      return;
+    }
+
+    // 5. Se for organizador comum: deve preencher os dados da marca antes de acessar o painel
     if (needsOnboarding) {
       if (pathname !== '/admin/onboarding') {
         router.replace('/admin/onboarding');
@@ -44,19 +51,27 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     } else if (pathname === '/admin/onboarding') {
       router.replace('/admin');
     }
-  }, [user, profile, loading, pathname, router, isMaster, needsOnboarding]);
+  }, [user, profile, loading, pathname, router, isMaster, isMasterRoute, needsOnboarding]);
 
   const waitingProfile = Boolean(user && !isMaster && !profile);
   const redirectingMasterFromOnboarding = Boolean(isMaster && pathname === '/admin/onboarding');
+  const redirectingNonMaster = Boolean(user && !isMaster && isMasterRoute);
   const redirectingOrganizer = Boolean(
     user &&
       !isMaster &&
       profile &&
+      !isMasterRoute &&
       ((needsOnboarding && pathname !== '/admin/onboarding') ||
         (!needsOnboarding && pathname === '/admin/onboarding'))
   );
 
-  if (loading || waitingProfile || redirectingMasterFromOnboarding || redirectingOrganizer) {
+  if (
+    loading ||
+    waitingProfile ||
+    redirectingMasterFromOnboarding ||
+    redirectingNonMaster ||
+    redirectingOrganizer
+  ) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 text-[#0869F5] animate-spin" />
