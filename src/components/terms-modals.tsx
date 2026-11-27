@@ -54,10 +54,10 @@ export function PlatformTermsModal({ isOpen, onClose, onAccept }: ModalProps) {
 
           <section className="space-y-1.5">
             <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
-              1. Natureza da Plataforma (Software SaaS)
+              1. Natureza da Plataforma (Sistema)
             </h3>
             <p>
-              O FastRifa é uma plataforma de software como serviço (SaaS) desenvolvida para fornecer infraestrutura tecnológica de exibição, controle de numerações (cotas) e geração de bilhetes digitais para ações promocionais, beneficentes ou independentes.
+              O FastRifa é um sistema desenvolvido para fornecer infraestrutura tecnológica de exibição, controle de numerações (cotas) e geração de bilhetes digitais para ações promocionais, beneficentes ou independentes.
             </p>
             <p>
               O FastRifa <strong>não é instituição financeira, gateway de pagamento, casa de apostas ou intermediador financeiro</strong>. A plataforma não cobra comissões sobre vendas de cotas nem retém valores arrecadados.
@@ -278,6 +278,138 @@ export function RaffleCreationTermsModal({ isOpen, onClose, onAccept }: ModalPro
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Li e Concordo com os Termos</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Modal do Termo de Ciência e Participação do Comprador (Página Pública da Rifa)
+ */
+export function BuyerParticipationTermsModal({ isOpen, onClose, onAccept }: ModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/65 backdrop-blur-sm animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-[680px] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] flex flex-col"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#E0E9F7]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#EBF3FF] border border-[#CDE0FC] text-[#0869F5] flex items-center justify-center flex-shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-xl sm:text-2xl text-[#0D1729] tracking-[-0.03em]">
+                Termo de Ciência e Participação do Comprador (FastRifa)
+              </h2>
+              <span className="text-xs text-[#526480]">
+                FastRifa — Termos de Participação da Campanha
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar termos"
+            className="p-2 rounded-full text-[#526480] hover:text-[#0D1729] hover:bg-[#F2F7FF] transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto py-5 pr-2 space-y-5 text-xs sm:text-sm text-[#334661] leading-relaxed select-text">
+          <div className="p-3.5 rounded-[16px] bg-[#F5F9FF] border border-[#D9E5F7] flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-[#0869F5] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#1D3B66] font-medium">
+              Ao reservar ou adquirir cotas nesta campanha, o Participante declara ciência e concordância integral com os termos abaixo.
+            </p>
+          </div>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              1. Ciência sobre o Papel da Plataforma FastRifa
+            </h3>
+            <p>
+              Ao reservar ou adquirir cotas nesta campanha, o Participante declara estar plenamente ciente e de acordo que o FastRifa atua exclusivamente como fornecedor de software para organização, catalogação de bilhetes e geração de QR Codes. O FastRifa não organiza, não intermedia financeiramente, não garante, não patrocina e não avaliza esta campanha ou a entrega do prêmio anunciado.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              2. Relação Direta com o Organizador
+            </h3>
+            <p>
+              O Participante reconhece que toda a relação jurídica, comercial e financeira ocorre exclusivamente entre ele e o Organizador identificado na página da campanha. Qualquer dúvida, solicitação de reembolso, contestação sobre o regulamento ou cobrança referente à entrega do prêmio deve ser tratada diretamente com o Organizador, isentando o FastRifa e seus desenvolvedores de qualquer responsabilidade solidária ou subsidiária.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              3. Veracidade dos Dados e Pagamento via PIX
+            </h3>
+            <p>
+              O Participante compromete-se a fornecer dados cadastrais verdadeiros (nome completo e telefone/WhatsApp) para garantir sua correta identificação e contato em caso de premiação. O Participante declara ainda estar ciente de que o pagamento via PIX é transferido diretamente para a conta bancária de titularidade do Organizador, sem qualquer trânsito de valores pela plataforma FastRifa, cabendo ao Participante conferir o nome do destinatário no momento da transferência.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              4. Prazo de Reserva e Validação de Cotas
+            </h3>
+            <p>
+              A reserva de números não garante a participação efetiva no sorteio até que o pagamento seja devidamente comprovado e baixado pelo Organizador no sistema. Cotas não pagas dentro do prazo estipulado na campanha poderão ser canceladas e liberadas novamente para outros interessados sem aviso prévio.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              5. Aceitação das Regras da Campanha e Apuração
+            </h3>
+            <p>
+              Ao confirmar a aquisição da cota, o Participante declara ter lido e aceito integralmente a descrição do prêmio, o valor da cota, a data prevista e o método de apuração estabelecidos pelo Organizador na página da campanha, concordando com o critério definido para a definição do ganhador.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              6. Boa-Fé e Uso Indevido
+            </h3>
+            <p>
+              É expressamente proibido o envio de comprovantes de pagamento falsos, adulterados ou duplicados, bem como a reserva massiva de cotas com o intuito de bloquear o andamento da campanha. Tais condutas sujeitam o infrator ao cancelamento imediato das reservas e à liberação dos números para outros participantes.
+            </p>
+          </section>
+        </div>
+
+        {/* Footer */}
+        <div className="pt-4 border-t border-[#E0E9F7] flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="ora-btn-secondary rounded-full px-5 py-2.5 text-xs font-bold cursor-pointer"
+          >
+            Fechar
+          </button>
+          {onAccept && (
+            <button
+              type="button"
+              onClick={() => {
+                onAccept();
+                onClose();
+              }}
+              className="ora-btn-primary rounded-full px-6 py-2.5 text-xs font-bold flex items-center gap-2 cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Li e Concordo</span>
             </button>
           )}
         </div>

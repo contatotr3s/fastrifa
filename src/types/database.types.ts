@@ -6,7 +6,7 @@ export type OrderStatus = 'pending' | 'paid' | 'cancelled';
 
 export type UserRole = 'organizer' | 'master';
 
-export type DiscountMode = 'none' | 'progressive' | 'simple' | 'roulette';
+export type DiscountMode = 'none' | 'progressive' | 'buy_x_pay_y' | 'simple' | 'roulette';
 
 export interface DiscountTier {
   min_tickets: number;
@@ -16,6 +16,8 @@ export interface DiscountTier {
 export interface RaffleDiscountConfig {
   mode: DiscountMode;
   tiers?: DiscountTier[];
+  buy_x_qty?: number;
+  pay_y_qty?: number;
   simple_min_tickets?: number;
   simple_percent?: number;
   roulette_min_tickets?: number;

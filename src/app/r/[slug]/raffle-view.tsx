@@ -84,6 +84,7 @@ import { generatePixBrCode } from '@/lib/pix-brcode';
 import { formatBrazilMobile, getBrazilMobileError } from '@/lib/validators';
 import PhysicalCardModal from '@/components/physical-card-modal';
 import EditRaffleModal from '@/components/edit-raffle-modal';
+import { BuyerParticipationTermsModal } from '@/components/terms-modals';
 import {
   RaffleFomoToast,
   RaffleScarcityWidget,
@@ -125,6 +126,7 @@ export default function RafflePublicView({
   const isMaster = userEmail === MASTER_EMAIL || profile?.role === 'master';
   const isCreator = Boolean(user && (user.uid === raffle.user_id || isMaster));
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showParticipationTerms, setShowParticipationTerms] = useState(false);
 
   // Múltiplas Fotos do Prêmio & Carrossel Interativo
   const allPrizeImages: string[] = useMemo(() => {
@@ -1266,13 +1268,17 @@ export default function RafflePublicView({
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#00A868] block">
                       {normalizedDiscount.mode === 'progressive'
                         ? 'Desconto Progressivo Ativo'
-                        : normalizedDiscount.mode === 'roulette'
-                          ? 'Roleta da Sorte Promocional'
-                          : 'Desconto Especial por Quantidade'}
+                        : normalizedDiscount.mode === 'buy_x_pay_y'
+                          ? `Promoção Compre ${normalizedDiscount.buy_x_qty}, Pague ${normalizedDiscount.pay_y_qty}`
+                          : normalizedDiscount.mode === 'roulette'
+                            ? 'Roleta da Sorte Promocional'
+                            : 'Desconto Especial por Quantidade'}
                     </span>
                     <p className="text-xs sm:text-[13px] font-semibold text-[#0D1729] leading-snug">
                       {normalizedDiscount.mode === 'progressive' &&
                         'Vai comprar mais de um bilhete? Você tem direito a um desconto progressivo: quanto mais você compra, maiores são as suas chances de ganhar e mais barato fica!'}
+                      {normalizedDiscount.mode === 'buy_x_pay_y' &&
+                        `Vai comprar mais de um bilhete? Aproveite: a cada ${normalizedDiscount.buy_x_qty} cotas escolhidas, você paga apenas ${normalizedDiscount.pay_y_qty} (${(normalizedDiscount.buy_x_qty || 3) - (normalizedDiscount.pay_y_qty || 2)} cota(s) grátis)!`}
                       {normalizedDiscount.mode === 'simple' &&
                         `Vai comprar mais de um bilhete? Compre a partir de ${normalizedDiscount.simple_min_tickets} cotas e ganhe ${normalizedDiscount.simple_percent}% de desconto automático no PIX!`}
                       {normalizedDiscount.mode === 'roulette' &&
@@ -1584,12 +1590,17 @@ export default function RafflePublicView({
               <span className="flex items-center gap-1.5 min-w-0 leading-snug">
                 <Percent className="w-3.5 h-3.5 text-[#00A868] shrink-0" />
                 <span className="animate-pulse">
-                  {normalizedDiscount.mode === 'progressive'
-                    ? 'Progressivo'
-                    : 'Especial'}
-                  : {pricing.discountPercent}% OFF! (-R$ {pricing.discountAmount.toFixed(2)})
+                  {normalizedDiscount.mode === 'buy_x_pay_y'
+                    ? `Compre ${pricing.buyQty}, Pague ${pricing.payQty}: ${pricing.freeTickets} grátis! (-R$ ${pricing.discountAmount.toFixed(2)})`
+                    : `${
+                        normalizedDiscount.mode === 'progressive'
+                          ? 'Progressivo'
+                          : 'Especial'
+                      }: ${pricing.discountPercent}% OFF! (-R$ ${pricing.discountAmount.toFixed(2)})`}
                   {pricing.nextTier
-                    ? ` · +${pricing.nextTier.remaining} → ${pricing.nextTier.percent}%`
+                    ? normalizedDiscount.mode === 'buy_x_pay_y'
+                      ? ` · +${pricing.nextTier.remaining} → +${(pricing.buyQty || 3) - (pricing.payQty || 2)} grátis`
+                      : ` · +${pricing.nextTier.remaining} → ${pricing.nextTier.percent}%`
                     : ''}
                 </span>
               </span>
@@ -1599,7 +1610,9 @@ export default function RafflePublicView({
             <div className="w-full sm:w-auto max-w-full rounded-[14px] px-3 py-1.5 bg-[#F5F9FF] border border-[#D9E5F7] text-[#334661] flex items-center justify-center sm:justify-start gap-2 text-[11px] sm:text-xs font-semibold animate-in fade-in duration-300">
               <Percent className="w-3.5 h-3.5 text-[#00A868] shrink-0" />
               <span className="leading-snug animate-pulse text-center sm:text-left">
-                Adicione +{pricing.nextTier.remaining} cota(s) para desbloquear {pricing.nextTier.percent}% OFF automático!
+                {normalizedDiscount.mode === 'buy_x_pay_y'
+                  ? `Adicione +${pricing.nextTier.remaining} cota(s) para ganhar ${(normalizedDiscount.buy_x_qty || 3) - (normalizedDiscount.pay_y_qty || 2)} cota(s) grátis (Compre ${normalizedDiscount.buy_x_qty}, Pague ${normalizedDiscount.pay_y_qty})!`
+                  : `Adicione +${pricing.nextTier.remaining} cota(s) para desbloquear ${pricing.nextTier.percent}% OFF automático!`}
               </span>
             </div>
           ) : null
@@ -1609,7 +1622,7 @@ export default function RafflePublicView({
 
         return (
           <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
-            <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[24px] px-3.5 py-2.5 sm:px-5 sm:py-3.5 shadow-[0_20px_50px_rgba(0,168,104,0.18)] tabular-nums">
+            <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[24px] px-3.5 pt-2.5 pb-2 sm:px-5 sm:pt-3 sm:pb-2.5 shadow-[0_20px_50px_rgba(0,168,104,0.18)] tabular-nums">
               <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4">
                 <div className="space-y-0.5 shrink-0">
                   <div className="flex items-center gap-2">
@@ -1672,6 +1685,23 @@ export default function RafflePublicView({
                     </button>
                   )}
                 </div>
+              </div>
+
+              <div className="mt-1.5 pt-1.5 border-t border-[#E0E9F7]/85 text-center">
+                <p
+                  id="checkout-participation-notice"
+                  className="text-[10px] sm:text-[10.5px] sm:whitespace-nowrap tracking-[-0.01em] text-[#526480] leading-snug"
+                >
+                  Ao confirmar, você aceita os{' '}
+                  <button
+                    type="button"
+                    onClick={() => setShowParticipationTerms(true)}
+                    className="font-bold text-[var(--ora-blue,#00A868)] underline decoration-[var(--ora-blue,#00A868)]/60 underline-offset-2 hover:opacity-80 transition cursor-pointer"
+                  >
+                    Termos de Participação
+                  </button>{' '}
+                  e declara ciência de que a campanha é de responsabilidade exclusiva do Organizador.
+                </p>
               </div>
             </div>
           </div>
@@ -1833,6 +1863,11 @@ export default function RafflePublicView({
                           Desconto de {pricing.discountPercent}% OFF ativo! Você pode adicionar mais cotas mantendo o desconto. Pague em até{' '}
                           <strong className="underline">{formatCountdown(discountSecondsLeft)}</strong> ou perderá o desconto.
                         </>
+                      ) : normalizedDiscount.mode === 'buy_x_pay_y' ? (
+                        <>
+                          Compre {pricing.buyQty}, Pague {pricing.payQty} ({pricing.freeTickets} grátis) ativo! Pague em até{' '}
+                          <strong className="underline">{formatCountdown(discountSecondsLeft)}</strong> ou perderá o desconto para sempre.
+                        </>
                       ) : (
                         <>
                           Desconto de {pricing.discountPercent}% OFF ativo! Pague em até{' '}
@@ -1852,7 +1887,9 @@ export default function RafflePublicView({
                       <span className="line-through">R$ {pricing.originalAmount.toFixed(2)}</span>
                     </span>
                     <span className="font-bold text-[#00A868]">
-                      Desconto ({pricing.discountPercent}% OFF): - R$ {pricing.discountAmount.toFixed(2)}
+                      {normalizedDiscount.mode === 'buy_x_pay_y'
+                        ? `Compre ${pricing.buyQty}, Pague ${pricing.payQty} (${pricing.freeTickets} grátis): - R$ ${pricing.discountAmount.toFixed(2)}`
+                        : `Desconto (${pricing.discountPercent}% OFF): - R$ ${pricing.discountAmount.toFixed(2)}`}
                     </span>
                   </div>
                 )}
@@ -2157,7 +2194,8 @@ export default function RafflePublicView({
           Boolean(confirmedOrder) ||
           showDiscountRoulette ||
           showPhysicalCardModal ||
-          showEditModal
+          showEditModal ||
+          showParticipationTerms
         }
       />
 
@@ -2200,6 +2238,12 @@ export default function RafflePublicView({
           }}
         />
       )}
+
+      {/* Modal: Termo de Ciência e Participação do Comprador */}
+      <BuyerParticipationTermsModal
+        isOpen={showParticipationTerms}
+        onClose={() => setShowParticipationTerms(false)}
+      />
     </div>
   );
 }

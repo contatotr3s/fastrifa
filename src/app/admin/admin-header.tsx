@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
 import ThemeSwitcher from '@/components/theme-switcher';
-import { generateBrandInitials } from '@/lib/image-processor';
-import { LogOut, ShieldCheck } from 'lucide-react';
+import { Home, LogOut, ShieldCheck } from 'lucide-react';
 
 export default function AdminHeader() {
   const { user, profile, logout } = useAuth();
@@ -20,10 +19,6 @@ export default function AdminHeader() {
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
   const isOnboarding = pathname === '/admin/onboarding';
-
-  const brandName = isMaster ? 'FastRifa' : profile?.brand_name || 'FastRifa';
-  const brandInitials = isMaster ? 'FR' : profile?.brand_initials || generateBrandInitials(brandName);
-  const brandLogo = isMaster ? null : profile?.brand_logo_url;
 
   return (
     <>
@@ -69,105 +64,70 @@ export default function AdminHeader() {
         ) : (
           <div className="max-w-[1240px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
             <div className="flex items-center gap-6">
-              {/* Brand Pill */}
-              <Link
-                href={isMaster ? '/admin/master' : '/admin'}
-                className="ora-glass-pill rounded-full pl-2.5 pr-4 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
-                title={isMaster ? 'FastRifa — Painel Master' : `Painel do Organizador — ${brandName}`}
-              >
-                {isMaster ? (
-                  <>
-                    <img
-                      src="/logo-fastrifa.png"
-                      alt="Fast Rifa"
-                      className="h-6 w-auto object-contain flex-shrink-0 block sm:hidden"
-                    />
-                    <img
-                      src="/icone-isolado.png"
-                      alt="Fast Rifa"
-                      className="w-8 h-8 object-contain flex-shrink-0 hidden sm:block"
-                    />
-                  </>
-                ) : brandLogo ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-[#D9E5F7] flex-shrink-0">
-                    <img
-                      src={brandLogo}
-                      alt={brandName}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : profile?.brand_name ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white flex-shrink-0 shadow-sm">
-                    <span className="font-display font-bold text-xs text-white">
-                      {brandInitials}
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    <img
-                      src="/logo-fastrifa.png"
-                      alt="Fast Rifa"
-                      className="h-6 w-auto object-contain flex-shrink-0 block sm:hidden"
-                    />
-                    <img
-                      src="/icone-isolado.png"
-                      alt="Fast Rifa"
-                      className="w-8 h-8 object-contain flex-shrink-0 hidden sm:block"
-                    />
-                  </>
-                )}
-                <div className="flex flex-col text-left max-w-[110px] sm:max-w-[200px] md:max-w-none">
-                  <span
-                    className={`font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight truncate ${
-                      isMaster || !profile?.brand_name ? 'hidden sm:inline' : ''
-                    }`}
-                  >
-                    {isMaster ? (
-                      <>
-                        Fast<span className="text-[#0869F5]">Rifa</span>
-                      </>
-                    ) : profile?.brand_name ? (
-                      profile.brand_name
-                    ) : (
-                      <>
-                        Fast<span className="text-[#0869F5]">Rifa</span>
-                      </>
-                    )}
-                  </span>
-                  <span className="text-[10px] font-semibold text-[#526480] leading-none mt-0.5 truncate">
-                    {isMaster
-                      ? 'Painel Master'
-                      : profile?.brand_name
-                      ? 'Painel do Criador'
-                      : 'Configuração Inicial'}
-                  </span>
-                </div>
-              </Link>
-
-              {/* Navigation links (escondidos se estiver no onboarding) */}
-              <nav className="hidden md:flex items-center gap-6 text-[15px] font-medium text-[#475872]">
-                {isMaster ? (
+              {isMaster ? (
+                <>
+                  {/* Brand Pill (Master) */}
                   <Link
                     href="/admin/master"
-                    className="px-3.5 py-1.5 rounded-full bg-[#0869F5] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                    className="ora-glass-pill rounded-full pl-2.5 pr-4 py-2 flex items-center gap-2.5 hover:border-[#B9D3F8] transition"
+                    title="FastRifa — Painel Master"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Painel Master</span>
+                    <img
+                      src="/logo-fastrifa.png"
+                      alt="Fast Rifa"
+                      className="h-6 w-auto object-contain flex-shrink-0 block sm:hidden"
+                    />
+                    <img
+                      src="/icone-isolado.png"
+                      alt="Fast Rifa"
+                      className="w-8 h-8 object-contain flex-shrink-0 hidden sm:block"
+                    />
+                    <div className="flex flex-col text-left max-w-[110px] sm:max-w-[200px] md:max-w-none">
+                      <span className="font-display font-bold text-base sm:text-lg tracking-[-0.04em] text-[#0D1729] leading-tight truncate hidden sm:inline">
+                        Fast<span className="text-[#0869F5]">Rifa</span>
+                      </span>
+                      <span className="text-[10px] font-semibold text-[#526480] leading-none mt-0.5 truncate">
+                        Painel Master
+                      </span>
+                    </div>
                   </Link>
-                ) : (
-                  <Link
-                    href="/admin"
-                    className={`hover:text-[#0869F5] font-semibold transition ${
-                      pathname === '/admin' ? 'text-[#0869F5]' : 'text-[#0D1729]'
-                    }`}
-                  >
-                    Minhas Campanhas
-                  </Link>
-                )}
-              </nav>
+
+                  {/* Navigation links (somente selo do Painel Master no desktop) */}
+                  <nav className="hidden md:flex items-center gap-6 text-[15px] font-medium text-[#475872]">
+                    <Link
+                      href="/admin/master"
+                      className="px-3.5 py-1.5 rounded-full bg-[#0869F5] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Painel Master</span>
+                    </Link>
+                  </nav>
+                </>
+              ) : (
+                /* Organizador: ícone de Home no lugar do badge da marca + Painel do Criador */
+                <Link
+                  href="/"
+                  title="Ir para a página inicial"
+                  aria-label="Ir para a página inicial"
+                  className="ora-btn-secondary rounded-full w-11 h-11 inline-flex items-center justify-center text-[#14213A] hover:text-[#0869F5] transition shrink-0"
+                >
+                  <Home className="w-5 h-5" />
+                </Link>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5 sm:gap-3">
+              {isMaster && (
+                <Link
+                  href="/"
+                  title="Ir para a página inicial"
+                  aria-label="Ir para a página inicial"
+                  className="ora-btn-secondary rounded-full w-10 h-10 inline-flex items-center justify-center text-[#14213A] hover:text-[#0869F5] transition shrink-0"
+                >
+                  <Home className="w-4 h-4" />
+                </Link>
+              )}
+
               <ThemeSwitcher variant="compact" />
 
               {/* Se for Master, link direto para Painel Master no cabeçalho mobile */}

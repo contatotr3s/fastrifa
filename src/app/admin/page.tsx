@@ -75,7 +75,7 @@ export default function AdminDashboardPage() {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-7 sm:space-y-8">
       {/* Master Owner Banner */}
       {isMaster && (
         <div className="p-4 sm:p-5 rounded-[24px] bg-gradient-to-r from-[#FFF8EB] via-[#FEF3D6] to-[#FFF8EB] border border-[#F5D08A] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
@@ -107,27 +107,27 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Page Title & Primary Action */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#0869F5]">
-              {isMaster ? 'FastRifa' : profile?.brand_name || 'FastRifa'}
-            </span>
-            <span className="text-[#B9D3F8]">•</span>
-            <span className="text-xs text-[#526480] font-medium">
-              {isMaster ? 'Visão Geral do Proprietário' : 'Painel do Organizador'}
-            </span>
+      {/* Header + Identidade da Marca unificados em Box Única (Organizador) / Cabeçalho Master */}
+      {isMaster ? (
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0869F5]">
+                FastRifa
+              </span>
+              <span className="text-[#B9D3F8]">•</span>
+              <span className="text-xs text-[#526480] font-medium">
+                Visão Geral do Proprietário
+              </span>
+            </div>
+            <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
+              Minhas Campanhas Pessoais
+            </h1>
+            <p className="text-[#475872] text-[15px] mt-1.5">
+              Acompanhe suas rifas rápidas, aprove comprovantes e confirme cotas com agilidade no PIX.
+            </p>
           </div>
-          <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#0D1729] tracking-[-0.04em]">
-            {isMaster ? 'Minhas Campanhas Pessoais' : 'Painel de Controle'}
-          </h1>
-          <p className="text-[#475872] text-[15px] mt-1.5">
-            Acompanhe suas rifas rápidas, aprove comprovantes e confirme cotas com agilidade no PIX.
-          </p>
-        </div>
-        <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-          {isMaster ? (
+          <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <Link
               href="/admin/master"
               className="ora-btn-secondary flex-1 sm:flex-initial rounded-[18px] px-3.5 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2"
@@ -135,54 +135,78 @@ export default function AdminDashboardPage() {
               <ShieldCheck className="w-4 h-4 text-[#D97706]" />
               <span>Painel Master</span>
             </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsBrandModalOpen(true)}
-              className="ora-btn-secondary flex-1 sm:flex-initial rounded-[18px] px-3.5 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer"
+            <Link
+              href="/admin/rifas/nova"
+              className="ora-btn-primary flex-1 sm:flex-initial rounded-[18px] px-3.5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-[15px] font-bold inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              <Store className="w-4 h-4 text-[#0869F5]" />
-              <span>Minha Marca</span>
-            </button>
-          )}
-          <Link
-            href="/admin/rifas/nova"
-            className="ora-btn-primary flex-1 sm:flex-initial rounded-[18px] px-3.5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-[15px] font-bold inline-flex items-center justify-center gap-2 whitespace-nowrap"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Rifa rápida</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Brand Identity Banner (apenas exibição informativa; edição fica no botão único "Minha Marca") */}
-      {!isMaster && (
-        <div className="ora-card-soft rounded-[22px] sm:rounded-[25px] p-4 sm:p-6 flex items-center gap-3.5 sm:gap-4 text-left">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[16px] sm:rounded-[18px] overflow-hidden bg-white border border-[#CDE0FC] shadow-sm flex items-center justify-center flex-shrink-0">
-            {profile?.brand_logo_url ? (
-              <img
-                src={profile.brand_logo_url}
-                alt={profile.brand_name || 'Logo'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-lg sm:text-xl">
-                {profile?.brand_initials || generateBrandInitials(profile?.brand_name || 'FR')}
-              </div>
-            )}
+              <PlusCircle className="w-4 h-4" />
+              <span>Rifa rápida</span>
+            </Link>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <strong className="font-display font-bold text-base sm:text-lg text-[#0D1729]">
+        </div>
+      ) : (
+        <div className="ora-card rounded-[26px] sm:rounded-[30px] p-5 sm:p-7">
+          <div className="flex flex-col md:flex-row md:items-center gap-5 sm:gap-7">
+            {/* Esquerda: Nome da marca acima + Imagem ampliada em destaque abaixo */}
+            <div className="flex flex-col items-center shrink-0 gap-2.5 md:pr-7 md:border-r md:border-[#E0E9F7]">
+              <strong className="font-display font-bold text-base sm:text-lg text-[#0D1729] tracking-[-0.02em] text-center max-w-[168px] leading-tight truncate">
                 {profile?.brand_name || 'Sua Marca'}
               </strong>
-              <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-[#EDF5FF] text-[#0869F5] border border-[#CDE0FC]">
-                Marca Ativa
-              </span>
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[22px] sm:rounded-[26px] overflow-hidden bg-white border-2 border-[#CDE0FC] shadow-[0_12px_28px_rgba(8,105,245,0.12)] flex items-center justify-center flex-shrink-0">
+                {profile?.brand_logo_url ? (
+                  <img
+                    src={profile.brand_logo_url}
+                    alt={profile.brand_name || 'Logo'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#62A5FF] to-[#0869F5] text-white font-display font-bold text-3xl sm:text-4xl">
+                    {profile?.brand_initials || generateBrandInitials(profile?.brand_name || 'FR')}
+                  </div>
+                )}
+              </div>
             </div>
-            <p className="text-[11px] sm:text-xs text-[#526480] mt-0.5">
-              Sua marca e logotipo aparecem no topo de todas as suas campanhas públicas para os seus clientes.
-            </p>
+
+            {/* Direita: Painel de Controle, descrições e ações organizados ao lado dentro da box */}
+            <div className="flex-1 min-w-0 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 sm:gap-5 text-center md:text-left">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#0869F5]">
+                    Painel do Organizador
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#E8F7F0] text-[#00A868] border border-[#B9E7D2]">
+                    Marca Ativa
+                  </span>
+                </div>
+                <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#0D1729] tracking-[-0.04em] leading-tight">
+                  Painel de Controle
+                </h1>
+                <p className="text-[#475872] text-sm sm:text-[15px] leading-relaxed">
+                  Acompanhe suas rifas rápidas, aprove comprovantes e confirme cotas com agilidade no PIX.
+                </p>
+                <p className="text-xs text-[#526480] pt-0.5">
+                  Sua marca e logotipo aparecem no topo de todas as suas campanhas públicas para os seus clientes.
+                </p>
+              </div>
+
+              <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-center md:justify-start xl:justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsBrandModalOpen(true)}
+                  className="ora-btn-secondary flex-1 sm:flex-initial rounded-full px-4 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                >
+                  <Store className="w-4 h-4 text-[#0869F5]" />
+                  <span>Minha Marca</span>
+                </button>
+                <Link
+                  href="/admin/rifas/nova"
+                  className="ora-btn-primary flex-1 sm:flex-initial rounded-full px-4 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-[15px] font-bold inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Rifa rápida</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       )}

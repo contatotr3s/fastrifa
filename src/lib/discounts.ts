@@ -133,9 +133,14 @@ export function pickWeightedRouletteSlice(
   return { index: fallback.index, percent: fallback.percent };
 }
 
+export const DEFAULT_BUY_X_QTY = 3;
+export const DEFAULT_PAY_Y_QTY = 2;
+
 export const DEFAULT_DISCOUNT_CONFIG: RaffleDiscountConfig = {
   mode: 'none',
   tiers: DEFAULT_PROGRESSIVE_TIERS,
+  buy_x_qty: DEFAULT_BUY_X_QTY,
+  pay_y_qty: DEFAULT_PAY_Y_QTY,
   simple_min_tickets: 2,
   simple_percent: 10,
   roulette_min_tickets: 2,
@@ -159,6 +164,10 @@ export interface DiscountPricingResult {
   } | null;
   canSpinRoulette: boolean;
   needsMoreForRoulette: number;
+  freeTickets: number;
+  paidTickets: number;
+  buyQty?: number;
+  payQty?: number;
 }
 
 export function roundCurrency(value: number): number {
@@ -197,6 +206,15 @@ export function normalizeDiscountConfig(
     .slice(0, 5)
     .map(([min_tickets, percent]) => ({ min_tickets, percent }));
 
+  const buyX = Math.max(
+    2,
+    Math.min(1000, Math.round(Number(raw?.buy_x_qty ?? DEFAULT_BUY_X_QTY) || DEFAULT_BUY_X_QTY))
+  );
+  const payY = Math.max(
+    1,
+    Math.min(buyX - 1, Math.round(Number(raw?.pay_y_qty ?? DEFAULT_PAY_Y_QTY) || DEFAULT_PAY_Y_QTY))
+  );
+
   const simpleMin = clampMinTickets(raw?.simple_min_tickets ?? 2);
   const simplePct = clampPercent(raw?.simple_percent ?? 10);
 
@@ -213,6 +231,8 @@ export function normalizeDiscountConfig(
   return {
     mode,
     tiers: cleanTiers,
+    buy_x_qty: buyX,
+    pay_y_qty: payY,
     simple_min_tickets: simpleMin,
     simple_percent: simplePct,
     roulette_min_tickets: rouletteMin,
@@ -221,7 +241,7 @@ export function normalizeDiscountConfig(
 }
 
 /**
- * Calcula valores, faixa atingida, próximo degrau e estado da roleta promocional.
+ * Calcula valores, faixa atingida, próximo degrau, combos Compre X Pague Y e estado da roleta promocional.
  */
 export function calculateDiscountedPricing({
   ticketCount,
@@ -245,6 +265,12 @@ export function calculateDiscountedPricing({
   let nextTier: DiscountPricingResult['nextTier'] = null;
   let canSpinRoulette = false;
   let needsMoreForRoulette = 0;
+  let freeTickets = 0;
+  let paidTickets = safeCount;
+  let buyQty: number | undefined;
+  let payQty: number | undefined;
+  let discountAmount = 0;
+  let finalAmount = originalAmount;
 
   if (normalized.mode === 'progressive') {
     const tiers = normalized.tiers || DEFAULT_PROGRESSIVE_TIERS;
@@ -262,6 +288,39 @@ export function calculateDiscountedPricing({
     }
     if (activeTier) {
       discountLabel = `Desconto progressivo (${activeTier.min_tickets}+ cotas · ${activeTier.percent}% OFF)`;
+    }
+  } else if (normalized.mode === 'buy_x_pay_y') {
+    const buyX = normalized.buy_x_qty ?? DEFAULT_BUY_X_QTY;
+    const payY = Math.min(buyX - 1, Math.max(1, normalized.pay_y_qty ?? DEFAULT_PAY_Y_QTY));
+    buyQty = buyX;
+    payQty = payY;
+    const freePerBundle = buyX - payY;
+    const bundles = Math.floor(safeCount / buyX);
+    freeTickets = bundles * freePerBundle;
+    paidTickets = Math.max(0, safeCount - freeTickets);
+
+    if (freeTickets > 0 && safeCount > 0) {
+      finalAmount = Math.max(0.01, roundCurrency(paidTickets * safeUnit));
+      discountAmount = Math.max(0, roundCurrency(originalAmount - finalAmount));
+      discountPercent =
+        originalAmount > 0
+          ? Math.max(1, Math.round((discountAmount / originalAmount) * 100))
+          : 0;
+      activeTier = { min_tickets: buyX, percent: discountPercent };
+      discountLabel = `Compre ${buyX}, Pague ${payY} (${freeTickets} cota${freeTickets > 1 ? 's' : ''} grátis)`;
+    }
+
+    const remainder = safeCount % buyX;
+    const remaining = remainder === 0 ? (bundles === 0 ? buyX : 0) : buyX - remainder;
+    if (remaining > 0) {
+      const nextTotal = safeCount + remaining;
+      const nextFree = Math.floor(nextTotal / buyX) * freePerBundle;
+      const nextPct = Math.round((nextFree / nextTotal) * 100);
+      nextTier = {
+        minTickets: nextTotal,
+        percent: nextPct,
+        remaining,
+      };
     }
   } else if (normalized.mode === 'simple') {
     const min = normalized.simple_min_tickets ?? 2;
@@ -291,10 +350,7 @@ export function calculateDiscountedPricing({
     }
   }
 
-  let discountAmount = 0;
-  let finalAmount = originalAmount;
-
-  if (safeCount > 0 && discountPercent > 0) {
+  if (normalized.mode !== 'buy_x_pay_y' && safeCount > 0 && discountPercent > 0) {
     finalAmount = Math.max(
       0.01,
       roundCurrency(originalAmount * (1 - discountPercent / 100))
@@ -315,6 +371,10 @@ export function calculateDiscountedPricing({
     nextTier,
     canSpinRoulette,
     needsMoreForRoulette,
+    freeTickets,
+    paidTickets,
+    buyQty,
+    payQty,
   };
 }
 
@@ -333,6 +393,13 @@ export function getDiscountForFixedQty(
       if (qty >= tier.min_tickets) pct = tier.percent;
     }
     return pct;
+  }
+  if (normalized.mode === 'buy_x_pay_y') {
+    const buyX = normalized.buy_x_qty ?? DEFAULT_BUY_X_QTY;
+    const payY = Math.min(buyX - 1, Math.max(1, normalized.pay_y_qty ?? DEFAULT_PAY_Y_QTY));
+    const bundles = Math.floor(qty / buyX);
+    const free = bundles * (buyX - payY);
+    return free > 0 && qty > 0 ? Math.round((free / qty) * 100) : 0;
   }
   if (normalized.mode === 'simple') {
     const min = normalized.simple_min_tickets ?? 2;
