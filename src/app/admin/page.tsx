@@ -1,11 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
-import { getUserRaffles, subscribeToUserRaffles } from '@/lib/firebase/raffles';
-import { getRaffleAdminPath, getRafflePublicPath } from '@/lib/raffle-urls';
+import {
+  getRaffleOrders,
+  getUserRaffles,
+  subscribeToUserRaffles,
+} from '@/lib/firebase/raffles';
+import {
+  getOrganizerPartnerPayouts,
+  getOrganizerPartners,
+} from '@/lib/firebase/partners';
+import {
+  getRaffleAdminPath,
+  getRafflePartnersAdminPath,
+  getRafflePublicPath,
+} from '@/lib/raffle-urls';
+import AdminFinancialDashboard from '@/components/admin-financial-dashboard';
 import BrandOnboardingModal from '@/components/brand-onboarding-modal';
 import { generateBrandInitials } from '@/lib/image-processor';
 import {
@@ -20,8 +33,14 @@ import {
   ShieldCheck,
   Home,
   LogOut,
+  Users,
 } from 'lucide-react';
-import type { Raffle } from '@/types/database.types';
+import type {
+  Order,
+  PartnerPayout,
+  Raffle,
+  RafflePartner,
+} from '@/types/database.types';
 
 export default function AdminDashboardPage() {
   const { user, profile, loading: authLoading, logout } = useAuth();
@@ -34,10 +53,22 @@ export default function AdminDashboardPage() {
 
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [allPartners, setAllPartners] = useState<RafflePartner[]>([]);
+  const [allPayouts, setAllPayouts] = useState<PartnerPayout[]>([]);
+  const [loadedFinanceKey, setLoadedFinanceKey] = useState<string | null>(null);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
+  const raffleIdsKey = useMemo(
+    () => raffles.map((r) => r.id).join(','),
+    [raffles]
+  );
+  const currentFinanceKey =
+    user && !isMaster && !loading ? `${user.uid}:${raffleIdsKey}` : null;
+  const financeLoading =
+    currentFinanceKey !== null && loadedFinanceKey !== currentFinanceKey;
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -64,6 +95,46 @@ export default function AdminDashboardPage() {
       return () => unsubscribe();
     }
   }, [user, authLoading, router, isMaster]);
+
+  useEffect(() => {
+    if (!user || isMaster || loading || !currentFinanceKey) return;
+
+    const raffleIds = raffleIdsKey ? raffleIdsKey.split(',').filter(Boolean) : [];
+    const targetKey = currentFinanceKey;
+    let cancelled = false;
+
+    Promise.all([
+      raffleIds.length > 0
+        ? Promise.all(raffleIds.map((raffleId) => getRaffleOrders(raffleId)))
+        : Promise.resolve([] as Order[][]),
+      getOrganizerPartners(user.uid),
+      getOrganizerPartnerPayouts(user.uid),
+    ])
+      .then(([orderLists, partners, payouts]) => {
+        if (cancelled) return;
+        const orderById = new Map<string, Order>();
+        for (const list of orderLists) {
+          for (const order of list) {
+            orderById.set(order.id, order);
+          }
+        }
+        setAllOrders(Array.from(orderById.values()));
+        setAllPartners(partners);
+        setAllPayouts(payouts);
+      })
+      .catch((err) => {
+        console.error('Erro ao consolidar dados financeiros do organizador:', err);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadedFinanceKey(targetKey);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isMaster, loading, raffleIdsKey, currentFinanceKey]);
 
   if (authLoading || loading) {
     return (
@@ -314,6 +385,17 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Dashboard Financeiro & Rede de Vendas (Organizador) */}
+      {!isMaster && (
+        <AdminFinancialDashboard
+          raffles={raffles}
+          orders={allOrders}
+          partners={allPartners}
+          payouts={allPayouts}
+          loading={financeLoading}
+        />
+      )}
+
       {/* Raffles List */}
       <div className="space-y-5">
         <h2 className="font-display font-bold text-2xl text-[#0D1729] tracking-[-0.03em]">
@@ -415,7 +497,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[#E0E9F7] flex items-center justify-between gap-3">
+                <div className="pt-4 border-t border-[#E0E9F7] flex flex-wrap items-center justify-between gap-2.5">
                   <Link
                     href={getRafflePublicPath(raffle)}
                     target="_blank"
@@ -425,13 +507,23 @@ export default function AdminDashboardPage() {
                     <ExternalLink className="w-4 h-4" />
                   </Link>
 
-                  <Link
-                    href={getRaffleAdminPath(raffle)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] text-[#0755DE] text-[13px] font-bold rounded-[13px] transition"
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span>Gerenciar Cotas</span>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={getRafflePartnersAdminPath(raffle)}
+                      className="ora-btn-secondary inline-flex items-center gap-1.5 px-3.5 py-2.5 text-[13px] font-bold rounded-[13px] transition"
+                    >
+                      <Users className="w-4 h-4 text-[#0869F5]" />
+                      <span>Parceiros</span>
+                    </Link>
+
+                    <Link
+                      href={getRaffleAdminPath(raffle)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F2F7FF] hover:bg-[#E3EFFF] border border-[#CDE0FC] text-[#0755DE] text-[13px] font-bold rounded-[13px] transition"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Gerenciar Cotas</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
               );
