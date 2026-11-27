@@ -1980,39 +1980,39 @@ export default function RafflePublicView({
 
       {/* Payment Screen Modal (Maior, mais legível, sem "Reserva Confirmada" e 1 tela sem rolagem) */}
       {confirmedOrder && (
-        <div className="fixed inset-0 z-50 bg-[#0D1729]/55 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4">
-          <div className="ora-card rounded-[24px] sm:rounded-[30px] max-w-md sm:max-w-2xl w-full p-4 sm:p-7 space-y-3.5 sm:space-y-5 relative text-center animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-[#0D1729]/55 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="ora-card rounded-[22px] sm:rounded-[30px] max-w-md sm:max-w-2xl w-full max-h-[calc(100dvh-16px)] sm:max-h-[calc(100dvh-32px)] overflow-y-auto p-3 sm:p-7 space-y-2 sm:space-y-5 relative text-center animate-in zoom-in-95 duration-200 my-auto">
             {/* Cabeçalho perfeitamente alinhado com ícone circular verde ao lado do título */}
-            <div className="flex items-center justify-center gap-3 pb-2.5 sm:pb-3 border-b border-[#E0E9F7]">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#ECFDF5] border-2 border-[#A7F3D0] flex items-center justify-center text-[#059669] shadow-xs shrink-0">
-                <Check className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+            <div className="flex items-center justify-center gap-2 sm:gap-3 pb-2 sm:pb-3 border-b border-[#E0E9F7]">
+              <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-full bg-[#ECFDF5] border-2 border-[#A7F3D0] flex items-center justify-center text-[#059669] shadow-xs shrink-0">
+                <Check className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
               </div>
-              <h3 className="font-display font-bold text-xl sm:text-[26px] text-[#0D1729] tracking-[-0.03em] leading-tight text-left">
+              <h3 className="font-display font-bold text-[15px] sm:text-[26px] text-[#0D1729] tracking-[-0.03em] leading-tight text-left">
                 Cotas Reservadas com Sucesso!
               </h3>
             </div>
 
-            {/* Corpo em 2 colunas no Desktop e coluna única espaçosa no Mobile */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 sm:gap-6 items-center">
+            {/* Corpo em 2 colunas no Desktop e bloco compacto lado a lado (Valor + QR) no Mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-6 items-center">
               {/* Coluna Esquerda: Valor + QR Code grande */}
-              <div className="sm:col-span-5 flex flex-col items-center justify-center gap-2.5 sm:gap-3 sm:p-4 sm:rounded-[22px] sm:bg-[#F8FBFF] sm:border sm:border-[#E0E9F7]">
-                <div className="text-center space-y-1">
-                  <span className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#526480]">
+              <div className="sm:col-span-5 flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-2.5 sm:gap-3 p-2.5 sm:p-4 rounded-[16px] sm:rounded-[22px] bg-[#F8FBFF] border border-[#E0E9F7]">
+                <div className="text-left sm:text-center space-y-0.5 sm:space-y-1 min-w-0 flex-1 sm:flex-none">
+                  <span className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#526480]">
                     Valor exato do PIX
                   </span>
-                  <div className="font-display font-bold text-2xl sm:text-3xl text-[#0869F5] tabular-nums leading-tight">
+                  <div className="font-display font-bold text-xl sm:text-3xl text-[#0869F5] tabular-nums leading-tight">
                     R$ {confirmedOrder.total.toFixed(2)}
                   </div>
                   {confirmedOrder.discountPercent && confirmedOrder.discountPercent > 0 ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[11px] font-bold">
-                      <Tag className="w-3 h-3" />
-                      Economia de R$ {(confirmedOrder.discountAmount || 0).toFixed(2)} ({confirmedOrder.discountPercent}% OFF)
+                    <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10px] sm:text-[11px] font-bold leading-tight">
+                      <Tag className="w-3 h-3 shrink-0" />
+                      <span>Economia de R$ {(confirmedOrder.discountAmount || 0).toFixed(2)} ({confirmedOrder.discountPercent}% OFF)</span>
                     </span>
                   ) : null}
                 </div>
 
                 {pixQrCodeUrl && (
-                  <div className="w-40 h-40 sm:w-52 sm:h-52 p-2.5 sm:p-3 bg-white rounded-[20px] border-2 border-[#CDE0FC] shadow-[0_10px_24px_rgba(8,105,245,0.10)] flex items-center justify-center">
+                  <div className="w-[84px] h-[84px] sm:w-52 sm:h-52 p-1.5 sm:p-3 bg-white rounded-[14px] sm:rounded-[20px] border-2 border-[#CDE0FC] shadow-[0_8px_18px_rgba(8,105,245,0.10)] sm:shadow-[0_10px_24px_rgba(8,105,245,0.10)] flex items-center justify-center shrink-0">
                     <img
                       src={pixQrCodeUrl}
                       alt="QR Code PIX com valor da rifa"
@@ -2023,22 +2023,22 @@ export default function RafflePublicView({
               </div>
 
               {/* Coluna Direita: Countdown, Copiar PIX, Aviso e WhatsApp */}
-              <div className="sm:col-span-7 flex flex-col gap-3 sm:gap-3.5 text-left">
+              <div className="sm:col-span-7 flex flex-col gap-2 sm:gap-3.5 text-left">
                 {confirmedOrder.discountPercent && confirmedOrder.discountPercent > 0 ? (
                   isDiscountExpiredPermanently ? (
-                    <div className="p-2.5 sm:p-3 rounded-[14px] bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-xs font-bold flex items-center gap-2">
-                      <Clock className="w-4 h-4 shrink-0" />
+                    <div className="p-2 sm:p-3 rounded-[12px] sm:rounded-[14px] bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-[11px] sm:text-xs leading-snug font-bold flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                       <span>Prazo de 10 minutos encerrado — o desconto promocional expirou.</span>
                     </div>
                   ) : (
                     <div
-                      className={`p-2.5 sm:p-3 rounded-[14px] border text-xs font-bold flex items-center gap-2 tabular-nums ${
+                      className={`p-2 sm:p-3 rounded-[12px] sm:rounded-[14px] border text-[11px] sm:text-xs leading-snug font-bold flex items-center gap-2 tabular-nums ${
                         discountSecondsLeft <= 120
                           ? 'bg-[#FFF1F2] border-[#FECDD3] text-[#BE123C]'
                           : 'bg-[#E8F7F0] border-[#B9E7D2] text-[#065F46]'
                       }`}
                     >
-                      <Clock className="w-4 h-4 shrink-0" />
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                       <span>
                         Pague em até <strong className="underline">{formatCountdown(discountSecondsLeft)}</strong> para garantir seu desconto de {confirmedOrder.discountPercent}% OFF (se não pagar no prazo, perde para sempre).
                       </span>
@@ -2050,7 +2050,7 @@ export default function RafflePublicView({
                   <button
                     type="button"
                     onClick={copyPixBrCode}
-                    className={`w-full py-3 sm:py-3.5 px-5 rounded-full font-bold text-sm sm:text-[15px] flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer shadow-sm ${
+                    className={`w-full py-2.5 sm:py-3.5 px-3.5 sm:px-5 rounded-full font-bold text-[12.5px] sm:text-[15px] leading-tight flex items-center justify-center gap-1.5 sm:gap-2 transition active:scale-[0.98] cursor-pointer shadow-sm ${
                       copiedBrCode
                         ? 'bg-[#059669] text-white'
                         : 'ora-btn-primary'
@@ -2058,14 +2058,14 @@ export default function RafflePublicView({
                   >
                     {copiedBrCode ? (
                       <>
-                        <Check className="w-4 h-4" />
+                        <Check className="w-4 h-4 shrink-0" />
                         <span>
                           PIX Copia e Cola Copiado! (R$ {confirmedOrder.total.toFixed(2)})
                         </span>
                       </>
                     ) : (
                       <>
-                        <QrIcon className="w-4 h-4" />
+                        <QrIcon className="w-4 h-4 shrink-0" />
                         <span>
                           Copiar PIX Copia e Cola (R$ {confirmedOrder.total.toFixed(2)})
                         </span>
@@ -2075,15 +2075,15 @@ export default function RafflePublicView({
                 )}
 
                 {/* Card de Atenção e Envio de Comprovante */}
-                <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[18px] p-3 sm:p-4 space-y-1.5 shadow-xs">
-                  <div className="flex items-center gap-1.5 text-[#92400E] font-display font-bold text-xs sm:text-[13px]">
+                <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[14px] sm:rounded-[18px] p-2.5 sm:p-4 space-y-1 sm:space-y-1.5 shadow-xs">
+                  <div className="flex items-center gap-1.5 text-[#92400E] font-display font-bold text-[11px] sm:text-[13px]">
                     <span>📸</span>
                     <span>ATENÇÃO: COMPROVANTE DE PAGAMENTO</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-[#78350F] leading-relaxed">
+                  <p className="text-[11px] sm:text-sm text-[#78350F] leading-snug sm:leading-relaxed">
                     Após realizar o Pix, <strong>salve o comprovante no seu celular</strong> e clique abaixo para enviá-lo no WhatsApp.
                   </p>
-                  <p className="pt-1.5 border-t border-[#FDE68A]/70 text-xs sm:text-[13px] text-[#065F46] font-semibold leading-snug">
+                  <p className="pt-1 sm:pt-1.5 border-t border-[#FDE68A]/70 text-[11px] sm:text-[13px] text-[#065F46] font-semibold leading-snug">
                     {normalizedDiscount.mode === 'roulette' &&
                     confirmedOrder.discountPercent &&
                     confirmedOrder.discountPercent < rouletteDistribution.maxOption
@@ -2116,9 +2116,9 @@ export default function RafflePublicView({
                       href={whatsappUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full py-3 sm:py-3.5 px-5 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-full flex items-center justify-center gap-2 text-sm sm:text-[15px] shadow-sm transition active:scale-[0.98]"
+                      className="w-full py-2.5 sm:py-3.5 px-3.5 sm:px-5 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-full flex items-center justify-center gap-1.5 sm:gap-2 text-[12.5px] sm:text-[15px] leading-tight shadow-sm transition active:scale-[0.98]"
                     >
-                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                       <span>Enviar Notificação e Comprovante no WhatsApp</span>
                     </a>
                   );
@@ -2126,14 +2126,14 @@ export default function RafflePublicView({
               </div>
             </div>
 
-            <div className="pt-1">
+            <div className="pt-0 sm:pt-1">
               <button
                 type="button"
                 onClick={() => {
                   setConfirmedOrder(null);
                   setIsCheckoutOpen(false);
                 }}
-                className="text-xs sm:text-sm font-bold text-[#475872] hover:text-[#0D1729] cursor-pointer"
+                className="text-xs sm:text-sm font-bold text-[#475872] hover:text-[#0D1729] cursor-pointer py-0.5"
               >
                 Fechar e voltar para a campanha
               </button>
