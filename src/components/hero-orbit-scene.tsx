@@ -220,7 +220,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       <span className="fr-star fr-star-3" aria-hidden="true">✦</span>
 
       {/* CENTRO: Bilhete 3D em formato real de bilhete */}
-      <div className="relative z-20 flex items-center justify-center pointer-events-none">
+      <div className="relative z-20 flex items-center justify-center">
         <div
           className={`relative flex items-center justify-center ${
             isMobile
@@ -233,7 +233,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
             className="fr-ticket-glow pointer-events-none absolute -inset-6 rounded-full blur-2xl animate-pulse"
           />
 
-          <div className="fr-ticket-holder">
+          <div className="fr-ticket-holder pointer-events-auto">
             <div className="fr-speed" aria-hidden="true">
               <i /><i /><i /><i /><i />
             </div>
@@ -263,7 +263,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       </div>
 
       {/* 1. Card: Criação em 2 min */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-auto select-none">
         <div
           className={`flex items-center bg-white/95 backdrop-blur-md border border-[#E0E9F7] transition-colors ${
             isMobile
@@ -389,7 +389,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       </div>
 
       {/* 3. Card: Chave PIX Direta */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-auto select-none">
         <div
           className={`flex items-center bg-white/95 backdrop-blur-md border border-[#E0E9F7] transition-colors ${
             isMobile
@@ -492,7 +492,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       </div>
 
       {/* 5. Card: Link pro WhatsApp */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-auto select-none">
         <div
           className={`flex items-center bg-white/95 backdrop-blur-md border border-[#E0E9F7] transition-colors ${
             isMobile
@@ -574,7 +574,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       </div>
 
       {/* 7. Card: Grade em Tempo Real */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-auto select-none">
         <div
           className={`flex items-center bg-white/95 backdrop-blur-md border border-[#E0E9F7] transition-colors ${
             isMobile
@@ -672,7 +672,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       </div>
 
       {/* 9. Card: Sem Taxa no Saque */}
-      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-none select-none">
+      <div className="fr-orbit-item fr-orbit-card absolute top-1/2 left-1/2 pointer-events-auto select-none">
         <div
           className={`flex items-center bg-white/95 backdrop-blur-md border border-[#E0E9F7] transition-colors ${
             isMobile
@@ -787,7 +787,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
           left: 50%;
           width: ${isMobile ? '50px' : '86px'};
           height: ${isMobile ? '50px' : '86px'};
-          pointer-events: none;
+          pointer-events: auto;
           will-change: transform, opacity;
           filter: drop-shadow(0 10px 14px rgba(8, 52, 118, 0.22));
         }
@@ -807,6 +807,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
 
         .fr-orbit-root .fr-orbit-card {
           border-radius: 22px;
+          pointer-events: auto;
           will-change: transform, opacity;
         }
 
@@ -814,6 +815,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
           position: relative;
           width: 100%;
           height: 100%;
+          pointer-events: auto;
           animation: fr-ticket-float 4s ease-in-out infinite;
         }
 
