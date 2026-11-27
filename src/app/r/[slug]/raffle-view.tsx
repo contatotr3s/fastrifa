@@ -1622,40 +1622,57 @@ export default function RafflePublicView({
 
         return (
           <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 pointer-events-none flex justify-center animate-in slide-in-from-bottom-4 duration-200">
-            <div className="pointer-events-auto max-w-3xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[24px] px-3.5 pt-2.5 pb-2 sm:px-5 sm:pt-3 sm:pb-2.5 shadow-[0_20px_50px_rgba(0,168,104,0.18)] tabular-nums">
-              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4">
-                <div className="space-y-0.5 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-display font-bold text-[#0D1729] truncate">
+            <div
+              id="checkout-floating-bar"
+              className="pointer-events-auto max-w-4xl w-full bg-white/95 backdrop-blur-xl border-2 border-[var(--ora-blue,#00A868)] rounded-[22px] sm:rounded-[26px] px-3.5 pt-2.5 pb-2 sm:px-6 sm:pt-3.5 sm:pb-3 shadow-[0_20px_50px_rgba(0,168,104,0.18)] tabular-nums"
+            >
+              {/* Mobile: faixa promocional fixa acima para nunca deslocar o botão Reservar Agora */}
+              {centerCheckoutSlot && (
+                <div className="sm:hidden w-full mb-2 flex items-center justify-center min-w-0">
+                  {centerCheckoutSlot}
+                </div>
+              )}
+
+              <div className="flex flex-nowrap items-center justify-between gap-2 sm:gap-5">
+                <div className="space-y-0.5 min-w-0 shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap">
+                    <span
+                      id="checkout-tickets-count"
+                      className="text-xs sm:text-sm font-display font-bold text-[#0D1729] whitespace-nowrap"
+                    >
                       {selectedTickets.length} cota(s)
                     </span>
+                    {pricing.discountPercent > 0 && (
+                      <span
+                        id="checkout-discount-badge"
+                        className="px-1.5 sm:px-2 py-0.5 rounded-full bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] text-[10px] font-bold whitespace-nowrap shrink-0"
+                      >
+                        -{pricing.discountPercent}% OFF
+                      </span>
+                    )}
                     <button
                       type="button"
+                      id="checkout-clear-btn"
                       onClick={clearSelection}
                       className="text-[11px] sm:text-xs font-bold text-[#BE123C] hover:underline cursor-pointer flex-shrink-0"
                     >
                       Limpar
                     </button>
                   </div>
-                  <div className="flex flex-wrap items-baseline gap-2">
+                  <div className="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
                     {pricing.discountPercent > 0 && (
-                      <span className="text-xs sm:text-sm text-[#8A9BB3] line-through font-semibold">
+                      <span className="text-[11px] sm:text-sm text-[#8A9BB3] line-through font-semibold">
                         R$ {pricing.originalAmount.toFixed(2)}
                       </span>
                     )}
-                    <div className="font-display font-bold text-base sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
+                    <div className="font-display font-bold text-[15px] sm:text-xl text-[var(--ora-blue,#00A868)] leading-tight">
                       Total: R$ {totalPrice}
                     </div>
-                    {pricing.discountPercent > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#E8F7F0] text-[#00A868] text-[10px] font-bold">
-                        -{pricing.discountPercent}% OFF
-                      </span>
-                    )}
                   </div>
                 </div>
 
                 {centerCheckoutSlot && (
-                  <div className="order-first sm:order-none w-full sm:w-auto sm:flex-1 flex items-center justify-center min-w-0">
+                  <div className="hidden sm:flex sm:flex-1 items-center justify-center min-w-0">
                     {centerCheckoutSlot}
                   </div>
                 )}
@@ -1665,7 +1682,7 @@ export default function RafflePublicView({
                     <button
                       type="button"
                       onClick={() => setShowDiscountRoulette(true)}
-                      className="px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-full bg-gradient-to-r from-[#F59E0B] via-[#EA580C] to-[#D97706] hover:brightness-105 text-white border border-[#FBBF24]/70 shadow-[0_10px_24px_rgba(234,88,12,0.32)] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap"
+                      className="px-3.5 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-full bg-gradient-to-r from-[#F59E0B] via-[#EA580C] to-[#D97706] hover:brightness-105 text-white border border-[#FBBF24]/70 shadow-[0_10px_24px_rgba(234,88,12,0.32)] flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap"
                     >
                       <Dices className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span>Girar Roleta</span>
@@ -1673,12 +1690,13 @@ export default function RafflePublicView({
                   ) : (
                     <button
                       type="button"
+                      id="checkout-reserve-btn"
                       onClick={() => {
                         setBuyerFieldErrors({});
                         setOrderError(null);
                         setIsCheckoutOpen(true);
                       }}
-                      className="ora-btn-primary px-4 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-full flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
+                      className="ora-btn-primary px-3.5 sm:px-6 py-2.5 sm:py-3.5 font-bold rounded-full flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base active:scale-95 transition cursor-pointer flex-shrink-0 whitespace-nowrap shadow-sm"
                     >
                       <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span>Reservar Agora</span>

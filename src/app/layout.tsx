@@ -30,16 +30,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Anti-FOUC: aplica o tema síncronamente antes do primeiro paint da tela */}
+        {/* Anti-FOUC: aplica o tema verde definitivo antes do primeiro paint da tela */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function() {
               try {
-                var stored = localStorage.getItem('${GLOBAL_THEME_STORAGE_KEY}');
-                var match = document.cookie.match(/${GLOBAL_THEME_STORAGE_KEY}=([^;]+)/);
-                var cookieTheme = match ? match[1] : null;
-                var theme = stored || cookieTheme || 'green';
-                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('${GLOBAL_THEME_STORAGE_KEY}', 'green');
+                document.cookie = '${GLOBAL_THEME_STORAGE_KEY}=green; path=/; max-age=31536000; SameSite=Lax';
+                document.documentElement.setAttribute('data-theme', 'green');
               } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'green');
               }

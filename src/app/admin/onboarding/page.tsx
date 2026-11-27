@@ -7,6 +7,9 @@ import { processLogoImage, generateBrandInitials } from '@/lib/image-processor';
 import {
   formatCpf,
   getCpfError,
+  formatBirthDate,
+  getBirthDateError,
+  parseBirthDateToIso,
   getEmailError,
   formatBrazilMobile,
   getBrazilMobileError,
@@ -15,6 +18,7 @@ import {
   validatePixKey,
   onlyDigits,
 } from '@/lib/validators';
+import { OrganizerSignupTermsModal } from '@/components/terms-modals';
 import {
   Sparkles,
   Store,
@@ -27,6 +31,7 @@ import {
   AlertCircle,
   Mail,
   FileText,
+  Calendar,
 } from 'lucide-react';
 
 type OnboardingPixType = 'cpf_cnpj' | 'phone' | 'email' | 'random';
@@ -34,9 +39,11 @@ type OnboardingPixType = 'cpf_cnpj' | 'phone' | 'email' | 'random';
 interface OnboardingFieldErrors {
   brandName?: string;
   cpf?: string;
+  birthDate?: string;
   email?: string;
   phone?: string;
   pixKey?: string;
+  terms?: string;
 }
 
 function mapProfilePixType(
@@ -56,6 +63,7 @@ export default function OnboardingPage() {
 
   const [brandName, setBrandName] = useState(profile?.brand_name || '');
   const [cpf, setCpf] = useState(formatCpf(profile?.cpf || ''));
+  const [birthDate, setBirthDate] = useState(formatBirthDate(profile?.birth_date || ''));
   const [email, setEmail] = useState(profile?.email || user?.email || '');
   const [phone, setPhone] = useState(
     formatBrazilMobile(profile?.phone_whatsapp || '')
@@ -67,6 +75,10 @@ export default function OnboardingPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(
     profile?.brand_logo_url || null
   );
+  const [acceptedTerms, setAcceptedTerms] = useState<boolean>(
+    Boolean(profile?.organizer_terms_accepted)
+  );
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isProcessingLogo, setIsProcessingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +95,7 @@ export default function OnboardingPage() {
     const hydratedPixType = mapProfilePixType(profile?.pix_key_type);
     setBrandName((prev) => prev || profile?.brand_name || '');
     setCpf((prev) => prev || formatCpf(profile?.cpf || ''));
+    setBirthDate((prev) => prev || formatBirthDate(profile?.birth_date || ''));
     setEmail((prev) => prev || profile?.email || user?.email || '');
     setPhone((prev) => prev || formatBrazilMobile(profile?.phone_whatsapp || ''));
     setPixType(hydratedPixType);
@@ -90,6 +103,9 @@ export default function OnboardingPage() {
       prev || formatPixKeyInput(profile?.pix_key || '', hydratedPixType)
     );
     setLogoPreview((prev) => prev || profile?.brand_logo_url || null);
+    if (profile?.organizer_terms_accepted) {
+      setAcceptedTerms(true);
+    }
   }, [user, profile]);
 
   const currentInitials = generateBrandInitials(brandName || 'Sua Marca');
@@ -154,6 +170,11 @@ export default function OnboardingPage() {
       nextErrors.cpf = cpfErr;
     }
 
+    const birthDateErr = getBirthDateError(birthDate);
+    if (birthDateErr) {
+      nextErrors.birthDate = birthDateErr;
+    }
+
     const emailErr = getEmailError(cleanEmail);
     if (emailErr) {
       nextErrors.email = emailErr;
@@ -169,18 +190,27 @@ export default function OnboardingPage() {
       nextErrors.pixKey = pixCheck.error || 'Chave PIX inválida.';
     }
 
+    if (!acceptedTerms) {
+      nextErrors.terms =
+        'Você precisa ler e aceitar o Termo de Uso e Adesão do Organizador para continuar.';
+    }
+
     setFieldErrors(nextErrors);
 
     const firstInvalidId = nextErrors.brandName
       ? 'onboarding-brand'
       : nextErrors.cpf
       ? 'onboarding-cpf'
+      : nextErrors.birthDate
+      ? 'onboarding-birthdate'
       : nextErrors.email
       ? 'onboarding-email'
       : nextErrors.phone
       ? 'onboarding-phone'
       : nextErrors.pixKey
       ? 'onboarding-pix'
+      : nextErrors.terms
+      ? 'onboarding-terms'
       : null;
 
     if (firstInvalidId) {
@@ -199,11 +229,15 @@ export default function OnboardingPage() {
         brand_name: cleanBrand,
         brand_initials: currentInitials,
         cpf: onlyDigits(cpf),
+        birth_date: parseBirthDateToIso(birthDate),
         email: cleanEmail,
         phone_whatsapp: normalizeBrazilMobileDigits(phone),
         pix_key: pixCheck.normalizedValue,
         pix_key_type: pixCheck.resolvedType,
         brand_logo_url: logoPreview,
+        brand_color: 'green',
+        organizer_terms_accepted: true,
+        organizer_terms_accepted_at: new Date().toISOString(),
         onboarding_completed: true,
       });
 
@@ -287,57 +321,99 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* 2. CPF do Responsável */}
-          <div className="space-y-2">
-            <label
-              htmlFor="onboarding-cpf"
-              className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]"
-            >
-              2. CPF do Responsável *
-            </label>
-            <div className="relative">
-              <FileText className="w-5 h-5 absolute left-4 top-3.5 text-[#526480]" />
-              <input
-                id="onboarding-cpf"
-                type="text"
-                inputMode="numeric"
-                maxLength={14}
-                required
-                value={cpf}
-                onChange={(e) => {
-                  setCpf(formatCpf(e.target.value));
-                  clearFieldError('cpf');
-                }}
-                onBlur={() => {
-                  if (cpf.trim()) {
-                    const cpfErr = getCpfError(cpf);
-                    if (cpfErr) {
-                      setFieldErrors((prev) => ({ ...prev, cpf: cpfErr }));
+          {/* 2. CPF e 3. Data de Nascimento do Responsável (Obrigatórios) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="onboarding-cpf"
+                className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]"
+              >
+                2. CPF do Responsável *
+              </label>
+              <div className="relative">
+                <FileText className="w-5 h-5 absolute left-4 top-3.5 text-[#526480]" />
+                <input
+                  id="onboarding-cpf"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={14}
+                  required
+                  value={cpf}
+                  onChange={(e) => {
+                    setCpf(formatCpf(e.target.value));
+                    clearFieldError('cpf');
+                  }}
+                  onBlur={() => {
+                    if (cpf.trim()) {
+                      const cpfErr = getCpfError(cpf);
+                      if (cpfErr) {
+                        setFieldErrors((prev) => ({ ...prev, cpf: cpfErr }));
+                      }
                     }
-                  }
-                }}
-                placeholder="000.000.000-00"
-                className={getInputStateClass(fieldErrors.cpf)}
-              />
+                  }}
+                  placeholder="000.000.000-00"
+                  className={getInputStateClass(fieldErrors.cpf)}
+                />
+              </div>
+              {fieldErrors.cpf && (
+                <p className="text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.cpf}</span>
+                </p>
+              )}
             </div>
-            {fieldErrors.cpf && (
-              <p className="text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{fieldErrors.cpf}</span>
-              </p>
-            )}
-            <p className="text-xs text-[#526480]">
-              Exigido para validação de titularidade, segurança das campanhas e trilha de auditoria.
-            </p>
-          </div>
 
-          {/* 3. E-mail Oficial */}
+            <div className="space-y-2">
+              <label
+                htmlFor="onboarding-birthdate"
+                className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]"
+              >
+                3. Data de Nascimento *
+              </label>
+              <div className="relative">
+                <Calendar className="w-5 h-5 absolute left-4 top-3.5 text-[#526480]" />
+                <input
+                  id="onboarding-birthdate"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={10}
+                  required
+                  value={birthDate}
+                  onChange={(e) => {
+                    setBirthDate(formatBirthDate(e.target.value));
+                    clearFieldError('birthDate');
+                  }}
+                  onBlur={() => {
+                    if (birthDate.trim()) {
+                      const bdErr = getBirthDateError(birthDate);
+                      if (bdErr) {
+                        setFieldErrors((prev) => ({ ...prev, birthDate: bdErr }));
+                      }
+                    }
+                  }}
+                  placeholder="DD/MM/AAAA"
+                  className={getInputStateClass(fieldErrors.birthDate)}
+                />
+              </div>
+              {fieldErrors.birthDate && (
+                <p className="text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{fieldErrors.birthDate}</span>
+                </p>
+              )}
+            </div>
+          </div>
+          <p className="-mt-3 text-xs text-[#526480]">
+            CPF válido e data de nascimento (+18 anos) são obrigatórios para validação cadastral, prevenção a fraudes e titularidade da conta.
+          </p>
+
+          {/* 4. E-mail Oficial */}
           <div className="space-y-2">
             <label
               htmlFor="onboarding-email"
               className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]"
             >
-              3. E-mail Oficial *
+              4. E-mail Oficial *
             </label>
             <div className="relative">
               <Mail className="w-5 h-5 absolute left-4 top-3.5 text-[#526480]" />
@@ -373,13 +449,13 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* 4. Celular / WhatsApp Oficial */}
+          {/* 5. Celular / WhatsApp Oficial */}
           <div className="space-y-2">
             <label
               htmlFor="onboarding-phone"
               className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]"
             >
-              4. Celular / WhatsApp Oficial (DDD + 9) *
+              5. Celular / WhatsApp Oficial (DDD + 9) *
             </label>
             <div className="relative">
               <Phone className="w-5 h-5 absolute left-4 top-3.5 text-[#526480]" />
@@ -424,7 +500,7 @@ export default function OnboardingPage() {
                 htmlFor="onboarding-pix"
                 className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]"
               >
-                5. Chave PIX para Recebimento *
+                6. Chave PIX para Recebimento *
               </label>
               <div className="flex flex-wrap gap-1">
                 {(['cpf_cnpj', 'phone', 'email', 'random'] as const).map((t) => (
@@ -495,10 +571,10 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* 6. Logo da Marca (Opcional) */}
+          {/* 7. Logo da Marca (Opcional) */}
           <div className="space-y-2 pt-1">
             <label className="block text-xs font-bold uppercase tracking-wider text-[#0D1729]">
-              6. Logotipo ou Imagem da Marca (Opcional)
+              7. Logotipo ou Imagem da Marca (Opcional)
             </label>
             <div className="p-4 bg-[#F5F9FF] border border-[#D9E5F7] rounded-[22px] flex flex-col sm:flex-row items-center gap-5">
               <div className="relative w-20 h-20 rounded-[20px] overflow-hidden bg-white border border-[#D9E5F7] shadow-sm flex items-center justify-center flex-shrink-0">
@@ -563,6 +639,50 @@ export default function OnboardingPage() {
               Você é o organizador responsável pelas suas campanhas. As cotas vendidas não passam por custódia do FastRifa: o dinheiro cai 100% líquido na sua conta bancária via chave PIX informada.
             </p>
           </div>
+
+          {/* Termo de Uso e Adesão do Organizador (Aceite Obrigatório) */}
+          <div className="p-4 sm:p-5 rounded-[20px] bg-[#F5F9FF] border border-[#CDE0FC]">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                id="onboarding-terms"
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => {
+                  setAcceptedTerms(e.target.checked);
+                  clearFieldError('terms');
+                }}
+                className="mt-0.5 w-5 h-5 rounded-[6px] text-[#00A868] accent-[#00A868] border-[#D9E5F7] focus:ring-[#00A868] cursor-pointer flex-shrink-0"
+              />
+              <div className="text-xs text-[#334661] leading-relaxed">
+                <span>Declaro que os dados informados (incluindo CPF e data de nascimento) são verdadeiros e que li e concordo integralmente com o </span>
+                <button
+                  type="button"
+                  onClick={() => setIsTermsModalOpen(true)}
+                  className="font-bold text-[#00A868] underline underline-offset-2 hover:text-[#047857] inline transition cursor-pointer text-left"
+                >
+                  Termo de Uso e Adesão do Organizador (Cadastro de Conta — FastRifa)
+                </button>
+                <span>
+                  , assumindo integral responsabilidade pelas campanhas que vier a publicar.
+                </span>
+              </div>
+            </label>
+            {fieldErrors.terms && (
+              <p className="mt-2.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{fieldErrors.terms}</span>
+              </p>
+            )}
+          </div>
+
+          <OrganizerSignupTermsModal
+            isOpen={isTermsModalOpen}
+            onClose={() => setIsTermsModalOpen(false)}
+            onAccept={() => {
+              setAcceptedTerms(true);
+              clearFieldError('terms');
+            }}
+          />
 
           {/* Submit Button */}
           <button

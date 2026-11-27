@@ -38,6 +38,41 @@ export default function LoginPage() {
   const { user, profile, loading: authLoading, login, loginWithGoogle, resetPassword } = useAuth();
   const router = useRouter();
 
+  // Trava a rolagem no responsivo exclusivamente na tela de login
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverscroll = html.style.overscrollBehavior;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+
+    function syncMobileScrollLock() {
+      if (window.innerWidth < 768) {
+        html.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
+        html.style.overscrollBehavior = 'none';
+        body.style.overscrollBehavior = 'none';
+      } else {
+        html.style.overflow = prevHtmlOverflow;
+        body.style.overflow = prevBodyOverflow;
+        html.style.overscrollBehavior = prevHtmlOverscroll;
+        body.style.overscrollBehavior = prevBodyOverscroll;
+      }
+    }
+
+    syncMobileScrollLock();
+    window.addEventListener('resize', syncMobileScrollLock);
+    return () => {
+      window.removeEventListener('resize', syncMobileScrollLock);
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehavior = prevHtmlOverscroll;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+    };
+  }, []);
+
   useEffect(() => {
     if (authLoading || !user) return;
 
@@ -165,25 +200,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen ora-hero-stage text-[#0D1729] flex flex-col justify-center items-center px-4 py-12">
+    <div className="h-[100dvh] md:h-auto md:min-h-screen overflow-hidden md:overflow-visible overscroll-none ora-hero-stage text-[#0D1729] flex flex-col justify-center items-center px-4 py-3 sm:py-10">
       <div className="w-full max-w-[440px]">
         {/* Brand Pill Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-4 sm:mb-8">
           <Link
             href="/"
-            className="ora-glass-pill rounded-full h-11 sm:h-12 px-3 sm:px-4 inline-flex items-center justify-center mb-5 hover:border-[#B9D3F8] transition"
+            className="ora-glass-pill rounded-full h-10 sm:h-12 px-3 sm:px-4 inline-flex items-center justify-center mb-3 sm:mb-5 hover:border-[#B9D3F8] transition"
           >
             <img
               src="/logo-fastrifa.png"
               alt="Fast Rifa"
-              className="h-7 sm:h-[38px] w-auto object-contain"
+              className="h-6 sm:h-[38px] w-auto object-contain"
             />
           </Link>
 
-          <h1 className="font-display font-bold text-3xl tracking-[-0.04em] text-[#0D1729]">
+          <h1 className="font-display font-bold text-2xl sm:text-3xl tracking-[-0.04em] text-[#0D1729]">
             {viewMode === 'login' ? 'Acesse seu painel.' : 'Recuperar Acesso'}
           </h1>
-          <p className="text-[15px] text-[#475872] mt-2">
+          <p className="text-[13px] sm:text-[15px] text-[#475872] mt-1 sm:mt-2 leading-snug">
             {viewMode === 'login'
               ? 'Gerencie suas rifas rápidas, aprove comprovantes e acompanhe os recebimentos no PIX.'
               : 'Informe seu e-mail cadastrado para redefinir sua senha de acesso.'}
@@ -191,13 +226,13 @@ export default function LoginPage() {
         </div>
 
         {/* Card Form */}
-        <div className="ora-card rounded-[28px] p-7 sm:p-9">
+        <div className="ora-card rounded-[24px] sm:rounded-[28px] p-5 sm:p-9">
           {error && (
             <div
               role="alert"
-              className="mb-6 p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-sm font-medium rounded-[16px] flex items-start gap-2.5"
+              className="mb-3 sm:mb-6 p-2.5 sm:p-4 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] text-xs sm:text-sm font-medium rounded-[14px] sm:rounded-[16px] flex items-start gap-2.5"
             >
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#BE123C]" />
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 text-[#BE123C]" />
               <span>{error}</span>
             </div>
           )}
@@ -205,21 +240,21 @@ export default function LoginPage() {
           {successMessage && (
             <div
               role="status"
-              className="mb-6 p-4 bg-[#EBF7F0] border border-[#BCECD4] text-[#00A868] text-sm font-medium rounded-[16px] flex items-start gap-2.5"
+              className="mb-3 sm:mb-6 p-2.5 sm:p-4 bg-[#EBF7F0] border border-[#BCECD4] text-[#00A868] text-xs sm:text-sm font-medium rounded-[14px] sm:rounded-[16px] flex items-start gap-2.5"
             >
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" />
               <span>{successMessage}</span>
             </div>
           )}
 
           {viewMode === 'login' ? (
-            <div className="space-y-5">
+            <div className="space-y-3.5 sm:space-y-5">
               {/* Google Login Button */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={googleLoading || loading}
-                className="w-full py-3.5 px-4 rounded-[18px] bg-white border border-[#D9E5F7] hover:border-[#B9D3F8] hover:bg-[#F8FBFF] text-sm font-bold text-[#0D1729] shadow-sm flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 sm:py-3.5 px-4 rounded-[16px] sm:rounded-[18px] bg-white border border-[#D9E5F7] hover:border-[#B9D3F8] hover:bg-[#F8FBFF] text-sm font-bold text-[#0D1729] shadow-sm flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50"
               >
                 {googleLoading ? (
                   <Loader2 className="w-5 h-5 text-[#0869F5] animate-spin" />
@@ -253,11 +288,11 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <form onSubmit={handleSubmit} noValidate className="space-y-3 sm:space-y-4">
                 {/* E-mail Input */}
                 <div>
                   <label
-                    className="block text-[13px] font-semibold text-[#14213A] mb-1.5"
+                    className="block text-[12.5px] sm:text-[13px] font-semibold text-[#14213A] mb-1 sm:mb-1.5"
                     htmlFor="email"
                   >
                     E-mail
@@ -275,14 +310,14 @@ export default function LoginPage() {
                     }}
                     autoComplete="email"
                     placeholder="seu@email.com"
-                    className={`w-full px-4 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                    className={`w-full px-4 py-2.5 sm:py-3.5 rounded-[14px] sm:rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[14.5px] sm:text-[15px] transition focus:outline-none ${
                       fieldErrors.email
                         ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
                         : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
                     }`}
                   />
                   {fieldErrors.email && (
-                    <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                    <p className="mt-1 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
                       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>{fieldErrors.email}</span>
                     </p>
@@ -291,9 +326,9 @@ export default function LoginPage() {
 
                 {/* Password Input with Visibility Toggle */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1 sm:mb-1.5">
                     <label
-                      className="block text-[13px] font-semibold text-[#14213A]"
+                      className="block text-[12.5px] sm:text-[13px] font-semibold text-[#14213A]"
                       htmlFor="password"
                     >
                       Senha
@@ -327,7 +362,7 @@ export default function LoginPage() {
                       }}
                       autoComplete="current-password"
                       placeholder="••••••••"
-                      className={`w-full pl-4 pr-12 py-3.5 rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[15px] transition focus:outline-none ${
+                      className={`w-full pl-4 pr-12 py-2.5 sm:py-3.5 rounded-[14px] sm:rounded-[16px] text-[#0D1729] placeholder-[#526480] text-[14.5px] sm:text-[15px] transition focus:outline-none ${
                         fieldErrors.password
                           ? 'bg-[#FFF5F6] border-2 border-[#BE123C] ring-2 ring-[#BE123C]/20'
                           : 'bg-[#F5F9FF] border border-[#D9E5F7] focus:bg-white focus:border-[#0869F5] focus:ring-2 focus:ring-[#0869F5]/15'
@@ -347,7 +382,7 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {fieldErrors.password && (
-                    <p className="mt-1.5 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
+                    <p className="mt-1 text-xs font-semibold text-[#BE123C] flex items-center gap-1.5 animate-fadeIn">
                       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>{fieldErrors.password}</span>
                     </p>
@@ -357,7 +392,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="ora-btn-primary w-full mt-2 py-4 px-5 font-bold rounded-[18px] text-[16px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="ora-btn-primary w-full mt-1 sm:mt-2 py-3 sm:py-4 px-5 font-bold rounded-[16px] sm:rounded-[18px] text-[15px] sm:text-[16px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -444,7 +479,7 @@ export default function LoginPage() {
             </form>
           )}
 
-          <div className="mt-7 pt-6 border-t border-[#E0E9F7] text-center">
+          <div className="mt-4 pt-4 sm:mt-7 sm:pt-6 border-t border-[#E0E9F7] text-center">
             <p className="text-sm text-[#475872]">
               Ainda não tem conta?{' '}
               <Link

@@ -417,3 +417,144 @@ export function BuyerParticipationTermsModal({ isOpen, onClose, onAccept }: Moda
     </div>
   );
 }
+
+/**
+ * Modal do Termo de Uso e Adesão do Organizador (Cadastro de Conta — FastRifa)
+ */
+export function OrganizerSignupTermsModal({ isOpen, onClose, onAccept }: ModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-[#0D1729]/65 backdrop-blur-sm animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-[680px] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_24px_70px_rgba(13,23,41,0.25)] border border-[#E0E9F7] max-h-[92vh] flex flex-col"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#E0E9F7]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#E8F7F0] border border-[#B9E7D2] text-[#00A868] flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-xl sm:text-2xl text-[#0D1729] tracking-[-0.03em]">
+                Termo de Uso e Adesão do Organizador
+              </h2>
+              <span className="text-xs text-[#526480]">
+                Cadastro de Conta — FastRifa
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar termos"
+            className="p-2 rounded-full text-[#526480] hover:text-[#0D1729] hover:bg-[#F2F7FF] transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto py-5 pr-2 space-y-5 text-xs sm:text-sm text-[#334661] leading-relaxed select-text">
+          <div className="p-3.5 rounded-[16px] bg-[#E8F7F0]/70 border border-[#B9E7D2] flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-[#00A868] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#065F46] font-medium">
+              A conclusão do cadastro e a liberação do painel exigem a leitura e aceitação obrigatória deste Termo de Uso e Adesão do Organizador.
+            </p>
+          </div>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              1. Objeto e Natureza da Plataforma
+            </h3>
+            <p>
+              O FastRifa disponibiliza uma ferramenta tecnológica (software como serviço) destinada à organização, catalogação digital de bilhetes e gestão visual de campanhas promocionais e ações entre amigos. Ao criar uma conta, o Usuário declara compreender que o FastRifa não realiza sorteios, não arrecada valores, não intermedeia pagamentos e não atua como organizador, promotor ou garantidor de nenhuma campanha criada na plataforma.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              2. Cadastro e Segurança da Conta
+            </h3>
+            <p>
+              O Usuário compromete-se a informar dados cadastrais verdadeiros, completos e atualizados (nome, e-mail e telefone/WhatsApp). O acesso à conta é pessoal e intransferível, sendo de inteira responsabilidade do Usuário manter a confidencialidade de sua senha e responder por todas as atividades realizadas sob suas credenciais.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              3. Conformidade Legal e Responsabilidade pelas Campanhas
+            </h3>
+            <p>
+              O Usuário declara ser o único e exclusivo responsável pelo conteúdo, legalidade, autorização e execução das campanhas que vier a publicar no FastRifa. É expressamente proibido utilizar a plataforma para promover atividades ilícitas, prêmios ilegais, enganosos ou que violem a legislação brasileira vigente e direitos de terceiros.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              4. Gestão Financeira e Chave PIX
+            </h3>
+            <p>
+              Toda a movimentação financeira decorrente das campanhas ocorre diretamente entre os participantes e o Usuário, por meio da Chave PIX por ele informada. O FastRifa não possui acesso, controle ou ingerência sobre contas bancárias, saldos ou comprovantes enviados, cabendo exclusivamente ao Usuário conferir os recebimentos e validar as reservas em seu painel.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              5. Isenção de Responsabilidade do FastRifa
+            </h3>
+            <p>
+              O Usuário concorda em isentar integralmente o FastRifa e seus desenvolvedores de qualquer reclamação, disputa comercial, prejuízo financeiro, ação judicial ou extrajudicial movida por participantes ou terceiros em razão das campanhas criadas, falhas na entrega de prêmios ou divergências nos sorteios realizados.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              6. Disponibilidade do Sistema e Moderação
+            </h3>
+            <p>
+              O FastRifa empenha-se para manter a plataforma estável e acessível, mas não garante disponibilidade ininterrupta contra falhas técnicas externas ou manutenções programadas. O FastRifa reserva-se o direito de suspender ou encerrar contas e campanhas, sem aviso prévio, caso identifique indícios de fraude, violação destes Termos ou denúncias fundamentadas de má-fé.
+            </p>
+          </section>
+
+          <section className="space-y-1.5">
+            <h3 className="font-display font-bold text-[#0D1729] text-sm sm:text-base">
+              7. Privacidade e Dados (LGPD)
+            </h3>
+            <p>
+              Os dados cadastrais fornecidos pelo Usuário e pelos participantes de suas campanhas são tratados exclusivamente para o funcionamento operacional da plataforma, comprometendo-se o Usuário a utilizar os contatos dos compradores apenas para fins de comunicação e entrega relacionados à respectiva campanha.
+            </p>
+          </section>
+        </div>
+
+        {/* Footer */}
+        <div className="pt-4 border-t border-[#E0E9F7] flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="ora-btn-secondary rounded-full px-5 py-2.5 text-xs font-bold cursor-pointer"
+          >
+            Fechar
+          </button>
+          {onAccept && (
+            <button
+              type="button"
+              onClick={() => {
+                onAccept();
+                onClose();
+              }}
+              className="ora-btn-primary rounded-full px-6 py-2.5 text-xs font-bold flex items-center gap-2 cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Li e Concordo com os Termos</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

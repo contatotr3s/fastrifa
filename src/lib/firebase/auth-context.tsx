@@ -42,15 +42,6 @@ const AUTH_LOGOUT_EVENT_KEY = 'fastrifa_auth_logout_ts';
 const AUTH_SYNC_CHANNEL = 'fastrifa_auth_sync';
 
 function getSafeGlobalTheme(): 'blue' | 'green' {
-  if (typeof window === 'undefined') return 'green';
-  try {
-    const stored = localStorage.getItem('fastrifa_global_system_theme');
-    if (stored === 'blue' || stored === 'green') return stored;
-    const match = document.cookie.match(/fastrifa_global_system_theme=([^;]+)/);
-    if (match && (match[1] === 'blue' || match[1] === 'green')) {
-      return match[1];
-    }
-  } catch {}
   return 'green';
 }
 
@@ -236,8 +227,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 resolvedProfile = loadedProfile;
               }
             } else {
-              // Documento ainda não existia: cria novo perfil herdando o tema global do Master
-              const globalSystemTheme = getSafeGlobalTheme();
               const initialProfile: Profile = {
                 id: currentUser.uid,
                 full_name: currentUser.displayName || (isMaster ? 'Danilo' : 'Organizador'),
@@ -246,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 phone_whatsapp: currentUser.phoneNumber || '',
                 brand_name: isMaster ? 'FastRifa' : '',
                 brand_initials: isMaster ? 'FR' : '',
-                brand_color: (globalSystemTheme === 'green' ? 'green' : 'blue'),
+                brand_color: 'green',
                 role: isMaster ? 'master' : 'organizer',
                 onboarding_completed: isMaster ? true : false,
                 created_at: new Date().toISOString(),

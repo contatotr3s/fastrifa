@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth, MASTER_EMAIL } from '@/lib/firebase/auth-context';
-import ThemeSwitcher from '@/components/theme-switcher';
 import { Home, LogOut, ShieldCheck } from 'lucide-react';
 
 export default function AdminHeader() {
@@ -19,6 +18,14 @@ export default function AdminHeader() {
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
   const isOnboarding = pathname === '/admin/onboarding';
+  const isRaffleDetailsPage =
+    Boolean(pathname?.startsWith('/admin/rifas/')) && pathname !== '/admin/rifas/nova';
+
+  // No painel principal (/admin) e nos detalhes de rifa (/admin/rifas/[id]) do organizador logado,
+  // o header externo é removido (navegação fica dentro da box hero)
+  if (!isMaster && (pathname === '/admin' || isRaffleDetailsPage)) {
+    return null;
+  }
 
   return (
     <>
@@ -127,8 +134,6 @@ export default function AdminHeader() {
                   <Home className="w-4 h-4" />
                 </Link>
               )}
-
-              <ThemeSwitcher variant="compact" />
 
               {/* Se for Master, link direto para Painel Master no cabeçalho mobile */}
               {isMaster && (

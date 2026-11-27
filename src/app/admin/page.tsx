@@ -18,12 +18,19 @@ import {
   Store,
   Loader2,
   ShieldCheck,
+  Home,
+  LogOut,
 } from 'lucide-react';
 import type { Raffle } from '@/types/database.types';
 
 export default function AdminDashboardPage() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, logout } = useAuth();
   const router = useRouter();
+
+  async function handleLogout() {
+    await logout();
+    router.push('/login');
+  }
 
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,9 +153,9 @@ export default function AdminDashboardPage() {
         </div>
       ) : (
         <div className="ora-card rounded-[26px] sm:rounded-[30px] p-5 sm:p-7">
-          <div className="flex flex-col md:flex-row md:items-center gap-5 sm:gap-7">
+          <div className="flex flex-col md:flex-row md:items-stretch gap-5 sm:gap-7">
             {/* Esquerda: Nome da marca acima + Imagem ampliada em destaque abaixo */}
-            <div className="flex flex-col items-center shrink-0 gap-2.5 md:pr-7 md:border-r md:border-[#E0E9F7]">
+            <div className="flex flex-col items-center justify-center shrink-0 gap-2.5 md:pr-7 md:border-r md:border-[#E0E9F7]">
               <strong className="font-display font-bold text-base sm:text-lg text-[#0D1729] tracking-[-0.02em] text-center max-w-[168px] leading-tight truncate">
                 {profile?.brand_name || 'Sua Marca'}
               </strong>
@@ -167,15 +174,12 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Direita: Painel de Controle, descrições e ações organizados ao lado dentro da box */}
-            <div className="flex-1 min-w-0 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 sm:gap-5 text-center md:text-left">
-              <div className="space-y-1.5 min-w-0">
+            {/* Direita: Hero do Painel com ações principais e ícones Home/Sair no canto inferior direito */}
+            <div className="flex-1 min-w-0 flex flex-col xl:flex-row xl:items-stretch xl:justify-between gap-4 sm:gap-5 text-center md:text-left">
+              <div className="space-y-1.5 min-w-0 flex flex-col justify-center">
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#0869F5]">
-                    Painel do Organizador
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#E8F7F0] text-[#00A868] border border-[#B9E7D2]">
-                    Marca Ativa
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#00A868]">
+                    Bem-vindo
                   </span>
                 </div>
                 <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#0D1729] tracking-[-0.04em] leading-tight">
@@ -189,22 +193,45 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
 
-              <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-center md:justify-start xl:justify-end shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsBrandModalOpen(true)}
-                  className="ora-btn-secondary flex-1 sm:flex-initial rounded-full px-4 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-                >
-                  <Store className="w-4 h-4 text-[#0869F5]" />
-                  <span>Minha Marca</span>
-                </button>
-                <Link
-                  href="/admin/rifas/nova"
-                  className="ora-btn-primary flex-1 sm:flex-initial rounded-full px-4 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-[15px] font-bold inline-flex items-center justify-center gap-2 whitespace-nowrap"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Rifa rápida</span>
-                </Link>
+              <div className="flex flex-col items-center md:items-start xl:items-end justify-between gap-3 shrink-0 self-stretch">
+                <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-center md:justify-start xl:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsBrandModalOpen(true)}
+                    className="ora-btn-secondary flex-1 sm:flex-initial rounded-full px-4 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <Store className="w-4 h-4 text-[#0869F5]" />
+                    <span>Minha Marca</span>
+                  </button>
+                  <Link
+                    href="/admin/rifas/nova"
+                    className="ora-btn-primary flex-1 sm:flex-initial rounded-full px-4 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-[15px] font-bold inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Rifa rápida</span>
+                  </Link>
+                </div>
+
+                {/* Ícones de Home e Sair alinhados no canto inferior direito com o botão Rifa rápida */}
+                <div className="mt-auto pt-1 flex items-center justify-end gap-2 w-full">
+                  <Link
+                    href="/"
+                    title="Ir para a página inicial"
+                    aria-label="Ir para a página inicial"
+                    className="ora-btn-secondary rounded-full w-10 h-10 inline-flex items-center justify-center text-[#14213A] hover:text-[#00A868] transition shrink-0"
+                  >
+                    <Home className="w-4 h-4" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    title="Sair da conta"
+                    aria-label="Sair da conta"
+                    className="w-10 h-10 inline-flex items-center justify-center text-[#475872] hover:text-[#BE123C] bg-[#F8FBFF] hover:bg-[#FFF1F2] border border-[#D9E5F7] hover:border-[#FECDD3] rounded-full transition cursor-pointer shrink-0"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

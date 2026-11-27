@@ -29,6 +29,9 @@ export interface Profile {
   full_name: string;
   email?: string;
   cpf?: string | null;
+  birth_date?: string | null;
+  organizer_terms_accepted?: boolean;
+  organizer_terms_accepted_at?: string | null;
   auth_provider?: 'google' | 'password';
   phone_whatsapp: string;
   pix_key?: string | null;

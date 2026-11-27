@@ -400,3 +400,95 @@ export function validatePixKey(
     normalizedValue: trimmed.toLowerCase(),
   };
 }
+
+/**
+ * Aplica máscara de Data de Nascimento (DD/MM/AAAA) ou converte YYYY-MM-DD para DD/MM/AAAA.
+ */
+export function formatBirthDate(value: string): string {
+  const trimmed = (value || '').trim();
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+  const d = onlyDigits(trimmed).slice(0, 8);
+  if (!d) return '';
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4, 8)}`;
+}
+
+/**
+ * Converte data DD/MM/AAAA (ou YYYY-MM-DD) para ISO YYYY-MM-DD após validar calendário real.
+ */
+export function parseBirthDateToIso(value: string): string | null {
+  const formatted = formatBirthDate(value);
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(formatted);
+  if (!match) return null;
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900) {
+    return null;
+  }
+
+  const candidate = new Date(year, month - 1, day);
+  if (
+    candidate.getFullYear() !== year ||
+    candidate.getMonth() !== month - 1 ||
+    candidate.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
+/**
+ * Valida veracidade e maioridade (>= 18 anos) da Data de Nascimento do organizador.
+ */
+export function getBirthDateError(
+  value: string,
+  referenceDate: Date = new Date()
+): string | null {
+  const d = onlyDigits(formatBirthDate(value));
+  if (!d) {
+    return 'Informe sua data de nascimento.';
+  }
+  if (d.length < 8) {
+    return 'Informe a data completa no formato DD/MM/AAAA.';
+  }
+
+  const iso = parseBirthDateToIso(value);
+  if (!iso) {
+    return 'Data de nascimento inválida. Verifique dia, mês e ano.';
+  }
+
+  const [year, month, day] = iso.split('-').map(Number);
+  const today = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+  const birth = new Date(year, month - 1, day);
+
+  if (birth.getTime() > today.getTime()) {
+    return 'A data de nascimento não pode ser no futuro.';
+  }
+
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+
+  if (age > 115) {
+    return 'Informe uma data de nascimento válida e real.';
+  }
+  if (age < 18) {
+    return 'É necessário ter pelo menos 18 anos completos para criar campanhas.';
+  }
+
+  return null;
+}
