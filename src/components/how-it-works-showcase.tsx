@@ -489,7 +489,7 @@ export default function HowItWorksShowcase() {
     <section
       ref={sectionRef}
       id="como-funciona"
-      className="ora-section-seam scroll-mt-20 py-4 sm:py-6 lg:py-8 min-h-[calc(100svh-75px)] flex flex-col justify-center"
+      className="ora-section-seam scroll-mt-20 py-4 sm:py-6 lg:py-8 min-h-[calc(100svh-75px)] flex flex-col justify-center px-4 sm:px-8"
     >
       <style>{`
         @keyframes frHiwStageIn {
@@ -546,11 +546,11 @@ export default function HowItWorksShowcase() {
         }
       `}</style>
 
-      <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 space-y-3 sm:space-y-4 lg:space-y-5">
+      <div className="max-w-[1340px] w-full mx-auto space-y-3 sm:space-y-4 lg:space-y-5">
         {/* Cabeçalho da Seção + Controles Desktop */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-6">
           <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
-            <span className="text-[#0869F5] text-xs font-bold uppercase tracking-wider block mb-1 sm:mb-1.5">
+            <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block mb-1 sm:mb-1.5">
               Praticidade de Ponta a Ponta
             </span>
             <h2 className="font-display font-bold text-[clamp(1.45rem,3vw,2.65rem)] leading-[1.06] tracking-[-0.045em] text-[#0D1729]">

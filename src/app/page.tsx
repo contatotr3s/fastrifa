@@ -5,7 +5,6 @@ import HowItWorksShowcase from '@/components/how-it-works-showcase';
 import ScrollToTopButton from '@/components/scroll-to-top-button';
 import FacildanTextoDinamico from '@/components/facildan-texto-dinamico';
 import HomeHeaderActions from '@/components/home-header-actions';
-import RouletteSalesShowcase from '@/components/roulette-sales-showcase';
 import {
   ArrowUpRight,
   ArrowRight,
@@ -70,9 +69,6 @@ export default function HomePage() {
             <a href="#como-funciona" className="ora-nav-link">
               Como funciona
             </a>
-            <a href="#roleta-de-vendas" className="ora-nav-link">
-              Roleta de Vendas
-            </a>
             <a href="#campanha-ao-vivo" className="ora-nav-link">
               Demonstração
             </a>
@@ -91,9 +87,9 @@ export default function HomePage() {
 
       {/* Hero Stage — Pure Luminous Oratry Aesthetic */}
       <main className="flex-1">
-        <section className="ora-hero-stage pt-2 pb-8 sm:pt-3 sm:pb-12 relative overflow-hidden min-h-[calc(100svh-75px)] flex flex-col justify-center">
-          <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-6 items-center relative">
+        <section className="ora-hero-stage pt-2 pb-8 sm:pt-3 sm:pb-14 px-4 sm:px-8 relative overflow-hidden min-h-[calc(100svh-72px)] flex flex-col justify-center">
+          <div className="max-w-[1400px] w-full mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 items-center relative">
               {/* Left Column: Text & CTAs (Upper layer - z-20) */}
               <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left space-y-2.5 sm:space-y-5 relative z-20 pointer-events-auto lg:-mt-4">
                 <h1 className="font-display tracking-[-0.04em]">
@@ -159,22 +155,22 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right Column: 3D Orbital Scene side-by-side no desktop contida nos limites do menu */}
-              <div className="hidden lg:flex lg:col-span-6 xl:col-span-6 items-center justify-center relative z-10 overflow-hidden lg:overflow-visible pointer-events-none">
+              {/* Right Column: 3D Orbital Scene side-by-side no desktop (lower layer z-10) */}
+              <div className="hidden lg:flex lg:col-span-6 xl:col-span-6 items-center justify-center relative z-10 lg:-ml-16 xl:-ml-28 2xl:-ml-36 overflow-visible pointer-events-none">
                 <HeroOrbitScene variant="desktop" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section 2: Interactive Live Demo Stage (Alinhada pelo guia do menu) */}
-        <section id="campanha-ao-vivo" className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center">
-          <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8">
+        {/* Section 2: Interactive Live Demo Stage (Ajustado à dimensão da tela) */}
+        <section id="campanha-ao-vivo" className="ora-section-seam scroll-mt-20 py-2 sm:py-4 lg:py-12 min-h-[calc(100svh-75px)] flex items-center justify-center px-3.5 sm:px-8">
+          <div className="max-w-[1280px] w-full mx-auto">
             <div className="ora-demo-stage rounded-[22px] lg:rounded-[30px] p-3.5 sm:p-5 lg:p-8 xl:p-10 border border-[#D9E5F7] shadow-[0_22px_60px_rgba(32,77,139,0.08)]">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-8 items-center">
                 {/* Left Editorial Explanation */}
                 <div className="lg:col-span-5 space-y-1.5 sm:space-y-2.5 lg:space-y-4 text-center lg:text-left">
-                  <span className="text-[#0869F5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
+                  <span className="text-[#0869f5] text-[11px] lg:text-xs font-bold uppercase tracking-wider block">
                     Experiência do Comprador
                   </span>
                   <h2 className="font-display font-bold text-[1.18rem] sm:text-[1.55rem] lg:text-[clamp(1.75rem,2.4vw,2.35rem)] leading-[1.1] tracking-[-0.035em] text-[#0D1729]">
@@ -228,15 +224,12 @@ export default function HomePage() {
         {/* Section 3: How It Works (4 Practical Steps — Interactive Showcase) */}
         <HowItWorksShowcase />
 
-        {/* Section 3.5: Progressive Discount Roulette Sales Engine */}
-        <RouletteSalesShowcase />
-
         {/* Section 4: Transparency & Direct PIX Highlight */}
-        <section id="transparencia" className="ora-section-seam py-14 sm:py-20">
-          <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8">
+        <section id="transparencia" className="ora-section-seam py-14 sm:py-20 px-4 sm:px-8">
+          <div className="max-w-[1160px] mx-auto">
             <div className="ora-card rounded-[32px] p-8 sm:p-12 border-2 border-[#0869F5] shadow-[0_20px_50px_rgba(8,105,245,0.10)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <span className="block text-[#0869F5] text-xs font-bold tracking-wider uppercase">
+                <span className="block text-[#0869f5] text-xs font-bold tracking-wider uppercase">
                   Dinheiro Direto na Sua Conta Bancária
                 </span>
                 <h2 className="font-display font-bold text-[clamp(1.85rem,3.2vw,2.75rem)] leading-[1.1] tracking-[-0.04em] text-[#0D1729]">
@@ -260,10 +253,10 @@ export default function HomePage() {
         </section>
 
         {/* Section 5: FAQ Section (Oratry Sticky Split Layout + Mobile Stacking Deck) */}
-        <section id="perguntas" className="ora-section-seam scroll-mt-20 py-12 sm:py-16 lg:py-20">
-          <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+        <section id="perguntas" className="ora-section-seam scroll-mt-20 py-12 sm:py-16 lg:py-20 px-4 sm:px-8">
+          <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
             <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-4 text-center lg:text-left max-w-xl mx-auto lg:mx-0 lg:max-w-none">
-              <span className="text-[#0869F5] text-xs font-bold uppercase tracking-wider block">
+              <span className="text-[#0869f5] text-xs font-bold uppercase tracking-wider block">
                 Tira-Dúvidas Rápido
               </span>
               <h2 className="font-display font-bold text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.06] tracking-[-0.04em] text-[#0D1729]">
@@ -286,7 +279,7 @@ export default function HomePage() {
                   }
                   className="ora-card rounded-[24px] p-5 sm:p-6 lg:p-7 space-y-2.5 hover:border-[#B9D3F8] transition sticky top-[var(--faq-top)] lg:static lg:top-auto bg-white shadow-[0_-10px_28px_rgba(13,23,41,0.06),0_12px_30px_rgba(32,77,139,0.08)] lg:shadow-none"
                 >
-                  <div className="flex lg:hidden items-center justify-between text-[11px] font-bold text-[#0869F5] uppercase tracking-wider">
+                  <div className="flex lg:hidden items-center justify-between text-[11px] font-bold text-[#0869f5] uppercase tracking-wider">
                     <span>Dúvida 0{idx + 1}</span>
                     <span className="text-[#8A9BB3] tabular-nums">
                       0{idx + 1} / 0{faqs.length}
@@ -327,8 +320,8 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#E0E9F7] bg-white py-10">
-        <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-[#526480]">
+      <footer className="border-t border-[#E0E9F7] bg-white py-10 px-4 sm:px-8">
+        <div className="max-w-[1340px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-[#526480]">
           {/* Brand & Rights */}
           <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
             <img

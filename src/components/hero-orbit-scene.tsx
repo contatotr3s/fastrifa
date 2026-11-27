@@ -67,13 +67,10 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
         angle += dt * settings.orbitSpeed;
       }
 
-      const w = root.clientWidth || (isMobile ? 360 : 620);
-      // Geometria precisa: garante que os cards flutuantes nunca extrapolem a largura da coluna
-      const maxSafeRadiusX = Math.max(130, w / 2 - 118);
-      const radiusX = isMobile
-        ? Math.min(w * 0.36, 140)
-        : Math.min(w * 0.36, maxSafeRadiusX, 250);
-      const radiusY = isMobile ? 52 : Math.min(145, Math.round(radiusX * 0.58));
+      const w = root.clientWidth || (isMobile ? 360 : 720);
+      // Geometria precisa: escala e raios originais no desktop, compactos no mobile
+      const radiusX = isMobile ? Math.min(w * 0.36, 140) : Math.min(w * 0.46, 360);
+      const radiusY = isMobile ? 52 : 165;
 
       items.forEach((item, index) => {
         const a = angle + index * ((Math.PI * 2) / items.length);
@@ -87,8 +84,8 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
         const depth = Math.sin(a);
         const norm = (depth + 1) / 2;
 
-        // Escala contida para que cards da frente não avancem além da borda direita
-        const scale = (isMobile ? 0.60 : 0.88) + norm * (isMobile ? 0.16 : 0.20);
+        // Escala plena original de 0.92 a 1.18 no computador
+        const scale = (isMobile ? 0.60 : 0.92) + norm * (isMobile ? 0.16 : 0.26);
         const opacity = 0.78 + norm * 0.22;
 
         item.style.zIndex = depth >= 0 ? '30' : '10';
@@ -175,7 +172,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
       className={`fr-orbit-root relative w-full select-none overflow-visible pointer-events-none mx-auto flex items-center justify-center ${
         isMobile
           ? 'max-w-[480px] h-[210px] sm:h-[220px]'
-          : 'max-w-full h-[460px] sm:h-[500px] lg:h-[540px]'
+          : 'max-w-[920px] sm:max-w-[1040px] lg:max-w-[1140px] h-[520px] sm:h-[580px] lg:h-[620px]'
       }`}
       aria-label="FastRifa em órbita tridimensional interativa"
     >
@@ -185,19 +182,19 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
         className={`fr-orbit-glow-bg pointer-events-none absolute rounded-full -z-10 ${
           isMobile
             ? 'w-[260px] h-[260px] blur-2xl'
-            : 'w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] blur-3xl'
+            : 'w-[480px] h-[480px] sm:w-[680px] sm:h-[680px] blur-3xl'
         }`}
       />
 
-      {/* Anéis da órbita inclinados com diâmetro fluido dentro da coluna */}
+      {/* Anéis da órbita inclinados com diâmetro generoso dinâmicos (Exclusivos do desktop com máscara suave para não vazar linha no topo) */}
       {!isMobile && (
         <>
           <div
             aria-hidden="true"
             className="fr-orbit-ring-1 pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border-[1.5px] border-dashed"
             style={{
-              width: 'min(520px, 84%)',
-              height: 'min(260px, 50%)',
+              width: 710,
+              height: 345,
               transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
               maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 100%)',
@@ -207,8 +204,8 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
             aria-hidden="true"
             className="fr-orbit-ring-2 pointer-events-none absolute top-1/2 left-1/2 rounded-[50%] border"
             style={{
-              width: 'min(590px, 94%)',
-              height: 'min(295px, 56%)',
+              width: 795,
+              height: 390,
               transform: 'translate(-50%, -50%) rotate(-12.032113697747288deg)',
               maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 100%)',
@@ -228,7 +225,7 @@ export default function HeroOrbitScene({ variant }: HeroOrbitSceneProps) {
           className={`relative flex items-center justify-center ${
             isMobile
               ? 'w-[210px] h-[105px]'
-              : 'w-[260px] h-[130px] sm:w-[300px] sm:h-[148px]'
+              : 'w-[295px] h-[148px] sm:w-[350px] sm:h-[170px]'
           }`}
         >
           <div
