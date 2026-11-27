@@ -6,7 +6,7 @@ service cloud.firestore {
     }
 
     function isRealAuth() {
-      return request.auth != null && request.auth.token.email != 'leitor.publico@fastrifa.com';
+      return request.auth != null && request.auth.token.get('email', '') != 'leitor.publico@fastrifa.com';
     }
 
     // Profiles

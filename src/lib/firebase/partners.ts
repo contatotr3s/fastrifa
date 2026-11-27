@@ -36,6 +36,17 @@ const LOCAL_PARTNERS_KEY = 'fastrifa_local_partners';
 const LOCAL_PARTNER_PAYOUTS_KEY = 'fastrifa_local_partner_payouts';
 const PARTNER_INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 
+const SECURITY_ERROR_CODES = new Set([
+  'permission-denied',
+  'unauthenticated',
+  'failed-precondition',
+]);
+
+function isFirestoreSecurityError(err: unknown): boolean {
+  const code = (err as { code?: string })?.code;
+  return typeof code === 'string' && SECURITY_ERROR_CODES.has(code);
+}
+
 async function getActiveDb() {
   return auth.currentUser ? db : await getPublicFirestore();
 }
@@ -162,6 +173,11 @@ export async function createPartnerInvite(input: {
           }
         }
       } catch (err) {
+        if (isFirestoreSecurityError(err)) {
+          throw new Error(
+            'Sem permissão para revogar o vínculo anterior do parceiro. Verifique sua sessão e tente novamente.'
+          );
+        }
         console.warn('Erro ao revogar vínculo anterior do parceiro no Firestore:', err);
       }
 
@@ -215,6 +231,11 @@ export async function createPartnerInvite(input: {
     const activeDb = await getActiveDb();
     await setDoc(doc(activeDb, 'partner_invites', token), firestorePayload);
   } catch (err) {
+    if (isFirestoreSecurityError(err)) {
+      throw new Error(
+        'Sem permissão para gerar convite de parceiro no Firestore. Verifique sua sessão e tente novamente.'
+      );
+    }
     console.warn('Erro ao gravar convite no Firestore, mantido localmente:', err);
   }
 
@@ -420,6 +441,11 @@ export async function revokePartnerInvite(inviteId: string): Promise<void> {
       status: 'revoked',
     });
   } catch (err) {
+    if (isFirestoreSecurityError(err)) {
+      throw new Error(
+        'Sem permissão para revogar este convite. Verifique sua sessão e tente novamente.'
+      );
+    }
     console.warn('Erro ao revogar convite no Firestore:', err);
   }
 
@@ -499,6 +525,11 @@ export async function updateRafflePartnerStatus(
       updated_at: nowIso,
     });
   } catch (err) {
+    if (isFirestoreSecurityError(err)) {
+      throw new Error(
+        'Sem permissão para atualizar o status deste parceiro. Verifique sua sessão e tente novamente.'
+      );
+    }
     console.warn('Erro ao atualizar status do parceiro no Firestore:', err);
   }
 
@@ -556,6 +587,11 @@ export async function createPartnerPayout(input: {
     });
     await batch.commit();
   } catch (err) {
+    if (isFirestoreSecurityError(err)) {
+      throw new Error(
+        'Sem permissão para registrar este acerto de comissão. Verifique sua sessão e tente novamente.'
+      );
+    }
     console.warn('Erro ao registrar acerto de comissão no Firestore, mantido localmente:', err);
   }
 
@@ -740,7 +776,8 @@ export async function confirmPartnerPayout(
 async function deleteCollectionDocsByField(
   collectionName: 'partner_invites' | 'raffle_partners' | 'partner_payouts',
   field: 'raffle_id' | 'organizer_id',
-  value: string
+  value: string,
+  filterRaffleId?: string
 ): Promise<void> {
   if (!value) return;
   try {
@@ -748,6 +785,10 @@ async function deleteCollectionDocsByField(
     const q = query(collection(activeDb, collectionName), where(field, '==', value));
     const snap = await getDocs(q);
     for (const d of snap.docs) {
+      if (filterRaffleId) {
+        const data = d.data() as { raffle_id?: string };
+        if (data.raffle_id !== filterRaffleId) continue;
+      }
       await deleteDoc(doc(activeDb, collectionName, d.id));
     }
   } catch (err) {
@@ -755,7 +796,10 @@ async function deleteCollectionDocsByField(
   }
 }
 
-export async function deletePartnersDataByRaffle(raffleId: string): Promise<void> {
+export async function deletePartnersDataByRaffle(
+  raffleId: string,
+  organizerId?: string
+): Promise<void> {
   if (!raffleId) return;
 
   writeLocalList(
@@ -776,6 +820,15 @@ export async function deletePartnersDataByRaffle(raffleId: string): Promise<void
       (item) => item.raffle_id !== raffleId
     )
   );
+
+  if (organizerId) {
+    await Promise.all([
+      deleteCollectionDocsByField('partner_invites', 'organizer_id', organizerId, raffleId),
+      deleteCollectionDocsByField('raffle_partners', 'organizer_id', organizerId, raffleId),
+      deleteCollectionDocsByField('partner_payouts', 'organizer_id', organizerId, raffleId),
+    ]);
+    return;
+  }
 
   await Promise.all([
     deleteCollectionDocsByField('partner_invites', 'raffle_id', raffleId),

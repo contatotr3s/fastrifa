@@ -15,6 +15,7 @@ import { auth, db, getPublicFirestore } from './config';
 import {
   deletePartnersDataByOrganizer,
   deletePartnersDataByRaffle,
+  getRafflePartnerByToken,
 } from './partners';
 import {
   generateShortCode,
@@ -600,6 +601,16 @@ export async function createOrder(
     };
   }
 
+  if (data.partner_id) {
+    const partner = await getRafflePartnerByToken(data.partner_id);
+    if (!partner || partner.status !== 'active' || partner.raffle_id !== data.raffle_id) {
+      return {
+        success: false,
+        error: 'Vínculo de parceiro inválido, pausado ou de outra campanha.',
+      };
+    }
+  }
+
   const occupied = await getOccupiedTickets(data.raffle_id);
   const occupiedSet = new Set(occupied.map((o) => o.ticket_number));
 
@@ -647,6 +658,18 @@ export async function createOrder(
     });
     newOrder.id = docRef.id;
   } catch (err) {
+    const code = (err as { code?: string })?.code;
+    if (
+      code === 'permission-denied' ||
+      code === 'failed-precondition' ||
+      code === 'unauthenticated'
+    ) {
+      return {
+        success: false,
+        error:
+          'Não foi possível registrar a reserva: campanha indisponível ou vínculo de parceiro inativo.',
+      };
+    }
     console.warn('Error saving order to Firestore, saved locally:', err);
   }
 
@@ -716,13 +739,16 @@ export async function finishRaffle(
 }
 
 export async function deleteRaffle(raffleId: string): Promise<boolean> {
+  const raffle = await getRaffleById(raffleId);
+  const organizerId = raffle?.user_id || auth.currentUser?.uid;
+
   // 1. Remove rifa, pedidos e logs vinculados do cache local
   saveLocalRaffles(getLocalRaffles().filter((r) => r.id !== raffleId));
   saveLocalOrders(getLocalOrders().filter((o) => o.raffle_id !== raffleId));
   saveLocalAuditLogs(getLocalAuditLogs().filter((l) => l.raffle_id !== raffleId));
 
   // 2. Remove no Firestore (rifa + pedidos + logs de auditoria + parceiros vinculados)
-  await deletePartnersDataByRaffle(raffleId);
+  await deletePartnersDataByRaffle(raffleId, organizerId);
 
   try {
     const activeDb = await getActiveDb();
@@ -819,7 +845,7 @@ export async function deleteCreatorProfile(userId: string): Promise<boolean> {
   // Remove parceiros, convites e acertos vinculados (por organizer_id e por raffle_id)
   await deletePartnersDataByOrganizer(userId);
   for (const rId of raffleIds) {
-    await deletePartnersDataByRaffle(rId);
+    await deletePartnersDataByRaffle(rId, userId);
   }
 
   // 2. Limpa todos os caches locais do usuário e suas rifas/pedidos/logs
