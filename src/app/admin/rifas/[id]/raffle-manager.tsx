@@ -455,6 +455,48 @@ Entre em contato para combinarmos a entrega do seu prêmio.
 
             {/* Ações da Campanha */}
             <div className="flex flex-wrap items-center gap-2">
+              {raffle.status === 'active' ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDrawModal(true)}
+                  className="ora-btn-primary inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 text-xs font-bold rounded-full cursor-pointer"
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>Sorteio</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowDrawModal(true)}
+                  className="ora-btn-secondary inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-full cursor-pointer border-[#F5D08A] text-[#9A6700] hover:bg-[#FFF8EB]"
+                  title="Abrir roleta novamente para transmissão ao vivo ou gravação de tela"
+                >
+                  <Trophy className="w-3.5 h-3.5 text-[#9A6700]" />
+                  <span>Sorteio</span>
+                </button>
+              )}
+
+              {!isVirtualOnly && (
+                <button
+                  type="button"
+                  onClick={() => setShowPhysicalCardModal(true)}
+                  title="Gerar cartela física em PDF (2 páginas A4)"
+                  className="ora-btn-primary inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-full cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Gerar Cartela</span>
+                </button>
+              )}
+
+              <Link
+                href={getRafflePartnersAdminPath(raffle)}
+                className="ora-btn-secondary inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-full cursor-pointer hover:border-[#0869F5]"
+                title="Gerenciar rede de vendedores e gerar links de parceiros"
+              >
+                <Users className="w-3.5 h-3.5 text-[#0869F5]" />
+                <span>Checkout Parceiros</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={() => setShowEditModal(true)}
@@ -472,7 +514,7 @@ Entre em contato para combinarmos a entrega do seu prêmio.
                 title="Gerar card com QR Code para Stories e WhatsApp"
               >
                 <Share2 className="w-3.5 h-3.5 text-[#0869F5]" />
-                <span>Divulgar nas Redes</span>
+                <span>Compartilhar</span>
               </button>
 
               <button
@@ -494,100 +536,50 @@ Entre em contato para combinarmos a entrega do seu prêmio.
                 className="ora-btn-secondary inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-full"
               >
                 <ExternalLink className="w-3.5 h-3.5 text-[#0869F5]" />
-                <span>Ver Página Pública</span>
+                <span>Página Pública</span>
               </Link>
-
-              {raffle.status === 'active' ? (
-                <button
-                  type="button"
-                  onClick={() => setShowDrawModal(true)}
-                  className="ora-btn-primary inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 text-xs font-bold rounded-full cursor-pointer"
-                >
-                  <Trophy className="w-3.5 h-3.5" />
-                  <span>Realizar Sorteio</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowDrawModal(true)}
-                  className="ora-btn-secondary inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-full cursor-pointer border-[#F5D08A] text-[#9A6700] hover:bg-[#FFF8EB]"
-                  title="Abrir roleta novamente para transmissão ao vivo ou gravação de tela"
-                >
-                  <Trophy className="w-3.5 h-3.5 text-[#9A6700]" />
-                  <span>Ver Roleta</span>
-                </button>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Bloco Físico + Virtual / Somente Virtual integrado dentro da mesma Box Hero */}
-        <div className="pt-5 border-t border-[#E0E9F7]">
-          <div className="rounded-[20px] p-4 bg-[#F8FBFF] border border-[#E0E9F7] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5 min-w-0 max-w-2xl">
-              <span
-                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
-                  isVirtualOnly
-                    ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#B45309]'
-                    : 'bg-white border-[#CDE0FC] text-[#0869F5]'
-                }`}
-              >
-                {isVirtualOnly ? (
-                  <Users className="w-5 h-5" />
-                ) : (
-                  <Printer className="w-5 h-5" />
-                )}
-              </span>
-              <div className="min-w-0">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
-                    isVirtualOnly
-                      ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
-                      : 'bg-[#EDF5FF] border-[#CDE0FC] text-[#0869F5]'
-                  }`}
-                >
-                  {isVirtualOnly
-                    ? `Somente Virtual · ${raffle.total_tickets} cotas`
-                    : `Físico + Virtual · ${raffle.total_tickets} cotas`}
-                </span>
-                <h3 className="font-display font-bold text-[15px] sm:text-base text-[#0D1729] tracking-[-0.02em] mt-1">
-                  {isVirtualOnly
-                    ? 'Campanha Online + Checkout para Parceiros'
-                    : 'Cartela Física (PDF A4) e Checkout para Parceiros'}
-                </h3>
-                <p className="text-xs text-[#526480] leading-relaxed mt-0.5">
-                  {isVirtualOnly
-                    ? 'Campanhas acima de 200 números operam no modo digital com suporte completo ao Checkout para Parceiros. A emissão de cartela impressa A4 fica disponível para rifas de até 200 cotas.'
-                    : 'Gere a cartela física estilizada em PDF (2 páginas A4) com QR Code da rifa e gerencie sua rede de vendedores no Checkout para Parceiros.'}
-                </p>
-              </div>
+        {/* Stats Grid Integrado na Hero */}
+        <div className="pt-4 border-t border-[#E0E9F7] grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 tabular-nums">
+          <div className="bg-[#F8FBFF] border border-[#E0E9F7] rounded-[20px] p-4 sm:p-4.5">
+            <div className="text-[#475872] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-1">
+              Arrecadado (Pago)
             </div>
+            <div className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-[#0869F5]">
+              R$ {totalRevenue.toFixed(2)}
+            </div>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-              <Link
-                href={getRafflePartnersAdminPath(raffle)}
-                className="ora-btn-secondary rounded-full px-4 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5"
-              >
-                <Users className="w-3.5 h-3.5 text-[#0869F5]" />
-                <span>Checkout para Parceiros</span>
-              </Link>
+          <div className="bg-[#F8FBFF] border border-[#E0E9F7] rounded-[20px] p-4 sm:p-4.5">
+            <div className="text-[#475872] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-1">
+              Cotas Pagas
+            </div>
+            <div className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-[#0D1729]">
+              {paidTicketsCount}{' '}
+              <span className="text-xs sm:text-sm font-medium text-[#526480]">
+                / {raffle.total_tickets}
+              </span>
+            </div>
+          </div>
 
-              {isVirtualOnly ? (
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] text-[#64748B] text-xs font-semibold">
-                  <Printer className="w-3.5 h-3.5 opacity-60" />
-                  <span>Impressão até 200 cotas</span>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowPhysicalCardModal(true)}
-                  title="Gerar cartela física em PDF (2 páginas A4)"
-                  className="ora-btn-primary rounded-full px-5 py-2.5 text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Gerar Cartela</span>
-                </button>
-              )}
+          <div className="bg-[#F8FBFF] border border-[#E0E9F7] rounded-[20px] p-4 sm:p-4.5">
+            <div className="text-[#475872] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-1">
+              Reservadas
+            </div>
+            <div className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-[#9A6700]">
+              {pendingTicketsCount}
+            </div>
+          </div>
+
+          <div className="bg-[#F8FBFF] border border-[#E0E9F7] rounded-[20px] p-4 sm:p-4.5">
+            <div className="text-[#475872] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-1">
+              Disponíveis
+            </div>
+            <div className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-[#14213A]">
+              {availableTicketsCount}
             </div>
           </div>
         </div>
@@ -646,48 +638,6 @@ Entre em contato para combinarmos a entrega do seu prêmio.
           </div>
         </div>
       )}
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 tabular-nums">
-        <div className="ora-card rounded-[24px] p-5">
-          <div className="text-[#475872] text-xs font-bold uppercase tracking-wider mb-1">
-            Arrecadado (Pago)
-          </div>
-          <div className="font-display font-bold text-2xl sm:text-3xl text-[#0869F5]">
-            R$ {totalRevenue.toFixed(2)}
-          </div>
-        </div>
-
-        <div className="ora-card rounded-[24px] p-5">
-          <div className="text-[#475872] text-xs font-bold uppercase tracking-wider mb-1">
-            Cotas Pagas
-          </div>
-          <div className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729]">
-            {paidTicketsCount}{' '}
-            <span className="text-sm font-medium text-[#526480]">
-              / {raffle.total_tickets}
-            </span>
-          </div>
-        </div>
-
-        <div className="ora-card rounded-[24px] p-5">
-          <div className="text-[#475872] text-xs font-bold uppercase tracking-wider mb-1">
-            Reservadas
-          </div>
-          <div className="font-display font-bold text-2xl sm:text-3xl text-[#9A6700]">
-            {pendingTicketsCount}
-          </div>
-        </div>
-
-        <div className="ora-card rounded-[24px] p-5">
-          <div className="text-[#475872] text-xs font-bold uppercase tracking-wider mb-1">
-            Disponíveis
-          </div>
-          <div className="font-display font-bold text-2xl sm:text-3xl text-[#14213A]">
-            {availableTicketsCount}
-          </div>
-        </div>
-      </div>
 
       {/* Orders List Section */}
       <div className="ora-card rounded-[28px] p-6 sm:p-8 space-y-6">

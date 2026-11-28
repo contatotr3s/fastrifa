@@ -956,7 +956,7 @@ export default function RafflePublicView({
           >
             <div
               id="hero-brand-col"
-              className="flex flex-row items-center text-left gap-3 sm:gap-4 min-w-0 flex-1"
+              className="flex flex-row items-start text-left gap-3 sm:gap-4 min-w-0 flex-1"
             >
               <div className="w-16 h-16 sm:w-[128px] sm:h-[128px] lg:w-[144px] lg:h-[144px] rounded-[16px] sm:rounded-[24px] overflow-hidden border-2 border-[#CDE0FC] shadow-sm bg-gradient-to-br from-[#A7F3D0] to-[var(--ora-blue,#00A868)] text-white flex items-center justify-center shrink-0 text-xl sm:text-4xl font-bold">
                 {raffle.brand_logo_url ? (
@@ -969,11 +969,11 @@ export default function RafflePublicView({
                   <span>{generateBrandInitials(raffle.brand_name || 'FR')}</span>
                 )}
               </div>
-              <div className="min-w-0">
-                <span className="text-[11px] sm:text-[20px] lg:text-[24px] uppercase font-bold tracking-wider text-[#526480] block leading-tight">
+              <div className="min-w-0 pt-0.5 sm:pt-1">
+                <span className="text-[11px] sm:text-[20px] lg:text-[24px] uppercase font-bold tracking-wider text-[#0869F5] block leading-tight">
                   Campanha Oficial de
                 </span>
-                <strong className="font-display text-xl sm:text-[36px] lg:text-[42px] font-bold text-[#0D1729] leading-[1.06] tracking-[-0.03em] block break-words max-w-full sm:max-w-[460px]">
+                <strong className="font-display text-xl sm:text-[36px] lg:text-[42px] font-bold text-[#0D1729] leading-[1.06] tracking-[-0.03em] block break-words max-w-full sm:max-w-[460px] mt-0.5 sm:mt-1">
                   {raffle.brand_name || 'Organizador Oficial'}
                 </strong>
               </div>
@@ -1153,7 +1153,7 @@ export default function RafflePublicView({
               {raffle.subtitle && (
                 <p
                   id="hero-subtitle"
-                  className="font-display font-semibold text-[15.5px] sm:text-[17px] lg:text-[19px] text-[#1E3354] leading-[1.3] tracking-[-0.015em]"
+                  className="font-display font-semibold text-[15.5px] sm:text-[17px] lg:text-[19px] text-[#0869F5] leading-[1.3] tracking-[-0.015em]"
                 >
                   {raffle.subtitle}
                 </p>
@@ -1227,7 +1227,7 @@ export default function RafflePublicView({
         {/* Ticket Selector Section */}
         <section className="ora-card rounded-[32px] p-5 sm:p-8 space-y-6 relative z-10">
           <div>
-            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0D1729] tracking-[-0.04em]">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#0869F5] tracking-[-0.04em]">
               {raffle.status === 'completed'
                 ? 'Cartela Oficial & Resultado do Sorteio'
                 : 'Escolha suas cotas'}
