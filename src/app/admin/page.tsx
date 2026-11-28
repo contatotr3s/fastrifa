@@ -34,6 +34,8 @@ import {
   Home,
   LogOut,
   Users,
+  BarChart3,
+  X,
 } from 'lucide-react';
 import type {
   Order,
@@ -58,6 +60,7 @@ export default function AdminDashboardPage() {
   const [allPayouts, setAllPayouts] = useState<PartnerPayout[]>([]);
   const [loadedFinanceKey, setLoadedFinanceKey] = useState<string | null>(null);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
+  const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
 
   const email = user?.email?.toLowerCase().trim() || '';
   const isMaster = email === MASTER_EMAIL || profile?.role === 'master';
@@ -223,7 +226,28 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="ora-card rounded-[26px] sm:rounded-[30px] p-5 sm:p-7">
+        <div className="ora-card rounded-[26px] sm:rounded-[30px] p-5 sm:p-7 relative">
+          {/* Navegação no topo: no mobile Home no canto sup esquerdo e Sair no canto sup direito */}
+          <div className="flex md:hidden items-center justify-between w-full mb-4 pb-3 border-b border-[#E0E9F7]">
+            <Link
+              href="/"
+              title="Ir para a página inicial"
+              aria-label="Ir para a página inicial"
+              className="ora-btn-secondary rounded-full w-9 h-9 inline-flex items-center justify-center text-[#14213A] hover:text-[#00A868] transition shrink-0"
+            >
+              <Home className="w-4 h-4" />
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Sair da conta"
+              aria-label="Sair da conta"
+              className="w-9 h-9 inline-flex items-center justify-center text-[#475872] hover:text-[#BE123C] bg-[#F8FBFF] hover:bg-[#FFF1F2] border border-[#D9E5F7] hover:border-[#FECDD3] rounded-full transition cursor-pointer shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+
           <div className="flex flex-col md:flex-row md:items-stretch gap-5 sm:gap-7">
             {/* Esquerda: Nome da marca acima + Imagem ampliada em destaque abaixo */}
             <div className="flex flex-col items-center justify-center shrink-0 gap-2.5 md:pr-7 md:border-r md:border-[#E0E9F7]">
@@ -245,7 +269,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Direita: Hero do Painel com ações principais e ícones Home/Sair no canto inferior direito */}
+            {/* Direita: Hero do Painel com ações principais */}
             <div className="flex-1 min-w-0 flex flex-col xl:flex-row xl:items-stretch xl:justify-between gap-4 sm:gap-5 text-center md:text-left">
               <div className="space-y-1.5 min-w-0 flex flex-col justify-center">
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
@@ -265,7 +289,16 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="flex flex-col items-center md:items-start xl:items-end justify-between gap-3 shrink-0 self-stretch">
-                <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-center md:justify-start xl:justify-end">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-center md:justify-start xl:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsFinanceModalOpen(true)}
+                    className="ora-btn-secondary flex-1 sm:flex-initial rounded-full px-4 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                    title="Abrir Dashboard Financeiro e Rede de Vendas"
+                  >
+                    <BarChart3 className="w-4 h-4 text-[#0869F5]" />
+                    <span>Dashboard Financeiro</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setIsBrandModalOpen(true)}
@@ -283,8 +316,8 @@ export default function AdminDashboardPage() {
                   </Link>
                 </div>
 
-                {/* Ícones de Home e Sair alinhados no canto inferior direito com o botão Rifa rápida */}
-                <div className="mt-auto pt-1 flex items-center justify-end gap-2 w-full">
+                {/* Ícones de Home e Sair visíveis no desktop no canto inferior direito */}
+                <div className="mt-auto pt-1 hidden md:flex items-center justify-end gap-2 w-full">
                   <Link
                     href="/"
                     title="Ir para a página inicial"
@@ -384,17 +417,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Dashboard Financeiro & Rede de Vendas (Organizador) */}
-      {!isMaster && (
-        <AdminFinancialDashboard
-          raffles={raffles}
-          orders={allOrders}
-          partners={allPartners}
-          payouts={allPayouts}
-          loading={financeLoading}
-        />
-      )}
 
       {/* Raffles List */}
       <div className="space-y-5">
@@ -539,6 +561,53 @@ export default function AdminDashboardPage() {
           onClose={() => setIsBrandModalOpen(false)}
           isEditMode={true}
         />
+      )}
+
+      {/* Financial Dashboard Modal */}
+      {!isMaster && isFinanceModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-[#0D1729]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+          onClick={() => setIsFinanceModalOpen(false)}
+        >
+          <div
+            className="ora-card rounded-[26px] sm:rounded-[32px] w-full max-w-5xl my-auto p-4 sm:p-7 space-y-4 max-h-[92vh] flex flex-col shadow-[0_25px_60px_rgba(13,23,41,0.25)] relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E0E9F7] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-[#0869F5]/10 text-[#0869F5] flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-lg sm:text-xl text-[#0D1729] leading-tight">
+                    Dashboard Financeiro & Rede de Vendas
+                  </h3>
+                  <p className="text-xs text-[#526480] hidden sm:block">
+                    Acompanhe o faturamento líquido, comissões de parceiros e canais de venda das suas campanhas.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFinanceModalOpen(false)}
+                className="w-9 h-9 rounded-full bg-[#F5F9FF] hover:bg-[#E3EDFB] border border-[#D9E5F7] text-[#475872] hover:text-[#0D1729] flex items-center justify-center transition cursor-pointer shrink-0"
+                aria-label="Fechar modal financeiro"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto pr-1 flex-1">
+              <AdminFinancialDashboard
+                raffles={raffles}
+                orders={allOrders}
+                partners={allPartners}
+                payouts={allPayouts}
+                loading={financeLoading}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
