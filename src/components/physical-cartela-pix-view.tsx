@@ -1386,20 +1386,7 @@ export default function PhysicalCartelaPixView({
                               </p>
                             )}
 
-                          {pricing.needsMoreForRoulette > 0 && (
-                            <p className="text-[11px] font-semibold text-[#334661]">
-                              Adicione +{pricing.needsMoreForRoulette} cota(s) para liberar a Roleta da Sorte!
-                            </p>
-                          )}
                         </div>
-                      )}
-
-                      {pricing.nextTier && normalizedDiscount.mode !== 'roulette' && (
-                        <p className="text-[11px] font-bold text-[#047857]">
-                          {normalizedDiscount.mode === 'buy_x_pay_y'
-                            ? `Dica: +${pricing.nextTier.remaining} cota(s) libera +${(normalizedDiscount.buy_x_qty || 3) - (normalizedDiscount.pay_y_qty || 2)} cota(s) grátis!`
-                            : `Dica: +${pricing.nextTier.remaining} cota(s) desbloqueia ${pricing.nextTier.percent}% OFF!`}
-                        </p>
                       )}
                     </div>
                   )}
@@ -1488,6 +1475,88 @@ export default function PhysicalCartelaPixView({
                         <span>Cliente: Girar Roleta da Sorte!</span>
                       </button>
                     )}
+
+                  {/* Incentivo dinâmico de promoção (mesmo padrão da rifa pública) */}
+                  {normalizedDiscount.mode !== 'none' && !discountExpired && (() => {
+                    const freeQty =
+                      (normalizedDiscount.buy_x_qty || 3) - (normalizedDiscount.pay_y_qty || 2);
+                    let tone: 'amber' | 'green' | 'blue' | null = null;
+                    let icon: 'dices' | 'percent' = 'percent';
+                    let text = '';
+
+                    if (normalizedDiscount.mode === 'roulette') {
+                      icon = 'dices';
+                      if (pricing.canSpinRoulette) {
+                        tone = 'amber';
+                        text =
+                          rouletteHighestPercent > 0 && rouletteDistribution.minEligiblePercent
+                            ? `Novo giro liberado! Gire para ganhar de ${rouletteDistribution.minEligiblePercent}% a ${rouletteMaxOption}% OFF!`
+                            : `Roleta da Sorte desbloqueada! Gire para ganhar até ${rouletteMaxOption}% OFF!`;
+                      } else if (pricing.discountPercent > 0) {
+                        tone = 'green';
+                        text =
+                          pricing.discountPercent >= rouletteMaxOption
+                            ? `${pricing.discountPercent}% OFF máximo ativo! Adicione mais cotas mantendo o desconto.`
+                            : `${pricing.discountPercent}% OFF ativo (-R$ ${pricing.discountAmount.toFixed(2)}) · Adicione mais cotas mantendo o desconto!`;
+                      } else if (pricing.needsMoreForRoulette > 0) {
+                        tone = 'blue';
+                        text =
+                          rouletteHighestPercent > 0 && rouletteDistribution.minEligiblePercent
+                            ? `Adicione +${pricing.needsMoreForRoulette} cota(s) para girar novamente (de ${rouletteDistribution.minEligiblePercent}% a ${rouletteMaxOption}% OFF).`
+                            : `Adicione +${pricing.needsMoreForRoulette} cota(s) para desbloquear a Roleta da Sorte (até ${rouletteMaxOption}% OFF).`;
+                      }
+                    } else if (pricing.discountPercent > 0) {
+                      tone = 'green';
+                      const base =
+                        normalizedDiscount.mode === 'buy_x_pay_y'
+                          ? `Compre ${pricing.buyQty ?? normalizedDiscount.buy_x_qty}, Pague ${pricing.payQty ?? normalizedDiscount.pay_y_qty}: ${pricing.freeTickets} grátis! (-R$ ${pricing.discountAmount.toFixed(2)})`
+                          : `${normalizedDiscount.mode === 'progressive' ? 'Progressivo' : 'Especial'}: ${pricing.discountPercent}% OFF! (-R$ ${pricing.discountAmount.toFixed(2)})`;
+                      const next = pricing.nextTier
+                        ? normalizedDiscount.mode === 'buy_x_pay_y'
+                          ? ` · +${pricing.nextTier.remaining} → +${freeQty} grátis`
+                          : ` · +${pricing.nextTier.remaining} → ${pricing.nextTier.percent}%`
+                        : '';
+                      text = base + next;
+                    } else if (pricing.nextTier) {
+                      tone = 'blue';
+                      text =
+                        normalizedDiscount.mode === 'buy_x_pay_y'
+                          ? `Adicione +${pricing.nextTier.remaining} cota(s) para ganhar ${freeQty} cota(s) grátis (Compre ${normalizedDiscount.buy_x_qty}, Pague ${normalizedDiscount.pay_y_qty})!`
+                          : `Adicione +${pricing.nextTier.remaining} cota(s) para desbloquear ${pricing.nextTier.percent}% OFF automático!`;
+                    }
+
+                    if (!tone || !text) return null;
+
+                    const toneClass =
+                      tone === 'amber'
+                        ? 'bg-gradient-to-r from-[#FFF8EB] via-[#FEF3C7] to-[#FFFBEB] border-[#F5D08A] text-[#92400E] font-bold'
+                        : tone === 'green'
+                          ? 'bg-[#E8F7F0] border-[#B9E7D2] text-[#065F46] font-bold'
+                          : 'bg-[#F5F9FF] border-[#D9E5F7] text-[#334661] font-semibold';
+                    const iconClass =
+                      tone === 'amber'
+                        ? 'text-[#D97706]'
+                        : tone === 'green'
+                          ? 'text-[#00A868]'
+                          : icon === 'dices'
+                            ? 'text-[#0869F5]'
+                            : 'text-[#00A868]';
+
+                    return (
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className={`w-full rounded-[14px] px-3 py-2 border flex items-center justify-center gap-2 text-[11px] sm:text-xs animate-in fade-in duration-300 ${toneClass}`}
+                      >
+                        {icon === 'dices' ? (
+                          <Dices className={`w-4 h-4 shrink-0 ${iconClass}`} />
+                        ) : (
+                          <Percent className={`w-3.5 h-3.5 shrink-0 ${iconClass}`} />
+                        )}
+                        <span className="leading-snug text-center animate-pulse">{text}</span>
+                      </div>
+                    );
+                  })()}
 
                   <div className="px-3.5 py-2.5 rounded-[16px] bg-[var(--ora-surface-alt,#E8F7F0)] border border-[var(--ora-border-strong,#B9E7D2)] flex items-center justify-between tabular-nums">
                     <div>
